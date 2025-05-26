@@ -4,14 +4,28 @@
 .pre-commit-config.yaml
 result
 
+# Binary
+zappy_server
+zappy_gui
+
+tests_server
+tests_gui
+
+debug_server
+debug_gui
+
 # build artifacts
 .build
 venv
 __pycache__
 *.[aod]
+*.so
 
 # Editors
 .idea
 .vscode
 compile_commands.json
 ecsls.toml
+
+# Basic files
+a.out
