@@ -41,6 +41,8 @@
             gcovr
             hl-log-viewer
             cpp-fmt
+            doxygen
+            graphviz
           ];
         };
     });
