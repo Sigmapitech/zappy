@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 79
+target-version = [ "py310" ]
+include = "\\.pyi?$"
+
+[tool.isort]
+profile = "black"
+src_paths = [ "zappy_ai" ]
