@@ -14,7 +14,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get update
         sudo apt-get install -y doxygen graphviz
         git submodule update --init
 
