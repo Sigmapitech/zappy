@@ -1,0 +1,77 @@
+---
+BasedOnStyle: LLVM
+AlignEscapedNewlines: DontAlign
+AlignOperands: DontAlign
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakBeforeMultilineStrings: true
+BinPackArguments: false
+BinPackParameters: false
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+ColumnLimit: 79
+CompactNamespaces: true
+ConstructorInitializerIndentWidth: 2
+ContinuationIndentWidth: 2
+EmptyLineBeforeAccessModifier: Always
+IncludeCategories:
+  - Regex: ^<.*>
+    Priority: 1
+  - Regex: ^".*"
+    Priority: 2
+  - Regex: .*
+    Priority: 1
+    SortPriority: 0
+    CaseSensitive: false
+IndentCaseBlocks: true
+IndentCaseLabels: true
+IndentGotoLabels: false
+IndentPPDirectives: BeforeHash
+KeepEmptyLines:
+  AtEndOfFile: true
+NamespaceIndentation: All
+PPIndentWidth: 2
+PackConstructorInitializers: NextLine
+PenaltyBreakAssignment: 100
+PenaltyBreakBeforeFirstCallParameter: 0
+PenaltyBreakComment: 0
+PenaltyBreakFirstLessLess: 0
+PenaltyBreakScopeResolution: 5
+PenaltyBreakString: 0
+PenaltyExcessCharacter: 10000
+PenaltyIndentedWhitespace: 1000
+PenaltyReturnTypeOnItsOwnLine: 1
+RemoveBracesLLVM: true
+RemoveParentheses: ReturnStatement
+RemoveSemicolon: true
+SeparateDefinitionBlocks: Always
+SkipMacroDefinitionBody: true
+SpaceAroundPointerQualifiers: Before
+SpaceBeforeParensOptions:
+  AfterPlacementOperator: false
+SpaceBeforeRangeBasedForLoopColon: false
+SpacesBeforeTrailingComments: 2
+SpacesInContainerLiterals: false
+Standard: c++20
+Language: Cpp
+BracedInitializerIndentWidth: 2

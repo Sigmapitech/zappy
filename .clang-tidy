@@ -1,0 +1,40 @@
+CheckOptions:
+  - key: readability-identifier-naming.MethodCase
+    value: camelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: camelCase
+  - key: readability-identifier-naming.PrivateMethodCase
+    value: camelCase
+  - key: readability-identifier-naming.PublicMethodCase
+    value: camelCase
+  - key: readability-identifier-naming.ProtectedMethodCase
+    value: camelCase
+  - key:   readability-identifier-naming.FunctionCase
+    value: camelCase
+  - key:   readability-identifier-naming.VariableCase
+    value: lower_case
+  - key:   readability-identifier-naming.GlobalVariableCase
+    value: UPPER_CASE
+
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  misc-*,
+  -misc-no-recursion,
+  performance-*,
+  portability-*,
+  readability-*,
+  -bugprone-narrowing-conversions,
+  -bugprone-casting-through-void,
+  -bugprone-reserved-identifier,
+  -readability-magic-numbers,
+  -readability-named-parameter,
+  -readability-braces-around-statements,
+  -readability-identifier-length,
+  -readability-identifier-naming,
+  -readability-implicit-bool-conversion,
+  -readability-duplicate-include,
+  clang-analyzer-*,
+  modernize-*,
+  llvm-*,
