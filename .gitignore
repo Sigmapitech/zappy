@@ -31,3 +31,6 @@ ecsls.toml
 
 # Basic files
 a.out
+
+# Documentation
+.doc
