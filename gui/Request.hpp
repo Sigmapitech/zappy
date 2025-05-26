@@ -29,24 +29,24 @@ static const request_t REQUEST[] = {
     {PLAYER_LEVEL, "plv #%i"}, {PLAYER_INVENTORY, "pin #%i"},
     {TIME_UNIT, "sgt"},        {TIME_UNIT_MODIFICATION, "sst %d"}};
 
-#define RESPONSE_POOL_SIZE (int)(sizeof(REQUEST) / sizeof(request_t))
-#define RESPONSE_LENGTH_MAX 4096
+#define REQUEST_POOL_SIZE (int)(sizeof(REQUEST) / sizeof(request_t))
+#define REQUEST_LENGTH_MAX 4096
 
 static inline void commit(int fd, cmd_t code, ...) {
   va_list list;
   char *tmp = NULL;
-  static char resp[RESPONSE_LENGTH_MAX];
-  char format[RESPONSE_LENGTH_MAX];
+  static char resp[REQUEST_LENGTH_MAX];
+  char format[REQUEST_LENGTH_MAX];
   size_t len;
 
-  for (int i = 0; i < RESPONSE_POOL_SIZE; i++)
+  for (int i = 0; i < REQUEST_POOL_SIZE; i++)
     if (REQUEST[i].key == code)
       tmp = REQUEST[i].value;
   if (tmp == NULL)
     return;
   va_start(list, code);
-  snprintf(format, RESPONSE_LENGTH_MAX, "%d %s\r\n", code, tmp);
-  len = vsnprintf(resp, RESPONSE_LENGTH_MAX, format, list);
+  snprintf(format, REQUEST_LENGTH_MAX, "%d %s\r\n", code, tmp);
+  len = vsnprintf(resp, REQUEST_LENGTH_MAX, format, list);
   va_end(list);
   write(fd, resp, len);
 }
