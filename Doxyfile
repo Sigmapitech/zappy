@@ -57,7 +57,7 @@ INCLUDED_BY_GRAPH      = YES
 GRAPHICAL_HIERARCHY    = YES
 DIRECTORY_GRAPH        = YES
 DOT_IMAGE_FORMAT       = svg
-DOT_PATH               = /usr/bin/dot
+DOT_PATH               = /usr/bin/env
 
 #-------------------- Miscellaneous --------------------
 OBFUSCATE_EMAILS       = YES
