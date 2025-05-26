@@ -2,8 +2,7 @@ name: Documentation
 
 on:
   push:
-    branches: [ Doc ]
-  pull_request:
+    branches: [ dev ]
 
 jobs:
   doc:
@@ -17,6 +16,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y doxygen graphviz
+        git submodule update --init
 
     - name: Build doc
       run: doxygen Doxyfile
