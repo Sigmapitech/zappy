@@ -1,28 +1,14 @@
-#include <SDL2/SDL.h>
+#include "Display.hpp"
 #include <iostream>
-
-#include <stdio.h>
+#include <thread>
 
 int main(int argc, char **argv) {
-  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    fprintf(stdout, "Error :(%s)\n", SDL_GetError());
-    return -1;
-  }
-  {
-    SDL_Window *pWindow = NULL;
-    pWindow =
-        SDL_CreateWindow("Window", SDL_WINDOWPOS_UNDEFINED,
-                         SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN);
+  Display displayer;
 
-    if (pWindow) {
-      SDL_Delay(3000);
+  // std::thread network;
+  std::thread display([&displayer]() { displayer.RunDisplayer(); });
 
-      SDL_DestroyWindow(pWindow);
-    } else {
-      fprintf(stderr, "Erreur de création de la fenêtre: %s\n", SDL_GetError());
-    }
-  }
-  SDL_Quit();
-
+  // network.join();
+  display.join();
   return 0;
 }
