@@ -53,7 +53,7 @@ jobs:
           nix build
 
       - name: Check coding style
-        run: nix run github:Sigmapitech/cs -- . --use-gitignore
+        run: nix run github:Sigmapitech/cs -- . --use-gitignore --ecsls
   sync_repository:
     needs: [ check_the_repository_state ]
     if: ${{ !github.event.pull_request }}

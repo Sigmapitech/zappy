@@ -1,6 +1,6 @@
 import os
 
-TARGET_COLUMN = 79
+TARGET_COLUMN = 78
 ROOT_DIR = "."
 TAB_SIZE = 4
 

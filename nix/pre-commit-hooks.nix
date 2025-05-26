@@ -17,7 +17,6 @@
     clang-format = {
       enable = true;
       types_or = lib.mkForce [
-        "c"
         "c++"
       ];
     };
