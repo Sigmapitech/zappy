@@ -40,6 +40,8 @@
             compiledb
             gcovr
             hl-log-viewer
+            pkg-config
+            SDL2
             cpp-fmt
             doxygen
             graphviz
