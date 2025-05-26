@@ -1,0 +1,68 @@
+#-------------------- Project Information --------------------
+PROJECT_NAME           = "ZAPPY"
+PROJECT_BRIEF          = "A Tribute to Zaphod Beeblebrox"
+OUTPUT_DIRECTORY       = .doc
+
+#-------------------- Input --------------------
+INPUT                  = server/ gui/ ai/ README.md
+FILE_PATTERNS          = *.c *.cpp *.h *.hpp *.py
+RECURSIVE              = YES
+USE_MDFILE_AS_MAINPAGE = README.md
+
+#-------------------- Build Options --------------------
+CREATE_SUBDIRS         = YES
+CREATE_SUBDIRS_LEVEL   = 8
+MARKDOWN_SUPPORT       = YES
+MARKDOWN_ID_STYLE      = DOXYGEN
+TOC_INCLUDE_HEADINGS   = 5
+INPUT_ENCODING         = UTF-8
+PYTHON_DOCSTRING       = YES
+EXTRACT_LOCAL_CLASSES  = YES
+SHOW_HEADERFILE        = YES
+SHOW_INCLUDE_FILES     = YES
+SHOW_USED_FILES        = YES
+SHOW_FILES             = YES
+SHOW_NAMESPACES        = YES
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = YES
+STRIP_CODE_COMMENTS    = YES
+REFERENCES_LINK_SOURCE = YES
+SOURCE_TOOLTIPS        = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_IF_INCOMPLETE_DOC = YES
+GENERATE_TODOLIST      = YES
+GENERATE_TESTLIST      = YES
+GENERATE_BUGLIST       = YES
+GENERATE_DEPRECATEDLIST= YES
+
+#-------------------- HTML Output --------------------
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_EXTRA_STYLESHEET  = doxygen-awesome-css/doxygen-awesome.css              \
+                         doxygen-awesome-css/doxygen-awesome-sidebar-only.css
+HTML_COLORSTYLE        = AUTO_LIGHT
+HTML_DYNAMIC_MENUS     = YES
+HTML_CODE_FOLDING      = YES
+GENERATE_TREEVIEW      = YES
+
+#-------------------- Graphs --------------------
+HAVE_DOT               = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+GROUP_GRAPHS           = YES
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+GRAPHICAL_HIERARCHY    = YES
+DIRECTORY_GRAPH        = YES
+DOT_IMAGE_FORMAT       = svg
+DOT_PATH               = /usr/bin/env dot
+
+#-------------------- Miscellaneous --------------------
+OBFUSCATE_EMAILS       = YES
+
+#-------------------- Exclude/Filter (if needed) --------------------
+FILTER_SOURCE_FILES    = YES
+
+#-------------------- End of file --------------------
