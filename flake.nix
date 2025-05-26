@@ -43,6 +43,8 @@
               compiledb
               gcovr
               hl-log-viewer
+              pkg-config
+              SDL2
               doxygen
               graphviz
               pyenv
