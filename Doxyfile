@@ -120,6 +120,7 @@ INPUT_FILE_ENCODING    =
 FILE_PATTERNS          = *.c                                                   \
                          *.cpp                                                 \
                          *.h                                                   \
+                         *.hpp                                                 \
                          *.py
 RECURSIVE              = YES
 EXCLUDE                =
@@ -132,7 +133,7 @@ EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             =
 INPUT_FILTER           =
 FILTER_PATTERNS        =
-FILTER_SOURCE_FILES    = NO
+FILTER_SOURCE_FILES    = YES
 FILTER_SOURCE_PATTERNS =
 USE_MDFILE_AS_MAINPAGE =
 FORTRAN_COMMENT_AFTER  = 72

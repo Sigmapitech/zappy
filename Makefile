@@ -51,27 +51,27 @@ define mk-bin
 
 $(BUILD)/$(strip $2)/%.o: %.$(GENERIC_SUFFIX_$(strip $3))
 	@ mkdir -p $$(dir $$@)
-	$$Q $$(COMPILE.$(GENERIC_SUFFIX_$(strip $3)))                             \
-		-MMD -MP -MF $$(@:.o=.d)                                              \
-		-o $$@ -c $$<                                                         \
-			$$($(GENERIC_FLAGS_$(strip $3))FLAGS)                             \
+	$$Q $$(COMPILE.$(GENERIC_SUFFIX_$(strip $3)))                              \
+		-MMD -MP -MF $$(@:.o=.d)                                               \
+		-o $$@ -c $$<                                                          \
+			$$($(GENERIC_FLAGS_$(strip $3))FLAGS)                              \
 			$$($(GENERIC_FLAGS_$(strip $3))FLAGS_$(strip $2))
-	@ $$(LOG_TIME) "CC $$(C_YELLOW)$(strip $2)$$(C_RESET)                     \
+	@ $$(LOG_TIME) "CC $$(C_YELLOW)$(strip $2)$$(C_RESET)                      \
 		$$(C_PURPLE)$$(notdir $$@) $$(C_RESET)"
 
 out_$(strip $1)_$(strip $2) := $(NAME_$(strip $1)_$(strip $2))
-src_$(strip $1)_$(strip $2) !=                                                \
+src_$(strip $1)_$(strip $2) !=                                                 \
 	find $(strip $1) -type f -name "*.$(GENERIC_SUFFIX_$(strip $3))"
 
-objs_$(strip $1)_$(strip $2) :=                                               \
-	$$(src_$(strip $1)_$(strip $2):%.$(GENERIC_SUFFIX_$(strip                 \
+objs_$(strip $1)_$(strip $2) :=                                                \
+	$$(src_$(strip $1)_$(strip $2):%.$(GENERIC_SUFFIX_$(strip                  \
 	$3))=$(BUILD)/$(strip $2)/%.o)
 
 $$(out_$(strip $1)_$(strip $2)): $$(objs_$(strip $1)_$(strip $2))
-	$$Q $$(LINK.$(GENERIC_SUFFIX_$(strip $3)))                                \
-			$$($(GENERIC_FLAGS_$(strip $3))FLAGS)                             \
-			$$($(GENERIC_FLAGS_$(strip $3))FLAGS_$(strip $1))                 \
-			$$($(GENERIC_FLAGS_$(strip $3))FLAGS_$(strip $2))                 \
+	$$Q $$(LINK.$(GENERIC_SUFFIX_$(strip $3)))                                 \
+			$$($(GENERIC_FLAGS_$(strip $3))FLAGS)                              \
+			$$($(GENERIC_FLAGS_$(strip $3))FLAGS_$(strip $1))                  \
+			$$($(GENERIC_FLAGS_$(strip $3))FLAGS_$(strip $2))                  \
 -o $$@ $$^ $$(LDLIBS) $$(LDFLAGS)
 	@ $$(LOG_TIME) "LD $$(C_GREEN)$$@ $$(C_RESET)"
 
@@ -83,16 +83,16 @@ endef
 LANG_server := C
 LANG_gui := CPP
 
-$(foreach target, server gui,                                                 \
-$(foreach build-mode, release debug cov,                                      \
-	$(eval $(call generic-o-builder, $(build-mode), $(LANG_$(target))))       \
-	$(eval $(call mk-bin, $(target), $(build-mode), $(LANG_$(target))))       \
+$(foreach target, server gui,                                                  \
+$(foreach build-mode, release debug cov,                                       \
+	$(eval $(call generic-o-builder, $(build-mode), $(LANG_$(target))))        \
+	$(eval $(call mk-bin, $(target), $(build-mode), $(LANG_$(target))))        \
 ))
 
 ifeq ($(V),2)
-$(foreach target, server gui,                                                 \
-$(foreach build-mode, release debug cov,                                      \
-	$(eval $(call mk-bin, $(target), $(build-mode), $(LANG_$(target))))       \
+$(foreach target, server gui,                                                  \
+$(foreach build-mode, release debug cov,                                       \
+	$(eval $(call mk-bin, $(target), $(build-mode), $(LANG_$(target))))        \
 ))
 endif
 
@@ -116,7 +116,7 @@ venv:
 	@ $(LOG_TIME) "PY $(C_YELLOW)$@ $(C_RESET)"
 
 zappy_ai: venv $(shell find ai -type f -name "*.py")
-	$Q venv/bin/pip install -e . -q                                           \
+	$Q venv/bin/pip install -e . -q                                            \
 		--no-build-isolation --disable-pip-version-check
 	@ $(LOG_TIME) "PP $(C_YELLOW)$@ $(C_RESET)"
 	$Q cp venv/bin/zappy_ai $@
@@ -124,8 +124,8 @@ zappy_ai: venv $(shell find ai -type f -name "*.py")
 
 .PHONY: help
 help: #? help: Show this help message
-	@ grep -P "#[?] " $(MAKEFILE_LIST)                                        \
-	  | sed -E 's/.*#\? ([^:]+): (.*)/\1 "\2"/'                               \
+	@ grep -P "#[?] " $(MAKEFILE_LIST)                                         \
+	  | sed -E 's/.*#\? ([^:]+): (.*)/\1 "\2"/'                                \
 	  | xargs printf "%-12s: %s\n"
 
 .PHONY: clean fclean re
