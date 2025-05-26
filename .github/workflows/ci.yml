@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  GH_PUB_KEY:
+    github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+  GH_BOT_ACC_EMAIL:
+    41898282+github-actions[bot]@users.noreply.github.com
+  GH_BOT_ACC_NAME:
+    github-actions[bot]
+
+jobs:
+  check_the_repository_state:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get branch name
+        id: branch
+        run: |
+          if [ "$GITHUB_HEAD_REF" ]; then
+            echo "BRANCH_NAME=$GITHUB_HEAD_REF" >> $GITHUB_ENV
+          else
+            echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.BRANCH_NAME }}
+
+      - name: setup git
+        run: |
+          git config --local user.email $GH_BOT_ACC_EMAIL
+          git config --local user.name $GH_BOT_ACC_NAME
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.GH_SSH_PRIVATE_KEY }}
+          known_hosts: $GH_PUB_KEY
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
+
+      - name: Build
+        run: |
+          nix build
+
+      - name: Check coding style
+        run: nix run github:Sigmapitech/cs -- . --use-gitignore
+  sync_repository:
+    needs: [ check_the_repository_state ]
+    if: ${{ !github.event.pull_request }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get branch name
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Log branch
+        run: |
+          echo "Branch: $BRANCH_NAME"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.BRANCH_NAME }}
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.GH_SSH_PRIVATE_KEY }}
+          known_hosts: $GH_PUB_KEY
+
+      - name: Setup git
+        run: |
+          git config --global user.email "115845162+imjohntitor@users.noreply.github.com"
+          git config --global user.name "ImJohnTitor"
+          git remote add epitech "${{ secrets.GH_TARGET_REPO }}"
+
+      - name: Fix headers
+        run: python scripts/insert_headers.py
+
+      - name: Commit
+        run: |
+          git add .
+          git commit -m "[skip ci] Mirror (${{ github.event.repository.updated_at }})"
+
+      - name: Push to epitech
+        run: |
+         git push epitech --set-upstream $BRANCH_NAME --force
