@@ -1,0 +1,17 @@
+# nix stuff
+.direnv
+.envrc
+.pre-commit-config.yaml
+result
+
+# build artifacts
+.build
+venv
+__pycache__
+*.[aod]
+
+# Editors
+.idea
+.vscode
+compile_commands.json
+ecsls.toml
