@@ -5,6 +5,7 @@
 result
 
 # Binary
+zappy_ai
 zappy_server
 zappy_gui
 
@@ -20,6 +21,7 @@ venv
 __pycache__
 *.[aod]
 *.so
+*.egg-info
 
 # Editors
 .idea
