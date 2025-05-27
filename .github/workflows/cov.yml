@@ -3,7 +3,13 @@ name: Coverage
 on:
   push:
     branches: [ dev ]
-  pull_request:
+    paths:
+      - 'AI'
+      - 'server'
+      - 'GUI'
+      - 'Makefile'
+      - 'tests'
+      - '.github/workflows/cov.yml'
 
 jobs:
   coverage:
