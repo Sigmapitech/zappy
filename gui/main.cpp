@@ -1,14 +1,16 @@
 #include "Display.hpp"
-#include <iostream>
+
+#include "logging/Logger.hpp"
+
 #include <thread>
 
-int main(int argc, char **argv) {
+int main()
+{
   Display displayer;
 
-  // std::thread network;
+  Log::info << "GUI started.";
   std::thread display([&displayer]() { displayer.RunDisplayer(); });
 
-  // network.join();
   display.join();
   return 0;
 }

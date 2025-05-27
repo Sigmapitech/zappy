@@ -23,16 +23,21 @@ typedef struct {
 } request_t;
 
 static const request_t REQUEST[] = {
-    {MAP_SIZE, "msz"},         {TILE_CONTENT, "bct %lu %lu"},
-    {MAP_CONTENT, "mct"}, // content of the map (all the tiles)
-    {TEAM_NAMES, "tna"},       {PLAYER_POSITION, "ppo #%i"},
-    {PLAYER_LEVEL, "plv #%i"}, {PLAYER_INVENTORY, "pin #%i"},
-    {TIME_UNIT, "sgt"},        {TIME_UNIT_MODIFICATION, "sst %d"}};
+  {MAP_SIZE, "msz"},
+  {TILE_CONTENT, "bct %lu %lu"},
+  {MAP_CONTENT, "mct"},  // content of the map (all the tiles)
+  {TEAM_NAMES, "tna"},
+  {PLAYER_POSITION, "ppo #%i"},
+  {PLAYER_LEVEL, "plv #%i"},
+  {PLAYER_INVENTORY, "pin #%i"},
+  {TIME_UNIT, "sgt"},
+  {TIME_UNIT_MODIFICATION, "sst %d"}};
 
 #define REQUEST_POOL_SIZE (int)(sizeof(REQUEST) / sizeof(request_t))
 #define REQUEST_LENGTH_MAX 4096
 
-static inline void commit(int fd, cmd_t code, ...) {
+static inline void commit(int fd, cmd_t code, ...)
+{
   va_list list;
   char *tmp = NULL;
   static char resp[REQUEST_LENGTH_MAX];
