@@ -6,11 +6,8 @@
 
 int main()
 {
-  Display displayer;
-
   Log::info << "GUI started.";
-  std::thread display([&displayer]() { displayer.RunDisplayer(); });
+  std::jthread ui_thread(Display::run_display);
 
-  display.join();
   return 0;
 }
