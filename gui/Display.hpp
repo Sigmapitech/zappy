@@ -1,13 +1,9 @@
 #pragma once
 
+#include <SDL2/SDL.h>
+
 class Display {
-private:
-  /* data */
-
 public:
-  Display() = default;
-  ~Display() = default;
-
-  void RunDisplayer(void);
-  void OpenWindow(void);
+  static void run_display();
+  static SDL_Window *open_window();
 };

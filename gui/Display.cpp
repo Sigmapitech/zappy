@@ -1,18 +1,29 @@
-#include "Display.hpp"
+#include <cstdio>
+
 #include <SDL2/SDL.h>
-#include <stdio.h>
 
-void Display::RunDisplayer(void) {}
+#include "Display.hpp"
+#include "logging/Logger.hpp"
 
-void Display::OpenWindow(void)
+void Display::run_display()
+{
+  // TODO: make the window "safe"
+  auto *window = Display::open_window();
+
+  SDL_Delay(3000);
+
+  SDL_DestroyWindow(window);
+  SDL_Quit();
+}
+
+SDL_Window *Display::open_window()
 {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     fprintf(stdout, "Error :(%s)\n", SDL_GetError());
-    return;
+    return nullptr;
   }
   {
-    SDL_Window *pWindow = NULL;
-    pWindow = SDL_CreateWindow(
+    SDL_Window *window = SDL_CreateWindow(
       "Window",
       SDL_WINDOWPOS_UNDEFINED,
       SDL_WINDOWPOS_UNDEFINED,
@@ -20,16 +31,8 @@ void Display::OpenWindow(void)
       480,
       SDL_WINDOW_SHOWN);
 
-    if (pWindow) {
-      SDL_Delay(3000);
-
-      SDL_DestroyWindow(pWindow);
-    } else {
-      fprintf(
-        stderr, "Erreur de création de la fenêtre: %s\n", SDL_GetError());
-    }
+    if (window == nullptr)
+      Log::failed << "Cannot open window: " << SDL_GetError();
+    return window;
   }
-  SDL_Quit();
-
-  return;
 }
