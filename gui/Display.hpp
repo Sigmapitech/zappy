@@ -3,6 +3,7 @@
 class Display {
 private:
   /* data */
+
 public:
   Display() = default;
   ~Display() = default;
