@@ -133,6 +133,11 @@ zappy_ai: venv $(shell find ai -type f -name "*.py")
 	$Q cp venv/bin/zappy_ai $@
 	@ $(LOG_TIME) "CP $(C_GREEN)$@ $(C_RESET)"
 
+html-doc: #? html-doc: Build the static html documentation
+	doxygen Doxyfile
+	$(MAKE) -C docs html
+	@ $(LOG_TIME) "DO $(C_YELLOW)$@ $(C_RESET)"
+
 .PHONY: help
 help: #? help: Show this help message
 	@ grep -P "#[?] " $(MAKEFILE_LIST)                                        \
@@ -147,7 +152,10 @@ fclean: clean
 	$(RM) $(every_out) zappy_ai
 
 mrproper: fclean
-	$(RM) -rf .build compile_commands.json
+	$(RM) -rf venv $(BUILD)
+	$(RM) -rf $(BUILD)
+	$(RM) -rf docs/source/api docs/doxygen
+	$(RM) -rf compile_commands.json
 
 .NOTPARALLEL: re
 re: fclean all
