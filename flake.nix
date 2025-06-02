@@ -18,30 +18,38 @@
       ] (system: function nixpkgs.legacyPackages.${system});
   in {
     devShells = forAllSystems (pkgs: {
-      default = pkgs.mkShell {
-        inherit (self.checks.${pkgs.system}.pre-commit-check) shellHook;
-
-        env.MAKEFLAGS = "-j";
-        hardeningDisable = ["fortify"];
-        inputsFrom = with self.packages.${pkgs.system}; [
-          zappy_ai
-          zappy_gui
-          zappy_server
-        ];
-
-        packages =
-          (with pkgs; [
-            clang-tools
-            compiledb
-            gcovr
-            hl-log-viewer
-            doxygen
-            graphviz
-          ])
-          ++ (with self.packages.${pkgs.system}; [
-            cpp-fmt
+      default = let
+        pyenv = pkgs.python313.withPackages (p:
+          with p; [
+            pytest
+            pytest-cov
           ]);
-      };
+      in
+        pkgs.mkShell {
+          inherit (self.checks.${pkgs.system}.pre-commit-check) shellHook;
+
+          env.MAKEFLAGS = "-j";
+          hardeningDisable = ["fortify"];
+          inputsFrom = with self.packages.${pkgs.system}; [
+            zappy_ai
+            zappy_gui
+            zappy_server
+          ];
+
+          packages =
+            (with pkgs; [
+              clang-tools
+              compiledb
+              gcovr
+              hl-log-viewer
+              doxygen
+              graphviz
+              pyenv
+            ])
+            ++ (with self.packages.${pkgs.system}; [
+              cpp-fmt
+            ]);
+        };
     });
 
     formatter = forAllSystems (pkgs: pkgs.alejandra);
