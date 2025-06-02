@@ -43,12 +43,10 @@ GENERIC_FLAGS_CPP := CXX
 
 NAME_server_release := zappy_server
 NAME_server_debug := debug_server
-NAME_server_cov := cov_server
 NAME_server_tests := tests_server
 
 NAME_gui_release := zappy_gui
 NAME_gui_debug := debug_gui
-NAME_gui_cov := cov_gui
 NAME_gui_tests := tests_gui
 
 EXTRA_SRC_gui_tests != find tests/gui -name "*.cpp"
@@ -95,7 +93,7 @@ LANG_server := C
 LANG_gui := CPP
 
 $(foreach target, server gui,                                                 \
-$(foreach build-mode, release debug cov tests,                                \
+$(foreach build-mode, release debug tests,                                    \
 	$(eval $(call mk-bin, $(target), $(build-mode), $(LANG_$(target))))       \
 ))
 
@@ -112,6 +110,7 @@ all: zappy_server zappy_gui zappy_ai
 
 ifneq ($(auto-complete),)
 # auto complete for dumb terminals
+
 debug_gui:
 debug_server:
 zappy_ai:
@@ -119,6 +118,8 @@ zappy_gui:
 zappy_server:
 tests_gui:
 tests_server:
+tests_run_server:
+tests_run_gui:
 endif
 
 venv:
@@ -150,6 +151,26 @@ mrproper: fclean
 
 .NOTPARALLEL: re
 re: fclean all
+
+tests_run_%: tests_%
+	./$^
+
+tests_run_ai: venv
+	pytest . --cov=ai --no-summary
+
+.PHONY: cov cov_ai cov_server cov_gui
+
+cov_ai: tests_run_ai
+	coverage report -m
+
+cov_gui: tests_run_gui
+	gcovr $(BUILD)/tests/gui --exclude=tests
+
+cov_server: tests_run_server
+	gcovr $(BUILD)/tests/server --exclude=tests
+
+.NOTPARALLEL: cov
+cov: cov_ai cov_gui cov_server
 
 V ?= 0
 ifneq ($(V),0)

@@ -22,6 +22,7 @@ __pycache__
 *.[aod]
 *.so
 *.egg-info
+.coverage
 
 # Editors
 .idea
