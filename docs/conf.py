@@ -16,10 +16,13 @@ extensions = [
     "exhale",
 ]
 html_theme = 'furo'
-breathe_projects = {"Zappy": f"{pathlib.Path(__file__).parent.parent}/doxygen/xml"}
+
+ZAPPY_ROOT = pathlib.Path(__file__).parent.parent
+breathe_projects = {"Zappy": f"{ZAPPY_ROOT}/.build/doxygen/xml"}
 breathe_default_project = "Zappy"
-templates_path = ['_templates']
+
 exclude_patterns = []
+templates_path = ['_templates']
 html_static_path = ['_static']
 html_extra_path = ['assets']
 source_suffix = {
@@ -34,4 +37,3 @@ exhale_args = {
     "doxygenStripFromPath": "..",
     "createTreeView": True,
 }
-
