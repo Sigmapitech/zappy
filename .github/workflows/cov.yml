@@ -4,11 +4,11 @@ on:
   push:
     branches: [ dev ]
     paths:
-      - 'AI'
-      - 'server'
-      - 'GUI'
+      - 'ai/**'
+      - 'server/**'
+      - 'gui/**'
       - 'Makefile'
-      - 'tests'
+      - 'tests/**'
       - '.github/workflows/cov.yml'
 
 jobs:
@@ -22,22 +22,62 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y lcov gcovr make gcc
+        sudo apt-get install -y lcov gcovr make gcc g++ python3 python3-pip
+        pip install coverage pytest pytest-cov
 
-    - name: Build with coverage flags
+    - name: Clean build artifacts
+      run: make mrproper
+
+    # === Server (C) ===
+    - name: Build server with coverage flags
       run: |
-        make mrproper
         make tests_server
 
-    - name: Run tests
-      run: ./tests_server
+    - name: Run server tests
+      run: make tests_run_server
 
-    - name: Generate coverage report
-      run: gcovr --root . --xml-pretty -o coverage.xml
+    - name: Generate server coverage
+      run: |
+        gcovr --root . --filter 'server/' --xml-pretty -o coverage-server.xml --exclude 'tests/server/'
 
-    - name: Upload coverage to Codecov
+    # === GUI (C++) ===
+    - name: Build GUI with coverage flags
+      run: make tests_gui
+
+    - name: Run GUI tests
+      run: make tests_run_gui
+
+    - name: Generate GUI coverage
+      run: |
+        gcovr --root . --filter 'GUI/' --xml-pretty -o coverage-gui.xml --exclude 'tests/gui/'
+
+    # === AI (Python) ===
+    - name: Run AI tests and generate coverage
+      run: |
+        make tests_run_ai
+        coverage xml -o ../coverage-ai.xml
+
+    # === Upload All Reports to Codecov ===
+    - name: Upload coverage to Codecov (server)
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: coverage.xml
+        files: coverage-server.xml
+        flags: server
+        fail_ci_if_error: true
+
+    - name: Upload coverage to Codecov (GUI)
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: coverage-gui.xml
+        flags: gui
+        fail_ci_if_error: true
+
+    - name: Upload coverage to Codecov (AI)
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: coverage-ai.xml
+        flags: ai
         fail_ci_if_error: true
