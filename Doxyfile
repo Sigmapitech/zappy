@@ -7,6 +7,7 @@ GENERATE_LATEX         = NO
 GENERATE_XML           = YES
 XML_OUTPUT = xml
 HAVE_DOT = YES  # enables graphviz diagrams in Doxygen
+DOT_PATH = dot
 EXTRACT_ALL = YES
 EXTRACT_STATIC = YES
 EXTRACT_LOCAL_CLASSES = YES
