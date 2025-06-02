@@ -7,6 +7,8 @@ LD := $(CC)
 AR ?= ar
 RM ?= rm --force
 
+CFLAGS := -std=c2x
+
 CXXFLAGS := -std=c++20
 CXXFLAGS += -iquote $/libs -iquote $/include
 
@@ -22,6 +24,8 @@ CXXFLAGS_debug := -g3 -fsanitize=address,leak,undefined -DDEBUG_MODE=1
 
 CFLAGS_cov := --coverage -g3
 CXXFLAGS_cov := --coverage -g3
+CFLAGS_tests := --coverage -g3
+CXXFLAGS_tests := --coverage -g3
 
 LDLIBS :=
 LDFLAGS :=
@@ -39,11 +43,17 @@ GENERIC_FLAGS_CPP := CXX
 
 NAME_server_release := zappy_server
 NAME_server_debug := debug_server
-NAME_server_cov := tests_server
+NAME_server_cov := cov_server
+NAME_server_tests := tests_server
 
 NAME_gui_release := zappy_gui
 NAME_gui_debug := debug_gui
-NAME_gui_cov := tests_gui
+NAME_gui_cov := cov_gui
+NAME_gui_tests := tests_gui
+
+EXTRA_SRC_gui_tests != find tests/gui -name "*.cpp"
+
+EXTRA_SRC_server_tests != find tests/server -type f -name "*.c"
 
 # call mk-bin, bin-name, profile, lang
 # DOES THIS MAKE COFFEE NOW ??
@@ -61,7 +71,8 @@ $(BUILD)/$(strip $2)/%.o: %.$(GENERIC_SUFFIX_$(strip $3))
 
 out_$(strip $1)_$(strip $2) := $(NAME_$(strip $1)_$(strip $2))
 src_$(strip $1)_$(strip $2) !=                                                \
-	find $(strip $1) -type f -name "*.$(GENERIC_SUFFIX_$(strip $3))"
+    find $(strip $1) -type f -name "*.$(GENERIC_SUFFIX_$(strip $3))"
+src_$(strip $1)_$(strip $2) += $(EXTRA_SRC_$(strip $1)_$(strip $2))
 
 objs_$(strip $1)_$(strip $2) :=                                               \
 	$$(src_$(strip $1)_$(strip $2):%.$(GENERIC_SUFFIX_$(strip                 \
@@ -84,15 +95,14 @@ LANG_server := C
 LANG_gui := CPP
 
 $(foreach target, server gui,                                                 \
-$(foreach build-mode, release debug cov,                                      \
-	$(eval $(call generic-o-builder, $(build-mode), $(LANG_$(target))))       \
+$(foreach build-mode, release debug cov tests,                                \
 	$(eval $(call mk-bin, $(target), $(build-mode), $(LANG_$(target))))       \
 ))
 
 ifeq ($(V),2)
 $(foreach target, server gui,                                                 \
-$(foreach build-mode, release debug cov,                                      \
-	$(eval $(call mk-bin, $(target), $(build-mode), $(LANG_$(target))))       \
+$(foreach build-mode, release debug cov tests,                                \
+	$(info $(call mk-bin, $(target), $(build-mode), $(LANG_$(target))))       \
 ))
 endif
 
