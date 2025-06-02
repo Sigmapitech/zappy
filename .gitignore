@@ -35,3 +35,6 @@ a.out
 
 # Documentation
 .doc
+docs/build
+docs/doxygen
+docs/source/api
