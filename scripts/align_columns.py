@@ -34,12 +34,15 @@ def align_slash_in_file(file_path):
 
 
 def main():
-    with open(".gitmodules") as f:
-        submodules = [
-            line.split("=", 1)[1].strip()
-            for line in f
-            if line.strip().startswith("path = ")
-        ]
+    submodules = []
+
+    if os.path.exists(".gitmodules"):
+        with open(".gitmodules") as f:
+            submodules = [
+                line.split("=", 1)[1].strip()
+                for line in f
+                if line.strip().startswith("path = ")
+            ]
     collected_files = (
         os.path.join(root, fname)
         for root, _, files in os.walk(ROOT_DIR)
