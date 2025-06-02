@@ -1,19 +1,26 @@
-PROJECT_NAME           = "Zappy"
-INPUT                  = server gui
-FILE_PATTERNS          = *.c *.cpp *.h *.hpp
-RECURSIVE              = YES
-OUTPUT_DIRECTORY       = docs/doxygen
-GENERATE_LATEX         = NO
-GENERATE_XML           = YES
+PROJECT_NAME = Zappy
+INPUT = server gui
+
+FILE_PATTERNS = *.c *.cpp *.h *.hpp
+RECURSIVE = YES
+
+OUTPUT_DIRECTORY = .build/doxygen
+
+GENERATE_LATEX = NO
+GENERATE_XML = YES
 XML_OUTPUT = xml
-HAVE_DOT = YES  # enables graphviz diagrams in Doxygen
+
+HAVE_DOT = yes  # enables graphviz diagrams in Doxygen
 DOT_PATH = dot
+
 EXTRACT_ALL = YES
 EXTRACT_STATIC = YES
 EXTRACT_LOCAL_CLASSES = YES
 EXTRACT_PRIVATE = YES
 EXTRACT_ANON_NSPACES = YES
-ALIASES                = "todo=TODO" "bug=BUG" "warning=WARNING"
-EXCLUDE_SYMBOLS = main */my_struct.c
+
+ALIASES = "todo=TODO" "bug=BUG" "warning=WARNING"
+
+EXCLUDE_SYMBOLS = main
 BUILTIN_STL_SUPPORT = YES
 PREDEFINED += DOXYGEN_SHOULD_SKIP_THIS

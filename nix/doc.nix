@@ -29,6 +29,7 @@ stdenv.mkDerivation {
   ];
 
   preBuild = ''
+    mkdir -p .build
     substituteInPlace Doxyfile \
       --replace-fail "DOT_PATH = dot" "DOT_PATH = ${lib.getExe' graphviz "dot"}"
   '';
@@ -37,7 +38,7 @@ stdenv.mkDerivation {
 
   installPhase = ''
     mkdir -p $out/
-    cp -R docs/build/html/* $out/
+    cp -R .build/doc/html/* $out/
   '';
 
   meta.maintainers = with lib.maintainers; [sigmanificient];
