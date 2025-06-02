@@ -152,5 +152,5 @@ Run the server shell with:
 |---|---|---|---|---|
 | <img src="https://github.com/Sigmanificient.png" width="300em"/> | <img src="https://github.com/Ciznia.png" width="300em"/> | <img src="https://github.com/Fenriir42.png" width="300em"/> | <img src="https://github.com/Valentin22r.png" width="300em"/> | <img src="https://github.com/hop3calypse.png" width="300em"/> |
 
-For more details, see [assignment.pdf](assignment.pdf).
+For more details, see <a href="assignment.pdf">assignment.pdf</a>.
 <!-- \endcond -->
