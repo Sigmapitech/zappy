@@ -1,0 +1,38 @@
+
+.. _file_server_main.c:
+
+File main.c
+===========
+
+|exhale_lsh| :ref:`Parent directory <dir_server>` (``server``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``server/main.c``)
+------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_server_main.c.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``stdio.h``
+
+
+
+
+

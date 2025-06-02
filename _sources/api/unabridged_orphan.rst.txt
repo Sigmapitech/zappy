@@ -1,0 +1,33 @@
+:orphan:
+
+
+Full API
+========
+
+Directories
+***********
+
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_gui.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_server.rst
+
+Files
+*****
+
+
+.. toctree::
+   :maxdepth: 5
+
+   file_server_main.c.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_gui_main.cpp.rst

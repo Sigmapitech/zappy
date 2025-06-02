@@ -1,0 +1,16 @@
+.. _dir_server:
+
+
+Directory server
+================
+
+
+*Directory path:* ``server``
+
+
+Files
+-----
+
+- :ref:`file_server_main.c`
+
+

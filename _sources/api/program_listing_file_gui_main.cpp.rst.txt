@@ -1,0 +1,19 @@
+
+.. _program_listing_file_gui_main.cpp:
+
+Program Listing for File main.cpp
+=================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_gui_main.cpp>` (``gui/main.cpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   #include <iostream>
+   
+   [[gnu::weak]]
+   auto main() -> int
+   {
+     std::cout << "Hello, client!\n";
+   }

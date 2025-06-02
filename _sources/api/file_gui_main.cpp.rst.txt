@@ -1,0 +1,38 @@
+
+.. _file_gui_main.cpp:
+
+File main.cpp
+=============
+
+|exhale_lsh| :ref:`Parent directory <dir_gui>` (``gui``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``gui/main.cpp``)
+-----------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_gui_main.cpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``iostream``
+
+
+
+
+

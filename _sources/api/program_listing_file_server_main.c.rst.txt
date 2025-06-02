@@ -1,0 +1,19 @@
+
+.. _program_listing_file_server_main.c:
+
+Program Listing for File main.c
+===============================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_server_main.c>` (``server/main.c``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   #include <stdio.h>
+   
+   [[gnu::weak]]
+   int main(void)
+   {
+       printf("Hello, server!\n");
+   }

@@ -1,0 +1,16 @@
+.. _dir_gui:
+
+
+Directory gui
+=============
+
+
+*Directory path:* ``gui``
+
+
+Files
+-----
+
+- :ref:`file_gui_main.cpp`
+
+
