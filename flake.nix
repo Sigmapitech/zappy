@@ -34,6 +34,7 @@
             zappy_ai
             zappy_gui
             zappy_server
+            doc
           ];
 
           packages =
@@ -65,12 +66,15 @@
 
     packages = forAllSystems (
       pkgs: let
-        pypkgs = pkgs.python3.pkgs;
+        pypkgs = pkgs.python313.pkgs;
+        pkgs' = self.packages.${pkgs.system};
       in {
         cpp-fmt = pkgs.writeShellScriptBin "cpp-fmt" ''
           find . -type f -name "*.cpp" -or -name "*.hpp" \
             | xargs clang-format -i --verbose
         '';
+
+        exhale = pypkgs.callPackage ./nix/exhale.nix {};
 
         zappy_ai = pypkgs.callPackage ./nix/zappy_ai.nix {};
 
@@ -78,9 +82,13 @@
 
         zappy_server = pypkgs.callPackage ./nix/zappy_server.nix {};
 
+        doc = pkgs.callPackage ./nix/doc.nix {
+          inherit (pkgs') exhale;
+        };
+
         default = pkgs.symlinkJoin {
           name = "zappy";
-          paths = with self.packages.${pkgs.system}; [
+          paths = with pkgs'; [
             zappy_server
             zappy_gui
             zappy_ai

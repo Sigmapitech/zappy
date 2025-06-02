@@ -1,5 +1,7 @@
 import os
 import sys
+import pathlib
+
 sys.path.insert(0, os.path.abspath('../'))
 
 project = 'ZAPPY'
@@ -14,7 +16,7 @@ extensions = [
     "exhale",
 ]
 html_theme = 'furo'
-breathe_projects = {"Zappy": "/home/julien/delivery/zappy/docs/doxygen/xml"}
+breathe_projects = {"Zappy": f"{pathlib.Path(__file__).parent.parent}/doxygen/xml"}
 breathe_default_project = "Zappy"
 templates_path = ['_templates']
 exclude_patterns = []
