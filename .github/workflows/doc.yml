@@ -2,7 +2,8 @@ name: Documentation
 
 on:
   push:
-    branches: [ dev ]
+    branches: [ x-setup-gha-action ]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -18,6 +19,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Add known hosts
+      id: known-hosts
+      run: |
+        echo "known_hosts=$(ssh-keyscan -t ed25519 ${{ secrets.SERVER_IP }} \
+           2>/dev/null)" >> $GITHUB_OUTPUT
+
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+       key: ${{ secrets.GH_SSH_PRIVATE_KEY }}
+       known_hosts: ${{ steps.known-hosts.outputs.known_hosts }}
+
     - name: Build documentation
       run: nix build .#doc
 
@@ -25,3 +38,10 @@ jobs:
       uses: actions/upload-pages-artifact@v3
       with:
         path: ./result
+
+    - name: Upload to zappy.1l.is
+      run: |
+        scp -i ~/.ssh/id_rsa \
+        -o IdentitiesOnly=yes \
+        -o StrictHostKeyChecking=yes \
+        -r result/. root@45.88.180.135:/var/www/zappy.1l.is
