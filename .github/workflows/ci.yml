@@ -3,8 +3,6 @@ name: CI
 on:
   push:
     branches: [ '*' ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 env:
@@ -56,7 +54,6 @@ jobs:
         run: nix run github:Sigmapitech/cs -- . --use-gitignore --ecsls
   sync_repository:
     needs: [ check_the_repository_state ]
-    if: ${{ !github.event.pull_request }}
     runs-on: ubuntu-latest
 
     steps:
@@ -96,3 +93,6 @@ jobs:
       - name: Push to epitech
         run: |
          git push epitech --set-upstream $BRANCH_NAME --force
+         if [ ${{ env.BRANCH_NAME }} == "dev" ]; then
+           git push epitech --set-upstream main --force
+         fi
