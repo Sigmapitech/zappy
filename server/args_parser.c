@@ -60,14 +60,8 @@ static char **parse_teams(char *argv[], int *idx)
     teams = (char **)malloc((i + 1) * sizeof(*teams));
     if (teams == (char **)NULL)
         return NULL;
-    for (size_t j = 0; j < i; j++) {
-        if (!strcmp(argv[*idx + j], "GRAPHIC")) {
-            fprintf(stderr, "Invalid team name: 'GRAPHIC' is reserved.\n");
-            free((void *)teams);
-            return NULL;
-        }
+    for (size_t j = 0; j < i; j++)
         teams[j] = argv[*idx + j];
-    }
     *idx += i;
     teams[i] = NULL;
     return teams;
