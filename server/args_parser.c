@@ -8,31 +8,21 @@
 #include "args_parser.h"
 #include "debug.h"
 
-const char *USAGE = (
-    "Usage: ./server [OPTIONS]\n"
-    "Options:\n"
-    "  -h, --help                Show this help message and exit\n"
-    "  -p, --port <port>         Set the port number\n"
-    "  -x, --width <width>       Set the width of the map\n"
-    "  -y, --height <height>     Set the height of the map\n"
-    "  -n, --names <team1> ...   Set team names\n"
-    "  -c, --client-number <num> Set the number of clients per team\n"
-    "  -f, --freq <frequency>    reciprocal of time unit (default: 100)\n"
-);
-
 // Helper message to avoid long strings in the code
-const char INVALID_ARG[] = "Invalid option or missing argument\n%s\n";
+static constexpr const char INVALID_ARG[] = {
+    "Invalid option or missing argument\n%s\n"
+};
 
 // Structure to hold the command line parameters, to be used by getopt_long
 static const struct option long_options[] = {
-    {"help", no_argument, NULL, 'h'},
-    {"port", required_argument, NULL, 'p'},
-    {"width", required_argument, NULL, 'x'},
-    {"height", required_argument, NULL, 'y'},
-    {"names", required_argument, NULL, 'n'},
-    {"client-number", required_argument, NULL, 'c'},
-    {"freq", required_argument, NULL, 'f'},
-    {NULL, 0, NULL, 0}
+    {"help", no_argument, nullptr, 'h'},
+    {"port", required_argument, nullptr, 'p'},
+    {"width", required_argument, nullptr, 'x'},
+    {"height", required_argument, nullptr, 'y'},
+    {"names", required_argument, nullptr, 'n'},
+    {"client-number", required_argument, nullptr, 'c'},
+    {"freq", required_argument, nullptr, 'f'},
+    {nullptr, 0, nullptr, 0}
 };
 
 /**
@@ -44,7 +34,7 @@ static const struct option long_options[] = {
  * @param argv list of arguments
  * @param idx index in argv to start parsing teams
  * (should be the index of the first team name)
- * @return char** list of team names, NULL-terminated
+ * @return char** list of team names, nullptr-terminated
  * @note
  * The function will allocate memory for the team names.
  * The caller is responsible for freeing the memory.
@@ -52,18 +42,18 @@ static const struct option long_options[] = {
 static char **parse_teams(char *argv[], int *idx)
 {
     size_t i = 0;
-    char **teams = NULL;
+    char **teams = nullptr;
 
-    if (argv[*idx] == NULL)
-        return NULL;
+    if (argv[*idx] == nullptr)
+        return nullptr;
     for (; argv[*idx + i] && strcspn(argv[*idx + i], "-") != 0; i++);
-    teams = malloc((i + 1) * sizeof(*teams));
-    if (teams == NULL)
-        return NULL;
+    teams = malloc((i + 1) * sizeof *teams);
+    if (teams == nullptr)
+        return nullptr;
     for (size_t j = 0; j < i; j++)
         teams[j] = argv[*idx + j];
     *idx += i;
-    teams[i] = NULL;
+    teams[i] = nullptr;
     return teams;
 }
 
@@ -84,7 +74,7 @@ uint16_t parse_number_arg(
     const char *arg, const char *name, uint16_t min, uint16_t max)
 {
     char *endptr;
-    long value = strtoul(arg, &endptr, 10);
+    long value = strtol(arg, &endptr, 10);
 
     if (*endptr != '\0' || value < min || value > max) {
         fprintf(stderr,
@@ -93,7 +83,7 @@ uint16_t parse_number_arg(
         );
         return 0;
     }
-    return (uint16_t)value;
+    return value;
 }
 
 /**
@@ -108,23 +98,23 @@ static
 bool number_arg_dispatcher(params_t *params, const char *arg, char opt)
 {
     switch (opt) {
-        case 'p':
-            params->port = parse_number_arg(arg, "p", 1024, 65535);
+        case 'f':
+            params->frequency = parse_number_arg(arg, "f", 1, 10000);
             break;
         case 'x':
-            params->width = parse_number_arg(arg, "x", 10, 42);
+            params->map_width = parse_number_arg(arg, "x", 10, 42);
             break;
         case 'y':
-            params->height = parse_number_arg(arg, "y", 10, 42);
+            params->map_height = parse_number_arg(arg, "y", 10, 42);
+            break;
+        case 'p':
+            params->port = parse_number_arg(arg, "p", 1024, 65535);
             break;
         case 'c':
             params->team_capacity = parse_number_arg(arg, "c", 1, 200);
             break;
-        case 'f':
-            params->frequency = parse_number_arg(arg, "f", 1, 10000);
-            break;
         default:
-            return fprintf(stderr, INVALID_ARG, USAGE), false;
+            return fprintf(stderr, INVALID_ARG, SERVER_USAGE), false;
     }
     return true;
 }
@@ -166,32 +156,35 @@ void print_params(const params_t *params)
 {
     printf("===================Zappy Server===================\n");
     printf("port = %d\n", params->port);
-    printf("width = %d\n", params->width);
-    printf("heigth = %d\n", params->height);
+    printf("width = %d\n", params->map_width);
+    printf("heigth = %d\n", params->map_height);
     printf("clients_nb = %d\n", params->team_capacity);
     printf("freq = %d\n", params->frequency);
     printf("Teams:\n");
-    for (size_t i = 0; params->teams[i] != NULL; i++)
+    for (size_t i = 0; params->teams[i] != nullptr; i++)
         printf("  - %s\n", params->teams[i]);
     printf("==================================================\n");
 }
 
 bool parse_args(params_t *params, int argc, char *argv[])
 {
-    int opt;
-
-    do {
-        opt = getopt_long(argc, argv, "hp:x:y:n:c:f:", long_options, NULL);
-        if (opt == -1)
+    for (int opt;;) {
+        opt = getopt_long(argc, argv, "hp:x:y:n:c:f:", long_options, nullptr);
+        if (opt < 0)
             break;
         if (!arg_dispatcher(params, argv, opt))
             return false;
-    } while (true);
-    if (params->port == 0 || params->width == 0 || params->height == 0 ||
-        params->team_capacity == 0 || params->teams == NULL)
-        return free(params->teams), false;
+    }
     if (params->frequency == 0)
         params->frequency = 100;
+    if (
+        params->port == 0 || params->map_width == 0 || params->map_height == 0
+        || params->team_capacity == 0 || params->teams == nullptr
+    ) {
+        fprintf(stderr, "%s", SERVER_USAGE);
+        free(params->teams);
+        return false;
+    }
     DEBUG_CALL(print_params, params);
     return true;
 }
