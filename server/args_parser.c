@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "args_parser.h"
+#include "bits/getopt_core.h"
 #include "debug.h"
 
 // Helper message to avoid long strings in the code
@@ -25,11 +26,39 @@ static const struct option long_options[] = {
     {nullptr, 0, nullptr, 0}
 };
 
+
+static constexpr const size_t TEAM_ACC_BASE_CAPACITY = 8;
+
+/** Internal structure to allocate the team names properly */
+struct team_acc {
+    char **arr;
+    size_t count;
+    size_t cap;
+};
+
+static
+bool team_ensure_capacity(struct team_acc *ta, size_t requested)
+{
+    char **new_str;
+    size_t endsize = TEAM_ACC_BASE_CAPACITY;
+
+    if ((ta->count + requested) < ta->cap)
+        return true;
+    for (; endsize < ta->count + requested; endsize <<= 1);
+    if (endsize > ta->cap) {
+        new_str = realloc(ta->arr, endsize * (sizeof *ta->arr));
+        if (new_str == nullptr)
+            return false;
+        ta->arr = new_str;
+        ta->cap = endsize;
+    }
+    return true;
+}
+
 /**
  * @brief Parses team names from command line arguments.
  *
- * This function extracts team names from the command line arguments,
- * ensuring that the name "GRAPHIC" is not used, as it is reserved.
+ * This function extracts team names from the command line arguments
  *
  * @param argv list of arguments
  * @param idx index in argv to start parsing teams
@@ -42,19 +71,24 @@ static const struct option long_options[] = {
 static char **parse_teams(char *argv[], int *idx)
 {
     size_t i = 0;
-    char **teams = nullptr;
+    static struct team_acc teams = {
+        .arr = nullptr,
+        .count = 0,
+        .cap = 0,
+    };
 
     if (argv[*idx] == nullptr)
         return nullptr;
     for (; argv[*idx + i] && strcspn(argv[*idx + i], "-") != 0; i++);
-    teams = malloc((i + 1) * sizeof *teams);
-    if (teams == nullptr)
-        return nullptr;
-    for (size_t j = 0; j < i; j++)
-        teams[j] = argv[*idx + j];
+    if (!team_ensure_capacity(&teams, i + 1))
+        return free(teams.arr), nullptr;
+    for (size_t j = 0; j < i; j++) {
+        teams.arr[teams.count] = argv[*idx + j];
+        teams.count++;
+    }
     *idx += i;
-    teams[i] = nullptr;
-    return teams;
+    teams.arr[teams.count] = nullptr;
+    return teams.arr;
 }
 
 /**
@@ -135,6 +169,7 @@ bool arg_dispatcher(params_t *params, char *argv[], char opt)
             params->help = true;
             return true;
         case 'n':
+            optind--;
             params->teams = parse_teams(argv, &optind);
             if (!params->teams) {
                 fprintf(stderr, "Failed to parse team names.\n");

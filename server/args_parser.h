@@ -9,7 +9,7 @@
  * @brief Structure to hold command line parameters for the server.
  */
 typedef struct params_s {
-    char **teams; // Teams name (without GRAPHIC), NULL-terminated
+    char **teams; // Team names, NULL-terminated
     uint16_t frequency; // Range between 1 and 10000
     uint8_t map_width; // Range between 10 and 42
     uint8_t map_height; // Range between 10 and 42
