@@ -4,7 +4,7 @@
   ncurses,
 }:
 stdenv.mkDerivation (finalAttrs: {
-  pname = "zappy_gui";
+  pname = "zappy-gui";
   version = "0.0.1";
 
   src = ../.;

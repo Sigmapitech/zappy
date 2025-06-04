@@ -4,7 +4,7 @@
   setuptools,
 }:
 buildPythonPackage {
-  name = "zappy_ai";
+  name = "zappy-ai";
   version = "0.0.1";
   pyproject = true;
 
