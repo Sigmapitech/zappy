@@ -57,8 +57,8 @@ static char **parse_teams(char *argv[], int *idx)
     if (argv[*idx] == NULL)
         return NULL;
     for (; argv[*idx + i] && strcspn(argv[*idx + i], "-") != 0; i++);
-    teams = (char **)malloc((i + 1) * sizeof(*teams));
-    if (teams == (char **)NULL)
+    teams = malloc((i + 1) * sizeof(*teams));
+    if (teams == NULL)
         return NULL;
     for (size_t j = 0; j < i; j++)
         teams[j] = argv[*idx + j];
@@ -188,8 +188,8 @@ bool parse_args(params_t *params, int argc, char *argv[])
             return false;
     } while (true);
     if (params->port == 0 || params->width == 0 || params->height == 0 ||
-        params->team_capacity == 0 || params->teams == (char **)NULL)
-        return free((void *)params->teams), false;
+        params->team_capacity == 0 || params->teams == NULL)
+        return free(params->teams), false;
     if (params->frequency == 0)
         params->frequency = 100;
     DEBUG_CALL(print_params, params);
