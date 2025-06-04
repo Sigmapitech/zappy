@@ -4,7 +4,7 @@
   ncurses,
 }:
 stdenv.mkDerivation (finalAttrs: {
-  pname = "zappy_server";
+  pname = "zappy-server";
   version = "0.0.1";
 
   src = ../.;

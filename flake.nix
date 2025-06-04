@@ -31,9 +31,9 @@
           env.MAKEFLAGS = "-j";
           hardeningDisable = ["fortify"];
           inputsFrom = with self.packages.${pkgs.system}; [
-            zappy_ai
-            zappy_gui
-            zappy_server
+            ai
+            gui
+            server
             doc
           ];
 
@@ -68,33 +68,40 @@
       pkgs: let
         pypkgs = pkgs.python313.pkgs;
         pkgs' = self.packages.${pkgs.system};
-      in {
-        cpp-fmt = pkgs.writeShellScriptBin "cpp-fmt" ''
-          find . -type f -name "*.cpp" -or -name "*.hpp" \
-            | xargs clang-format -i --verbose
-        '';
+      in
+        {
+          ai = pypkgs.callPackage ./nix/zappy-ai.nix {};
 
-        exhale = pypkgs.callPackage ./nix/exhale.nix {};
+          gui = pypkgs.callPackage ./nix/zappy-gui.nix {};
 
-        zappy_ai = pypkgs.callPackage ./nix/zappy_ai.nix {};
+          server = pypkgs.callPackage ./nix/zappy-server.nix {};
 
-        zappy_gui = pypkgs.callPackage ./nix/zappy_gui.nix {};
+          default = pkgs.symlinkJoin {
+            name = "zappy";
+            paths = with pkgs'; [
+              server
+              gui
+              ai
+            ];
+          };
+        }
+        // {
+          ref-gui = pkgs.callPackage ./nix/ref-gui.nix {};
 
-        zappy_server = pypkgs.callPackage ./nix/zappy_server.nix {};
+          ref-server = pkgs.callPackage ./nix/ref-server.nix {};
+        }
+        // {
+          cpp-fmt = pkgs.writeShellScriptBin "cpp-fmt" ''
+            find . -type f -name "*.cpp" -or -name "*.hpp" \
+              | xargs clang-format -i --verbose
+          '';
 
-        doc = pkgs.callPackage ./nix/doc.nix {
-          inherit (pkgs') exhale;
-        };
+          exhale = pypkgs.callPackage ./nix/exhale.nix {};
 
-        default = pkgs.symlinkJoin {
-          name = "zappy";
-          paths = with pkgs'; [
-            zappy_server
-            zappy_gui
-            zappy_ai
-          ];
-        };
-      }
+          doc = pkgs.callPackage ./nix/doc.nix {
+            inherit (pkgs') exhale;
+          };
+        }
     );
   };
 }
