@@ -24,10 +24,11 @@ public:
   ~ArgParsing() = default;
 
   /**
-   * @brief
+   * @brief Parse all paramettre
    *
    * @param ac      Contain the number of parametter given to "./zappy_gui"
    * @param av      Contain all parametter givent to "./zappy_gui"
+   *
    * @return true   Means that ParseArg didn't fail
    * @return false  Means that ParseArg fail
    */
