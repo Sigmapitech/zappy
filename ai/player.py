@@ -4,6 +4,7 @@ import json
 import sys
 import select
 import subprocess
+from .commands import Commands
 from .network import Network
 from typing import List, Dict
 
@@ -12,6 +13,7 @@ class Player:
         self.server_address = server_address
         self.team_name = team_name
         self.network = Network(server_address)
+        self.commands = Commands(self.network, team_name)
         self.buffer_size = 4096
         self.food_stock = 0
         self.level = 1
