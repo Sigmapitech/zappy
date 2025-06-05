@@ -176,9 +176,26 @@ class Player:
             self.random_movement()
 
     def get_inventory(self):
+        inventory_response = self.commands.inventory()
+        inventory_response = inventory_response.strip("[]").split(", ")
+        inventory = {}
+        for item in inventory_response:
+            key, value = item.split()
+            inventory[key] = int(value)
+        self.food_stock = inventory.get("food", 0)
+        self.resources = {resource: inventory.get(resource, 0) for resource in self.resources.keys()}
+        print(f"Updated inventory: {self.resources}")
+
     def main_loop(self):
         print("Player main loop")
         while True:
+            print("je passe")
+            self.get_inventory()
+
+            if self.can_evolve():
+                self.evolve()
+            else:
+                self.search_food()
 
             ready_to_read, _, _ = select.select([self.network.sock], [], [], 0)
             if ready_to_read:
@@ -187,6 +204,9 @@ class Player:
                     print("Received 'dead', exiting.")
                     self.close()
                     sys.exit(0)
+                self.handle_incoming_messages(incoming_message)
+
+            self.broadcast_message(f"level {self.level}")
 
     def close(self):
         self.network.close()
