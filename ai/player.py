@@ -110,6 +110,19 @@ class Player:
                 print("Elevation did not start")
         else:
             print("Cannot evolve yet. Insufficient resources.")
+
+    def broadcast_message(self, message: str):
+        self.commands.broadcast(message)
+
+    def handle_incoming_messages(self, message: str):
+        if "message" in message:
+            _, direction, text = message.split(", ")
+            direction = int(direction)
+            if text.startswith("level "):
+                other_level = int(text.split(" ")[1])
+                if other_level == self.level:
+                    pass
+            # Handle other types of incoming messages as needed
     def main_loop(self):
         print("Player main loop")
         while True:
