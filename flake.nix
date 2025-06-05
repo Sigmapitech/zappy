@@ -21,6 +21,11 @@
       default = let
         pyenv = pkgs.python313.withPackages (p:
           with p; [
+            black
+            mypy
+            isort
+            vulture
+
             pytest
             pytest-cov
           ]);

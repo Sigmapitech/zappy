@@ -12,6 +12,14 @@
   discard-headers = python-script "discard-headers" ../scripts/discard_headers.py;
 in {
   alejandra.enable = true;
+
+  black = {
+    enable = true;
+    settings.flags = "--line-length=79";
+  };
+
+  isort.enable = true;
+
   clang-format = {
     enable = true;
     name = "format the code";
