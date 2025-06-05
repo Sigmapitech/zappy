@@ -68,6 +68,16 @@ class Player:
                         self.food_stock += 1
                     else:
                         self.resources[obj] += 1
+
+    def can_reproduce(self) -> bool:
+        return self.food_stock >= 1
+
+    def reproduce(self):
+        if self.can_reproduce():
+            self.commands.fork()
+            print("Reproducing")
+            # Lancer un nouveau processus pour une nouvelle instance du joueur
+            subprocess.Popen([sys.executable, __file__, *sys.argv[1:]])
     def main_loop(self):
         print("Player main loop")
         while True:
