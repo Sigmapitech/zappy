@@ -43,7 +43,16 @@ class Player:
         except Exception as e:
             print(f"Failed to connect: {e}")
 
+    def handle_look_response(self, look_response: str) -> List[List[str]]:
+        tiles = look_response.strip("[]").split(",")
+        return [tile.strip().split() for tile in tiles]
 
+    def parse_look_response(self, look_response: str) -> List[str]:
+        look_response = look_response.replace("Received: ", "")
+        response = look_response.strip("[]").split(", ")
+        player_tile = response[0].replace("player,", "").strip()
+        items = player_tile.split()
+        return items
     def main_loop(self):
         print("Player main loop")
         while True:
