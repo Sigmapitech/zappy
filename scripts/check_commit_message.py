@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import pathlib
 import os
+import pathlib
 import sys
 
 
