@@ -1,5 +1,8 @@
 #include "ArgParsing.hpp"
+#include <ostream>
 #include <string>
+
+#include <iostream>
 
 ArgParsing::ArgParsing(int port_arg, std::string &hostname_arg)
   : _port(port_arg), _hostname(hostname_arg)
@@ -18,7 +21,7 @@ namespace {
 
 bool ArgParsing::ParseArg(int ac, char **av)
 {
-  if (ac == 0)
+  if (ac <= 1 || ac > 6)
     return false;
 
   for (int i = 1; i < ac; i++) {
@@ -29,6 +32,7 @@ bool ArgParsing::ParseArg(int ac, char **av)
         if (i == ac - 1)
           return false;
         _hostname = av[i + 1];
+        std::cout << "hostname = " << _hostname << "\n";
         i++;
         break;
 
@@ -37,6 +41,7 @@ bool ArgParsing::ParseArg(int ac, char **av)
         if (i == ac - 1)
           return false;
         _port = std::stoi(av[i + 1]);
+        std::cout << "port = " << _port << "\n";
         i++;
         break;
 
