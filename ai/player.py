@@ -1,11 +1,13 @@
-import random
-import pathlib
 import json
-import sys
+import pathlib
+import random
 import select
 import subprocess
+import sys
+from typing import Dict, List
+
 from .network import Network
-from typing import List, Dict
+
 
 class Player:
     def __init__(self, server_address: tuple, team_name: str):
@@ -40,7 +42,6 @@ class Player:
                 print(f"Received: {client_num}")
         except Exception as e:
             print(f"Failed to connect: {e}")
-
 
     def main_loop(self):
         print("Player main loop")

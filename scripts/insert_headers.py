@@ -1,6 +1,6 @@
-from datetime import datetime
-import pathlib
 import os
+import pathlib
+from datetime import datetime
 
 PROJECT_NAME = "plazza"
 
@@ -14,13 +14,14 @@ _HEADER_TEMPLATE = (
 )
 
 HEADER_CHARACTERS = {
-    'h': ('/*', '**', '*/'),
-    'c': ('/*', '**', '*/'),
-    'hpp': ('/*', '**', '*/'),
-    'cpp': ('/*', '**', '*/'),
-    'mk': ('##', '##', '##'),
-    'Makefile': ('##', '##', '##')
+    "h": ("/*", "**", "*/"),
+    "c": ("/*", "**", "*/"),
+    "hpp": ("/*", "**", "*/"),
+    "cpp": ("/*", "**", "*/"),
+    "mk": ("##", "##", "##"),
+    "Makefile": ("##", "##", "##"),
 }
+
 
 def insert_header_in_file(dirs: str, filename: str):
     filepath = os.path.join(dirs, filename)
@@ -34,7 +35,7 @@ def insert_header_in_file(dirs: str, filename: str):
         end=end,
         year=datetime.now().year,
         project_name=PROJECT_NAME,
-        filename=filename
+        filename=filename,
     )
 
     if file_content.startswith(header):
@@ -43,23 +44,29 @@ def insert_header_in_file(dirs: str, filename: str):
     if file_content.startswith(start):
         i = 0
         for i, line in enumerate(file_content.split("\n")):
-            if not (line.startswith(end) or line.startswith(middle) or line.startswith(start)):
+            if not (
+                line.startswith(end)
+                or line.startswith(middle)
+                or line.startswith(start)
+            ):
                 break
-        file_content = "\n".join(file_content.split("\n")[i + 1:])
+        file_content = "\n".join(file_content.split("\n")[i + 1 :])
 
     with open(filepath, "w+") as f:
         f.write(f"{header}\n{file_content}")
+
 
 def main():
     for dirs, _, files in os.walk("."):
         for filename in files:
             if not any(
                 filename.endswith(ext)
-                for ext in { ".c", ".h", ".cpp", ".hpp", ".mk", "Makefile" }
+                for ext in {".c", ".h", ".cpp", ".hpp", ".mk", "Makefile"}
             ):
                 continue
 
             insert_header_in_file(dirs, filename)
+
 
 if __name__ == "__main__":
     main()

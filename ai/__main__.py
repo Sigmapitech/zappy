@@ -2,7 +2,9 @@ import argparse
 import signal
 import sys
 from contextlib import contextmanager
+
 from .player import Player
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -38,12 +40,14 @@ def parse_arguments():
     )
     return parser.parse_args()
 
+
 @contextmanager
 def game(player):
     player.connect()
     print("Player connected")
     yield player
     player.close()
+
 
 def main():
     # signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
@@ -53,6 +57,7 @@ def main():
     team_name = args.name
     with game(player := Player(server_address, team_name)) as player:
         player.main_loop()
+
 
 if __name__ == "__main__":
     main()
