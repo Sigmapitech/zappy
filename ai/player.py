@@ -123,6 +123,59 @@ class Player:
                 if other_level == self.level:
                     pass
             # Handle other types of incoming messages as needed
+
+    def look_for_food(self):
+        look_response = self.commands.look()
+        tiles = self.parse_look_response(look_response)
+        # if tiles[0] == "food":
+        tiles.pop(0)
+        print(f"Look response: {tiles}")
+        return tiles
+
+    def calculate_direction(self, food_tile_index):
+        if food_tile_index == 1:
+            return "right"
+        elif food_tile_index == 2:
+            return "left"
+        return "up"
+
+    def move_to_food(self, food_tile_index):
+        direction = self.calculate_direction(food_tile_index)
+        if direction == "left":
+            self.commands.turn_left()
+        elif direction == "right":
+            self.commands.turn_right()
+        self.commands.move_up()
+        new_tile = self.commands.look()[0]
+        self.handle_tile_actions([new_tile])
+        print(f"Food found in tile {food_tile_index}, moving {direction}")
+
+    def random_movement(self):
+        if random.choice([True, False]):
+            self.commands.turn_left()
+        else:
+            self.commands.turn_right()
+        self.commands.move_up()
+        print("No food found, turning randomly and moving up")
+
+    def search_food(self):
+        tiles = self.look_for_food()
+        self.take_all_on_tile(tiles)
+        food_tile_index = next(
+            (i for i, tile in enumerate(tiles) if "food" in tile), None
+        )
+        if food_tile_index is not None:
+            if food_tile_index == 0:
+                self.commands.take("food")
+                self.food_stock += 1
+                print("Food found and taken")
+                self.reproduce()
+            else:
+                self.move_to_food(food_tile_index)
+        else:
+            self.random_movement()
+
+    def get_inventory(self):
     def main_loop(self):
         print("Player main loop")
         while True:
