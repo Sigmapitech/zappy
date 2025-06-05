@@ -53,6 +53,21 @@ class Player:
         player_tile = response[0].replace("player,", "").strip()
         items = player_tile.split()
         return items
+
+    def take_all_on_tile(self, tile_data: List[str]):
+        if tile_data:
+            for item in tile_data:
+                self.commands.take(item)
+
+    def handle_tile_actions(self, tiles: List[List[str]]):
+        for tile in tiles:
+            for obj in ["food", "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"]:
+                if obj in tile:
+                    self.commands.take(obj)
+                    if obj == "food":
+                        self.food_stock += 1
+                    else:
+                        self.resources[obj] += 1
     def main_loop(self):
         print("Player main loop")
         while True:
