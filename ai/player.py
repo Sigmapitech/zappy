@@ -78,6 +78,39 @@ class Player:
             print("Reproducing")
             # Lancer un nouveau processus pour une nouvelle instance du joueur
             subprocess.Popen([sys.executable, __file__, *sys.argv[1:]])
+
+    def can_evolve(self) -> bool:
+        if str(self.level + 1) not in self.elevation_requirements:
+            return False
+        requirements = self.elevation_requirements[str(self.level + 1)]
+        for resource, amount in requirements.items():
+            if resource == "players":
+                continue  # Ignore player count for now
+            if self.resources.get(resource, 0) < amount:
+                return False
+        return True
+
+    def evolve(self):
+        if self.can_evolve():
+            print("Starting incantation")
+            self.commands.start_incantation()
+            evolution_result = self.network.receive_message()
+            if "Elevation underway" in evolution_result:
+                print("Elevation underway")
+                final_result = self.network.receive_message()
+                if "Current level" in final_result:
+                    self.level += 1
+                    requirements = self.elevation_requirements[str(self.level)]
+                    for resource, amount in requirements.items():
+                        if resource != "players":  # We don't subtract players, just resources
+                            self.resources[resource] -= amount
+                    print(f"Evolved to level {self.level}")
+                else:
+                    print("Elevation failed")
+            else:
+                print("Elevation did not start")
+        else:
+            print("Cannot evolve yet. Insufficient resources.")
     def main_loop(self):
         print("Player main loop")
         while True:
