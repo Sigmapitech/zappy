@@ -1,5 +1,7 @@
 import subprocess
+
 from .network import Network
+
 
 class Commands:
     def __init__(self, network: Network, team_name: str):
@@ -40,7 +42,19 @@ class Commands:
 
     def fork(self) -> str:
         # Lancer un sous-processus
-        subprocess.Popen(["python3", "-m", "ia.zappy_ia", "-p", str(self.network.server_address[1]), "-n", self.team_name, "-h", self.network.server_address[0]])
+        subprocess.Popen(
+            [
+                "python3",
+                "-m",
+                "ia.zappy_ia",
+                "-p",
+                str(self.network.server_address[1]),
+                "-n",
+                self.team_name,
+                "-h",
+                self.network.server_address[0],
+            ]
+        )
         return self.send_command("Fork")
 
     def connect_nbr(self) -> str:

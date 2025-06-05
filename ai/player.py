@@ -1,12 +1,14 @@
-import random
-import pathlib
 import json
-import sys
+import pathlib
+import random
 import select
 import subprocess
+import sys
+from typing import Dict, List
+
 from .commands import Commands
 from .network import Network
-from typing import List, Dict
+
 
 class Player:
     def __init__(self, server_address: tuple, team_name: str):
@@ -61,7 +63,15 @@ class Player:
 
     def handle_tile_actions(self, tiles: List[List[str]]):
         for tile in tiles:
-            for obj in ["food", "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"]:
+            for obj in [
+                "food",
+                "linemate",
+                "deraumere",
+                "sibur",
+                "mendiane",
+                "phiras",
+                "thystame",
+            ]:
                 if obj in tile:
                     self.commands.take(obj)
                     if obj == "food":
@@ -101,7 +111,9 @@ class Player:
                     self.level += 1
                     requirements = self.elevation_requirements[str(self.level)]
                     for resource, amount in requirements.items():
-                        if resource != "players":  # We don't subtract players, just resources
+                        if (
+                            resource != "players"
+                        ):  # We don't subtract players, just resources
                             self.resources[resource] -= amount
                     print(f"Evolved to level {self.level}")
                 else:
@@ -183,7 +195,10 @@ class Player:
             key, value = item.split()
             inventory[key] = int(value)
         self.food_stock = inventory.get("food", 0)
-        self.resources = {resource: inventory.get(resource, 0) for resource in self.resources.keys()}
+        self.resources = {
+            resource: inventory.get(resource, 0)
+            for resource in self.resources.keys()
+        }
         print(f"Updated inventory: {self.resources}")
 
     def main_loop(self):
