@@ -1,8 +1,11 @@
 import socket
 import time
 
+
 class Network:
-    def __init__(self, server_address: tuple, retries: int = 3, delay: int = 5):
+    def __init__(
+        self, server_address: tuple, retries: int = 3, delay: int = 5
+    ):
         self.server_address = server_address
         self.sock = None
         self.buffer_size = 4096
@@ -16,9 +19,13 @@ class Network:
                 self.sock.connect(self.server_address)
                 return
             except socket.error as e:
-                print(f"Connection failed: {e}. Retrying in {self.delay} seconds...")
+                print(
+                    f"Connection failed: {e}. Retrying in {self.delay} seconds..."
+                )
                 time.sleep(self.delay)
-        raise Exception("Could not connect to the server after multiple attempts")
+        raise Exception(
+            "Could not connect to the server after multiple attempts"
+        )
 
     def send_message(self, message: str):
         self.sock.sendall(f"{message}\n".encode("utf-8"))
