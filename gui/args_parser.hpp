@@ -12,7 +12,7 @@ struct parameters_s {
   bool help;         // Display help message
 };
 
-extern const char GUI_USAGE[];  // Usage message for the GUI
+extern const std::string GUI_USAGE;  // Usage message for the GUI
 
 /**
  * @brief Parses command line arguments and fills the params structure.
