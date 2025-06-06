@@ -1,4 +1,5 @@
 #include <getopt.h>
+#include <iostream>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -73,7 +74,7 @@ static bool arg_dispatcher(parameters_s &params, char *argv[], char opt)
       break;
     case '?':
     default:
-      return fprintf(stderr, INVALID_ARG, GUI_USAGE), false;
+      return fprintf(stderr, INVALID_ARG, GUI_USAGE.c_str()), false;
   }
   return true;
 }
@@ -100,7 +101,7 @@ bool parse_args(parameters_s &params, int argc, char *argv[])
   if (params.help == true)
     return true;
   if (params.port == 0 || params.host.empty()) {
-    fprintf(stderr, "%s", GUI_USAGE);
+    std::cerr << GUI_USAGE;
     return false;
   }
   return true;
