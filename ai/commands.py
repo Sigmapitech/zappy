@@ -1,4 +1,6 @@
+import os
 import subprocess
+import sys
 
 from .network import Network
 
@@ -40,22 +42,17 @@ class Commands:
         self.network.send_message(f"Broadcast {message}")
         return self.network.receive_message()
 
-    def fork(self) -> str:
-        # Lancer un sous-processus
-        subprocess.Popen(
-            [
-                "python3",
-                "-m",
-                "ia.zappy_ia",
-                "-p",
-                str(self.network.server_address[1]),
-                "-n",
-                self.team_name,
-                "-h",
-                self.network.server_address[0],
-            ]
-        )
-        return self.send_command("Fork")
+    def fork(self):
+        res = self.send_command("Fork")
+
+        if res == "ko":
+            return res
+
+        pid = os.fork()
+        if pid == 0:
+            os.execv(sys.executable, [sys.executable] + sys.argv)
+
+        return res
 
     def connect_nbr(self) -> str:
         return self.send_command("Connect_nbr")
