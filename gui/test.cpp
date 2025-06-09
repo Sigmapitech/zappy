@@ -3,7 +3,6 @@
 #include <iostream>
 #include <memory>
 #include <ostream>
-#include <random>
 #include <sstream>
 #include <unordered_map>
 #include <vector>
@@ -19,25 +18,27 @@ namespace {
   const char *vertexShaderSource = R"(
 #version 330 core
 layout(location = 0) in vec3 aPos;
-layout(location = 1) in vec3 aColor;
+layout(location = 1) in vec2 aTex;
 
-flat out vec3 vertexColor;
+out vec2 TexCoord;
 
 uniform mat4 mvp;
 
 void main() {
-    vertexColor = aColor;
+    TexCoord = aTex;
     gl_Position = mvp * vec4(aPos, 1.0);
 }
 )";
 
   const char *fragmentShaderSource = R"(
 #version 330 core
-flat in vec3 vertexColor;
+in vec2 TexCoord;
 out vec4 FragColor;
 
+uniform sampler2D tex;
+
 void main() {
-    FragColor = vec4(vertexColor, 1.0);
+    FragColor = texture(tex, TexCoord);
 }
 )";
 
@@ -68,12 +69,40 @@ void main() {
 
   public:
     struct Texture {
-      std::shared_ptr<SDL_Surface> surface;
+    private:
+      std::unique_ptr<SDL_Surface> surface;
       GLenum format;
 
-      Texture(std::shared_ptr<SDL_Surface> surf, GLenum fmt)
+    public:
+      Texture(std::unique_ptr<SDL_Surface> surf, GLenum fmt)
         : surface(std::move(surf)), format(fmt)
       {
+      }
+
+      [[nodiscard]] GLuint LoadTexture() const
+      {
+        GLuint tex;
+        glGenTextures(1, &tex);
+        glBindTexture(GL_TEXTURE_2D, tex);
+
+        glTexImage2D(
+          GL_TEXTURE_2D,
+          0,
+          format,
+          surface->w,
+          surface->h,
+          0,
+          format,
+          GL_UNSIGNED_BYTE,
+          surface->pixels);
+
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(
+          GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        return tex;
       }
     };
 
@@ -134,15 +163,15 @@ void main() {
       return _event;
     }
 
-    [[nodiscard]] std::optional<Texture>
+    [[nodiscard]] std::unique_ptr<Texture>
     LoadTexture(const std::string &path) const  // NOLINT musn't be static
     {
-      std::shared_ptr<SDL_Surface> surface(IMG_Load(path.c_str()));
-      if (!surface.get()) {
+      std::unique_ptr<SDL_Surface> surface(IMG_Load(path.c_str()));
+      if (!surface) {
         std::cerr
           << "Failed to load image: " << path
           << "\nSDL_image error: " << IMG_GetError() << '\n';
-        return std::nullopt;
+        return nullptr;
       }
 
       GLenum format;
@@ -153,20 +182,20 @@ void main() {
       } else {
         std::cerr << "Unknown image format\n";
         SDL_FreeSurface(surface.get());
-        return std::nullopt;
+        return nullptr;
       }
-      return Texture(surface, format);
+      return std::make_unique<Texture>(std::move(surface), format);
     }
   };
 
   struct Vertex {
     glm::vec3 position;
-    glm::vec3 color;
+    glm::vec2 texCoord;
 
     friend std::ostream &operator<<(std::ostream &os, const Vertex &v)
     {
       os << v.position.x << ' ' << v.position.y << ' ' << v.position.z << '\t'
-         << v.color.r << ' ' << v.color.g << ' ' << v.color.b;
+         << v.texCoord.x << ' ' << v.texCoord.y << '\n';
       return os;
     }
   };
@@ -176,12 +205,14 @@ void main() {
     GLuint VAO, VBO, EBO;
     std::unique_ptr<std::vector<Vertex>> _vertices;
     std::unique_ptr<std::vector<unsigned int>> _indices;
+    GLuint _texture;
 
   public:
     Mesh(
       std::unique_ptr<std::vector<Vertex>> vv,
-      std::unique_ptr<std::vector<unsigned int>> vi)
-      : _vertices(std::move(vv)), _indices(std::move(vi))
+      std::unique_ptr<std::vector<unsigned int>> vi,
+      GLuint texture)
+      : _vertices(std::move(vv)), _indices(std::move(vi)), _texture(texture)
     {
       glGenVertexArrays(1, &VAO);
       glGenBuffers(1, &VBO);
@@ -213,14 +244,14 @@ void main() {
         (void *)offsetof(Vertex, position));  // NOLINT
       glEnableVertexAttribArray(0);
 
-      // Color
+      // TexCoord
       glVertexAttribPointer(
         1,
-        3,
+        2,
         GL_FLOAT,
         GL_FALSE,
         sizeof(Vertex),
-        (void *)offsetof(Vertex, color));  // NOLINT
+        (void *)offsetof(Vertex, texCoord));  // NOLINT
       glEnableVertexAttribArray(1);
 
       glBindVertexArray(0);
@@ -250,15 +281,15 @@ void main() {
     }
   };
 
-  std::unique_ptr<Mesh> LoadOBJ(const std::string &path)
+  std::unique_ptr<Mesh> LoadOBJ(SDL &sdl, const std::string &path)
   {
     std::ifstream file(path);
     if (!file.is_open()) {
       std::cerr << "Failed to open OBJ file: " << path << '\n';
       return nullptr;
     }
-
     std::vector<glm::vec3> positions;
+    std::vector<glm::vec2> texCoords;
     std::unordered_map<std::string, unsigned int> uniqueVertexMap;
 
     std::string line;
@@ -268,9 +299,6 @@ void main() {
       make_unique<std::vector<Vertex>>();
     std::unique_ptr<std::vector<unsigned int>> outIndices = std::
       make_unique<std::vector<unsigned int>>();
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> dis(0.0, 1.0);
     while (std::getline(file, line)) {
       std::istringstream ss(line);
       std::string prefix;
@@ -280,20 +308,30 @@ void main() {
         glm::vec3 pos;
         ss >> pos.x >> pos.y >> pos.z;
         positions.push_back(pos);
+      } else if (prefix == "vt") {
+        glm::vec2 uv;
+        ss >> uv.x >> uv.y;
+        uv.y = 1.0 - uv.y;  // Flip Y for OpenGL
+        texCoords.push_back(uv);
       } else if (prefix == "f") {
         std::string vertexStr;
         std::vector<unsigned int> faceIndices;
 
-        while (ss >> vertexStr) {
+        for (int i = 0; i < 3; i++) {
+          ss >> vertexStr;
+          std::cerr << "Vertex: " << vertexStr << '\n';
           if (uniqueVertexMap.count(vertexStr) == 0) {
-            int vIndex = std::stoi(vertexStr) - 1;
-            Vertex vertex;
-            vertex.position = positions[vIndex];
-            vertex.color = glm::vec3(
-              dis(gen),
-              dis(gen),
-              dis(gen));  // random color
-            outVertices->push_back(vertex);
+            std::istringstream vss(vertexStr);
+
+            std::string vIdxStr;  // Vertex index
+            std::string tIdxStr;  // Texture index
+            std::getline(vss, vIdxStr, '/');
+            std::getline(vss, tIdxStr);
+
+            int vIdx = std::stoi(vIdxStr) - 1;
+            int tIdx = std::stoi(tIdxStr) - 1;
+
+            outVertices->push_back(Vertex{positions[vIdx], texCoords[tIdx]});
             uniqueVertexMap[vertexStr] = index++;
           }
           faceIndices.push_back(uniqueVertexMap[vertexStr]);
@@ -308,8 +346,13 @@ void main() {
       }
     }
 
-    return std::
-      make_unique<Mesh>(std::move(outVertices), std::move(outIndices));
+    std::unique_ptr<SDL::Texture> textureOpt = sdl.LoadTexture("texture.png");
+    if (!textureOpt)
+      return nullptr;
+    return std::make_unique<Mesh>(
+      std::move(outVertices),
+      std::move(outIndices),
+      textureOpt->LoadTexture());
   }
 
   GLuint CompileShader(GLenum type, const char *src)
@@ -340,69 +383,54 @@ void main() {
     return prog;
   }
 
+  void run(SDL &sdl)
+  {
+    std::unique_ptr<Mesh> meshOpt = LoadOBJ(sdl, "cube.obj");
+    if (!meshOpt)
+      throw std::runtime_error("Failed to load mesh from cube.obj");
+
+    GLuint shader = CreateProgram();
+
+    bool running = true;
+    while (running) {
+      while (sdl.PollEvent())
+        if (sdl.GetEvent().type == SDL_QUIT)
+          running = false;
+
+      float t = SDL_GetTicks() / 1000.0;
+      glm::mat4 model = glm::
+        rotate(glm::mat4(1.0), t, glm::vec3(0.5, 1.0, 0.0));
+      glm::mat4 view = glm::
+        translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, -3.0));
+      glm::mat4 proj = glm::
+        perspective<float>(glm::radians(45.0), 800.0 / 600.0, 0.1, 100.0);
+      glm::mat4 mvp = proj * view * model;
+
+      glClearColor(0.1, 0.12, 0.15, 1.0);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      glUseProgram(shader);  // set the shader program before setting mvp
+      GLint mvpLoc = glGetUniformLocation(shader, "mvp");
+      glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp[0][0]);
+
+      meshOpt->Draw();
+
+      sdl.SwapWindow();
+    }
+
+    glDeleteProgram(shader);
+  }
+
 }  // namespace
 
 int main()
 {
-  SDL_Init(SDL_INIT_VIDEO);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-  SDL_GL_SetAttribute(
-    SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-  SDL_Window *window = SDL_CreateWindow(
-    "SDL2 OpenGL Cube",
-    SDL_WINDOWPOS_CENTERED,
-    SDL_WINDOWPOS_CENTERED,
-    800,
-    600,
-    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-
-  SDL_GLContext context = SDL_GL_CreateContext(window);
-  glewExperimental = GL_TRUE;
-  glewInit();
-  glEnable(GL_DEPTH_TEST);
-
-  std::unique_ptr<Mesh> meshOpt = LoadOBJ("cube.obj");
-  if (!meshOpt) {
-    std::cerr << "Failed to load mesh.\n";
+  try {
+    SDL sdl;
+    run(sdl);
+  } catch (const std::runtime_error &e) {
+    std::cerr << e.what() << '\n';
     return 84;
   }
-
-  GLuint shader = CreateProgram();
-
-  bool running = true;
-  while (running) {
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
-      if (event.type == SDL_QUIT)
-        running = false;
-
-    float t = SDL_GetTicks() / 1000.0;
-    glm::mat4 model = glm::
-      rotate(glm::mat4(1.0), t, glm::vec3(0.5, 1.0, 0.0));
-    glm::mat4 view = glm::
-      translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, -3.0));
-    glm::mat4 proj = glm::
-      perspective<float>(glm::radians(45.0), 800.0 / 600.0, 0.1, 100.0);
-    glm::mat4 mvp = proj * view * model;
-
-    glClearColor(0.1, 0.12, 0.15, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glUseProgram(shader);  // set the shader program before setting mvp
-    GLint mvpLoc = glGetUniformLocation(shader, "mvp");
-    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp[0][0]);
-
-    meshOpt->Draw();
-
-    SDL_GL_SwapWindow(window);
-  }
-
-  glDeleteProgram(shader);
-
-  SDL_GL_DeleteContext(context);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
   return 0;
 }
