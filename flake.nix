@@ -45,6 +45,10 @@
               hl-log-viewer
               pkg-config
               SDL2
+              libGL
+              libGLU
+              glew
+              glm
               doxygen
               graphviz
               pyenv
