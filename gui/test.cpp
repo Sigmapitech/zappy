@@ -1,7 +1,12 @@
 #include <array>
+#include <fstream>
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <random>
+#include <sstream>
+#include <unordered_map>
+#include <vector>
 
 #include <SDL2/SDL.h>
 
@@ -34,39 +39,6 @@ void main() {
     FragColor = vec4(vertexColor, 1.0);
 }
 )";
-
-  // Interleaved vertex data: position (x, y, z) + color (r, g, b)
-  std::array<float, 48> vertices = [] {
-    std::array<float, 48> v = {
-      // Positions          // Color (to be randomized)
-      -0.5, -0.5, -0.5, 0, 0, 0,  // 0
-      +0.5, -0.5, -0.5, 0, 0, 0,  // 1
-      +0.5, +0.5, -0.5, 0, 0, 0,  // 2
-      -0.5, +0.5, -0.5, 0, 0, 0,  // 3
-      -0.5, -0.5, +0.5, 0, 0, 0,  // 4
-      +0.5, -0.5, +0.5, 0, 0, 0,  // 5
-      +0.5, +0.5, +0.5, 0, 0, 0,  // 6
-      -0.5, +0.5, +0.5, 0, 0, 0   // 7
-    };
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> dis(0.0, 1.0);
-    for (int i = 0; i < 8; i++) {
-      v[(i * 6) + 3] = dis(gen);  // R
-      v[(i * 6) + 4] = dis(gen);  // G
-      v[(i * 6) + 5] = dis(gen);  // B
-    }
-    return v;
-  }();
-
-  std::array<unsigned int, 36> indices = {
-    0, 1, 2, 2, 3, 0,  // back face
-    4, 5, 6, 6, 7, 4,  // front face
-    4, 0, 3, 3, 7, 4,  // left face
-    1, 5, 6, 6, 2, 1,  // right face
-    4, 5, 1, 1, 0, 4,  // bottom face
-    3, 2, 6, 6, 7, 3   // top face
-  };
 
   struct SDL {
   private:
@@ -142,8 +114,160 @@ void main() {
     }
   };
 
+  struct Vertex {
+    glm::vec3 position;
+    glm::vec3 color;
 
-  GLuint compileShader(GLenum type, const char *src)
+    friend std::ostream &operator<<(std::ostream &os, const Vertex &v)
+    {
+      os << v.position.x << ' ' << v.position.y << ' ' << v.position.z << '\t'
+         << v.color.r << ' ' << v.color.g << ' ' << v.color.b;
+      return os;
+    }
+  };
+
+  struct Mesh {
+  private:
+    GLuint VAO, VBO, EBO;
+    std::unique_ptr<std::vector<Vertex>> _vertices;
+    std::unique_ptr<std::vector<unsigned int>> _indices;
+
+  public:
+    Mesh(
+      std::unique_ptr<std::vector<Vertex>> vv,
+      std::unique_ptr<std::vector<unsigned int>> vi)
+      : _vertices(std::move(vv)), _indices(std::move(vi))
+    {
+      glGenVertexArrays(1, &VAO);
+      glGenBuffers(1, &VBO);
+      glGenBuffers(1, &EBO);
+
+      glBindVertexArray(VAO);
+
+      glBindBuffer(GL_ARRAY_BUFFER, VBO);
+      glBufferData(
+        GL_ARRAY_BUFFER,
+        _vertices->size() * sizeof(Vertex),
+        _vertices->data(),
+        GL_STATIC_DRAW);
+
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+      glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        _indices->size() * sizeof(unsigned int),
+        _indices->data(),
+        GL_STATIC_DRAW);
+
+      // Position
+      glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(Vertex),
+        (void *)offsetof(Vertex, position));  // NOLINT
+      glEnableVertexAttribArray(0);
+
+      // Color
+      glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(Vertex),
+        (void *)offsetof(Vertex, color));  // NOLINT
+      glEnableVertexAttribArray(1);
+
+      glBindVertexArray(0);
+    }
+
+    ~Mesh()
+    {
+      glDeleteBuffers(1, &VBO);
+      glDeleteVertexArrays(1, &VAO);
+      glDeleteBuffers(1, &EBO);
+    }
+
+    void Draw() const
+    {
+      glBindVertexArray(VAO);
+      glDrawElements(GL_TRIANGLES, _indices->size(), GL_UNSIGNED_INT, nullptr);
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Mesh &mesh)
+    {
+      for (const Vertex &v: *mesh._vertices)
+        os << v << '\n';
+      for (size_t i = 0; i < mesh._indices->size(); i += 3)
+        os << (*mesh._indices)[i] << ' ' << (*mesh._indices)[i + 1] << ' '
+           << (*mesh._indices)[i + 2] << '\n';
+      return os;
+    }
+  };
+
+  std::unique_ptr<Mesh> LoadOBJ(const std::string &path)
+  {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+      std::cerr << "Failed to open OBJ file: " << path << '\n';
+      return nullptr;
+    }
+
+    std::vector<glm::vec3> positions;
+    std::unordered_map<std::string, unsigned int> uniqueVertexMap;
+
+    std::string line;
+    unsigned int index = 0;
+
+    std::unique_ptr<std::vector<Vertex>> outVertices = std::
+      make_unique<std::vector<Vertex>>();
+    std::unique_ptr<std::vector<unsigned int>> outIndices = std::
+      make_unique<std::vector<unsigned int>>();
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(0.0, 1.0);
+    while (std::getline(file, line)) {
+      std::istringstream ss(line);
+      std::string prefix;
+      ss >> prefix;
+
+      if (prefix == "v") {
+        glm::vec3 pos;
+        ss >> pos.x >> pos.y >> pos.z;
+        positions.push_back(pos);
+      } else if (prefix == "f") {
+        std::string vertexStr;
+        std::vector<unsigned int> faceIndices;
+
+        while (ss >> vertexStr) {
+          if (uniqueVertexMap.count(vertexStr) == 0) {
+            int vIndex = std::stoi(vertexStr) - 1;
+            Vertex vertex;
+            vertex.position = positions[vIndex];
+            vertex.color = glm::vec3(
+              dis(gen),
+              dis(gen),
+              dis(gen));  // random color
+            outVertices->push_back(vertex);
+            uniqueVertexMap[vertexStr] = index++;
+          }
+          faceIndices.push_back(uniqueVertexMap[vertexStr]);
+        }
+
+        // Triangulate the polygon (fan method)
+        for (size_t i = 1; i + 1 < faceIndices.size(); i++) {
+          outIndices->push_back(faceIndices[0]);
+          outIndices->push_back(faceIndices[i]);
+          outIndices->push_back(faceIndices[i + 1]);
+        }
+      }
+    }
+
+    return std::
+      make_unique<Mesh>(std::move(outVertices), std::move(outIndices));
+  }
+
+  GLuint CompileShader(GLenum type, const char *src)
   {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &src, nullptr);
@@ -158,10 +282,10 @@ void main() {
     return shader;
   }
 
-  GLuint createProgram()
+  GLuint CreateProgram()
   {
-    GLuint vs = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
-    GLuint fs = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+    GLuint vs = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
+    GLuint fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
     GLuint prog = glCreateProgram();
     glAttachShader(prog, vs);
     glAttachShader(prog, fs);
@@ -169,38 +293,6 @@ void main() {
     glDeleteShader(vs);
     glDeleteShader(fs);
     return prog;
-  }
-
-  void setupVAO(GLuint &VAO, GLuint &VBO, GLuint &EBO)
-  {
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(
-      GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(
-      GL_ELEMENT_ARRAY_BUFFER,
-      sizeof(indices),
-      indices.data(),
-      GL_STATIC_DRAW);
-
-    // Position attribute
-    glVertexAttribPointer(
-      0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(0);
-
-    // Color attribute
-    glVertexAttribPointer(
-      1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
   }
 
 }  // namespace
@@ -226,12 +318,13 @@ int main()
   glewInit();
   glEnable(GL_DEPTH_TEST);
 
-  GLuint VAO;
-  GLuint VBO;
-  GLuint EBO;
-  setupVAO(VAO, VBO, EBO);
+  std::unique_ptr<Mesh> meshOpt = LoadOBJ("cube.obj");
+  if (!meshOpt) {
+    std::cerr << "Failed to load mesh.\n";
+    return 84;
+  }
 
-  GLuint shader = createProgram();
+  GLuint shader = CreateProgram();
 
   bool running = true;
   SDL_Event event;
@@ -250,19 +343,15 @@ int main()
     glClearColor(0.1, 0.12, 0.15, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(shader);
-    glBindVertexArray(VAO);
+    glUseProgram(shader);  // set the shader program before setting mvp
     GLint mvpLoc = glGetUniformLocation(shader, "mvp");
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp[0][0]);
 
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    meshOpt->Draw();
 
     SDL_GL_SwapWindow(window);
   }
 
-  glDeleteBuffers(1, &VBO);
-  glDeleteVertexArrays(1, &VAO);
-  glDeleteBuffers(1, &EBO);
   glDeleteProgram(shader);
 
   SDL_GL_DeleteContext(context);
