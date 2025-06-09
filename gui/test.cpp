@@ -1,5 +1,6 @@
 #include <array>
 #include <iostream>
+#include <memory>
 #include <random>
 
 #include <SDL2/SDL.h>
@@ -66,6 +67,81 @@ void main() {
     4, 5, 1, 1, 0, 4,  // bottom face
     3, 2, 6, 6, 7, 3   // top face
   };
+
+  struct SDL {
+  private:
+    bool _isInit = false;
+    SDL_Window *_window;
+    SDL_GLContext _context = nullptr;
+    SDL_Event _event;
+
+    static std::string GetError()
+    {
+      return SDL_GetError();
+    }
+
+    void SetAttribute(SDL_GLattr attr, int value) const  // NOLINT musn't be
+                                                         // static
+    {
+      if (SDL_GL_SetAttribute(attr, value) < 0)
+        throw std::runtime_error(
+          "SDL_GL_SetAttribute failed! SDL_Error: " + GetError());
+    }
+
+  public:
+    SDL()
+    {
+      if (SDL_Init(SDL_INIT_VIDEO) < 0)
+        throw std::
+          runtime_error("SDL initialization failed! SDL_Error: " + GetError());
+      SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+      SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+      SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+      _window = SDL_CreateWindow(
+        "SDL2 OpenGL Cube",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        800,
+        600,
+        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+      if (_window == nullptr)
+        throw std::
+          runtime_error("SDL_CreateWindow failed! SDL_Error: " + GetError());
+
+      _context = SDL_GL_CreateContext(_window);
+      if (_context == nullptr)
+        throw std::runtime_error(
+          "SDL_GL_CreateContext failed! SDL_Error: " + GetError());
+      glewExperimental = GL_TRUE;
+      if (glewInit() != GLEW_OK)
+        throw std::runtime_error("GLEW initialization failed!");
+      glEnable(GL_DEPTH_TEST);
+    }
+
+    ~SDL()
+    {
+      SDL_GL_DeleteContext(_context);
+      SDL_DestroyWindow(_window);
+      SDL_Quit();
+    }
+
+    void SwapWindow() const
+    {
+      SDL_GL_SwapWindow(_window);
+    }
+
+    [[nodiscard]] bool PollEvent()
+    {
+      return SDL_PollEvent(&_event);
+    }
+
+    [[nodiscard]] const SDL_Event &GetEvent() const
+    {
+      return _event;
+    }
+  };
+
 
   GLuint compileShader(GLenum type, const char *src)
   {
