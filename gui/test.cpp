@@ -1,10 +1,14 @@
-#include <GL/glew.h>
-#include <SDL2/SDL.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <array>
 #include <iostream>
 
-const char *vertexShaderSource = R"(
+#include <SDL2/SDL.h>
+
+#include <GL/glew.h>
+#include <glm/gtc/matrix_transform.hpp>
+
+namespace {
+
+  const char *vertexShaderSource = R"(
 #version 330 core
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aColor;
@@ -19,7 +23,7 @@ void main() {
 }
 )";
 
-const char *fragmentShaderSource = R"(
+  const char *fragmentShaderSource = R"(
 #version 330 core
 in vec3 vertexColor;
 out vec4 FragColor;
@@ -29,81 +33,86 @@ void main() {
 }
 )";
 
-// Interleaved vertex data: position (x, y, z) + color (r, g, b)
-float cubeVertices[] = {
-  //        Position            Color
-  -0.5, -0.5, -0.5, 1.0, 0.0, 0.0,                                   // Red
-  0.5,  -0.5, -0.5, 0.0, 1.0, 0.0,                                   // Green
-  0.5,  0.5,  -0.5, 0.0, 0.0, 1.0,                                   // Blue
-  0.5,  0.5,  -0.5, 0.0, 0.0, 1.0, -0.5, 0.5,  -0.5, 1.0, 1.0, 0.0,  // Yellow
-  -0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
+  // Interleaved vertex data: position (x, y, z) + color (r, g, b)
+  std::array<float, 216> cubeVertices = {
+    //        Position            Color
+    -0.5, -0.5, -0.5, 1.0, 0.0,  0.0,  // Red
+    0.5,  -0.5, -0.5, 0.0, 1.0,  0.0,  // Green
+    0.5,  0.5,  -0.5, 0.0, 0.0,  1.0,  // Blue
+    0.5,  0.5,  -0.5, 0.0, 0.0,  1.0,  -0.5, 0.5,  -0.5, 1.0, 1.0, 0.0,  // Yellow
+    -0.5, -0.5, -0.5, 1.0, 0.0,  0.0,
 
-  -0.5, -0.5, 0.5,  0.5, 0.0, 0.5, 0.5,  -0.5, 0.5,  0.0, 1.0, 1.0,
-  0.5,  0.5,  0.5,  1.0, 0.0, 1.0, 0.5,  0.5,  0.5,  1.0, 0.0, 1.0,
-  -0.5, 0.5,  0.5,  0.0, 1.0, 0.5, -0.5, -0.5, 0.5,  0.5, 0.0, 0.5,
+    -0.5, -0.5, 0.5,  0.5, 0.0,  0.5,  0.5,  -0.5, 0.5,  0.0, 1.0, 1.0,  0.5,
+    0.5,  0.5,  1.0,  0.0, 1.0,  0.5,  0.5,  0.5,  1.0,  0.0, 1.0, -0.5, 0.5,
+    0.5,  0.0,  1.0,  0.5, -0.5, -0.5, 0.5,  0.5,  0.0,  0.5,
 
-  -0.5, 0.5,  0.5,  1.0, 0.5, 0.0, -0.5, 0.5,  -0.5, 0.0, 0.0, 1.0,
-  -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5,
-  -0.5, -0.5, 0.5,  0.1, 0.9, 0.1, -0.5, 0.5,  0.5,  1.0, 0.5, 0.0,
+    -0.5, 0.5,  0.5,  1.0, 0.5,  0.0,  -0.5, 0.5,  -0.5, 0.0, 0.0, 1.0,  -0.5,
+    -0.5, -0.5, 0.5,  0.5, 0.5,  -0.5, -0.5, -0.5, 0.5,  0.5, 0.5, -0.5, -0.5,
+    0.5,  0.1,  0.9,  0.1, -0.5, 0.5,  0.5,  1.0,  0.5,  0.0,
 
-  0.5,  0.5,  0.5,  0.8, 0.2, 0.3, 0.5,  0.5,  -0.5, 0.3, 0.9, 0.2,
-  0.5,  -0.5, -0.5, 0.7, 0.1, 0.5, 0.5,  -0.5, -0.5, 0.7, 0.1, 0.5,
-  0.5,  -0.5, 0.5,  0.2, 0.4, 0.6, 0.5,  0.5,  0.5,  0.8, 0.2, 0.3,
+    0.5,  0.5,  0.5,  0.8, 0.2,  0.3,  0.5,  0.5,  -0.5, 0.3, 0.9, 0.2,  0.5,
+    -0.5, -0.5, 0.7,  0.1, 0.5,  0.5,  -0.5, -0.5, 0.7,  0.1, 0.5, 0.5,  -0.5,
+    0.5,  0.2,  0.4,  0.6, 0.5,  0.5,  0.5,  0.8,  0.2,  0.3,
 
-  -0.5, -0.5, -0.5, 0.6, 0.6, 0.1, 0.5,  -0.5, -0.5, 0.4, 0.4, 0.9,
-  0.5,  -0.5, 0.5,  0.1, 0.8, 0.3, 0.5,  -0.5, 0.5,  0.1, 0.8, 0.3,
-  -0.5, -0.5, 0.5,  0.7, 0.2, 0.9, -0.5, -0.5, -0.5, 0.6, 0.6, 0.1,
+    -0.5, -0.5, -0.5, 0.6, 0.6,  0.1,  0.5,  -0.5, -0.5, 0.4, 0.4, 0.9,  0.5,
+    -0.5, 0.5,  0.1,  0.8, 0.3,  0.5,  -0.5, 0.5,  0.1,  0.8, 0.3, -0.5, -0.5,
+    0.5,  0.7,  0.2,  0.9, -0.5, -0.5, -0.5, 0.6,  0.6,  0.1,
 
-  -0.5, 0.5,  -0.5, 0.1, 0.1, 0.1, 0.5,  0.5,  -0.5, 0.5, 0.5, 0.5,
-  0.5,  0.5,  0.5,  0.9, 0.9, 0.9, 0.5,  0.5,  0.5,  0.9, 0.9, 0.9,
-  -0.5, 0.5,  0.5,  0.4, 0.8, 0.2, -0.5, 0.5,  -0.5, 0.1, 0.1, 0.1};
+    -0.5, 0.5,  -0.5, 0.1, 0.1,  0.1,  0.5,  0.5,  -0.5, 0.5, 0.5, 0.5,  0.5,
+    0.5,  0.5,  0.9,  0.9, 0.9,  0.5,  0.5,  0.5,  0.9,  0.9, 0.9, -0.5, 0.5,
+    0.5,  0.4,  0.8,  0.2, -0.5, 0.5,  -0.5, 0.1,  0.1,  0.1};
 
-GLuint compileShader(GLenum type, const char *src)
-{
-  GLuint shader = glCreateShader(type);
-  glShaderSource(shader, 1, &src, nullptr);
-  glCompileShader(shader);
-  GLint success;
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    char log[512];
-    glGetShaderInfoLog(shader, 512, nullptr, log);
-    std::cerr << "Shader Compile Error: " << log << std::endl;
+  GLuint compileShader(GLenum type, const char *src)
+  {
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &src, nullptr);
+    glCompileShader(shader);
+    GLint success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+      std::array<char, 512> log;
+      glGetShaderInfoLog(shader, log.size(), nullptr, log.data());
+      std::cerr << "Shader Compile Error: " << log.data() << '\n';
+    }
+    return shader;
   }
-  return shader;
-}
 
-GLuint createProgram()
-{
-  GLuint vs = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
-  GLuint fs = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-  GLuint prog = glCreateProgram();
-  glAttachShader(prog, vs);
-  glAttachShader(prog, fs);
-  glLinkProgram(prog);
-  glDeleteShader(vs);
-  glDeleteShader(fs);
-  return prog;
-}
+  GLuint createProgram()
+  {
+    GLuint vs = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
+    GLuint fs = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+    GLuint prog = glCreateProgram();
+    glAttachShader(prog, vs);
+    glAttachShader(prog, fs);
+    glLinkProgram(prog);
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+    return prog;
+  }
 
-void setupVAO(GLuint &VAO, GLuint &VBO)
-{
-  glGenVertexArrays(1, &VAO);
-  glBindVertexArray(VAO);
-  glGenBuffers(1, &VBO);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(
-    GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+  void setupVAO(GLuint &VAO, GLuint &VBO)
+  {
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(
+      GL_ARRAY_BUFFER,
+      sizeof(cubeVertices),
+      cubeVertices.data(),
+      GL_STATIC_DRAW);
 
-  // Position attribute
-  glVertexAttribPointer(
-    0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(0);
-  // Color attribute
-  glVertexAttribPointer(
-    1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-}
+    // Position attribute
+    glVertexAttribPointer(
+      0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(0);
+    // Color attribute
+    glVertexAttribPointer(
+      1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+  }
+
+}  // namespace
 
 int main()
 {
@@ -126,7 +135,8 @@ int main()
   glewInit();
   glEnable(GL_DEPTH_TEST);
 
-  GLuint VAO, VBO;
+  GLuint VAO;
+  GLuint VBO;
   setupVAO(VAO, VBO);
 
   GLuint shader = createProgram();
