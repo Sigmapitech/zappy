@@ -28,7 +28,7 @@ CFLAGS_tests := --coverage -g3
 CXXFLAGS_tests := --coverage -g3
 
 LDFLAGS_gui != pkg-config --libs-only-L sdl2
-LDLIBS_gui != pkg-config --libs-only-l sdl2
+LDLIBS_gui != pkg-config --libs-only-l sdl2 glew gl glu
 CXXFLAGS_gui += $(shell pkg-config --cflags sdl2)
 
 MAKEFLAGS += --no-builtin-rules
