@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -52,6 +53,11 @@ void main() {
       return SDL_GetError();
     }
 
+    static std::string GetIMGError()
+    {
+      return IMG_GetError();
+    }
+
     void SetAttribute(SDL_GLattr attr, int value) const  // NOLINT musn't be
                                                          // static
     {
@@ -61,6 +67,16 @@ void main() {
     }
 
   public:
+    struct Texture {
+      std::shared_ptr<SDL_Surface> surface;
+      GLenum format;
+
+      Texture(std::shared_ptr<SDL_Surface> surf, GLenum fmt)
+        : surface(std::move(surf)), format(fmt)
+      {
+      }
+    };
+
     SDL()
     {
       if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -89,10 +105,15 @@ void main() {
       if (glewInit() != GLEW_OK)
         throw std::runtime_error("GLEW initialization failed!");
       glEnable(GL_DEPTH_TEST);
+
+      if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
+        throw std::
+          runtime_error("SDL_image initialization failed: " + GetIMGError());
     }
 
     ~SDL()
     {
+      IMG_Quit();
       SDL_GL_DeleteContext(_context);
       SDL_DestroyWindow(_window);
       SDL_Quit();
@@ -111,6 +132,30 @@ void main() {
     [[nodiscard]] const SDL_Event &GetEvent() const
     {
       return _event;
+    }
+
+    [[nodiscard]] std::optional<Texture>
+    LoadTexture(const std::string &path) const  // NOLINT musn't be static
+    {
+      std::shared_ptr<SDL_Surface> surface(IMG_Load(path.c_str()));
+      if (!surface.get()) {
+        std::cerr
+          << "Failed to load image: " << path
+          << "\nSDL_image error: " << IMG_GetError() << '\n';
+        return std::nullopt;
+      }
+
+      GLenum format;
+      if (surface->format->BytesPerPixel == 4) {
+        format = (surface->format->Rmask == 0x000000ff) ? GL_RGBA : GL_BGRA;
+      } else if (surface->format->BytesPerPixel == 3) {
+        format = (surface->format->Rmask == 0x000000ff) ? GL_RGB : GL_BGR;
+      } else {
+        std::cerr << "Unknown image format\n";
+        SDL_FreeSurface(surface.get());
+        return std::nullopt;
+      }
+      return Texture(surface, format);
     }
   };
 
@@ -327,15 +372,17 @@ int main()
   GLuint shader = CreateProgram();
 
   bool running = true;
-  SDL_Event event;
   while (running) {
+    SDL_Event event;
     while (SDL_PollEvent(&event))
       if (event.type == SDL_QUIT)
         running = false;
 
     float t = SDL_GetTicks() / 1000.0;
-    glm::mat4 model = glm::rotate(glm::mat4(1.0), t, glm::vec3(0.5, 1.0, 0.0));
-    glm::mat4 view = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, -3.0));
+    glm::mat4 model = glm::
+      rotate(glm::mat4(1.0), t, glm::vec3(0.5, 1.0, 0.0));
+    glm::mat4 view = glm::
+      translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, -3.0));
     glm::mat4 proj = glm::
       perspective<float>(glm::radians(45.0), 800.0 / 600.0, 0.1, 100.0);
     glm::mat4 mvp = proj * view * model;
@@ -359,4 +406,3 @@ int main()
   SDL_Quit();
   return 0;
 }
-
