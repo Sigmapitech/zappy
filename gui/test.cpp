@@ -1,5 +1,6 @@
 #include <array>
 #include <iostream>
+#include <random>
 
 #include <SDL2/SDL.h>
 
@@ -34,49 +35,36 @@ void main() {
 )";
 
   // Interleaved vertex data: position (x, y, z) + color (r, g, b)
-  std::array<float, 216> cubeVertices = {
-    //        Position            Color
-    -0.5, -0.5, -0.5, 1.0, 0.0, 0.0,  // Red
-    +0.5, -0.5, -0.5, 0.0, 1.0, 0.0,  // Green
-    +0.5, +0.5, -0.5, 0.0, 0.0, 1.0,  // Blue
-    +0.5, +0.5, -0.5, 0.0, 0.0, 1.0,  // Blue
-    -0.5, +0.5, -0.5, 1.0, 1.0, 0.0,  // Yellow
-    -0.5, -0.5, -0.5, 1.0, 0.0, 0.0,  // Red
+  std::array<float, 48> vertices = [] {
+    std::array<float, 48> v = {
+      // Positions          // Color (to be randomized)
+      -0.5, -0.5, -0.5, 0, 0, 0,  // 0
+      +0.5, -0.5, -0.5, 0, 0, 0,  // 1
+      +0.5, +0.5, -0.5, 0, 0, 0,  // 2
+      -0.5, +0.5, -0.5, 0, 0, 0,  // 3
+      -0.5, -0.5, +0.5, 0, 0, 0,  // 4
+      +0.5, -0.5, +0.5, 0, 0, 0,  // 5
+      +0.5, +0.5, +0.5, 0, 0, 0,  // 6
+      -0.5, +0.5, +0.5, 0, 0, 0   // 7
+    };
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(0.0, 1.0);
+    for (int i = 0; i < 8; i++) {
+      v[(i * 6) + 3] = dis(gen);  // R
+      v[(i * 6) + 4] = dis(gen);  // G
+      v[(i * 6) + 5] = dis(gen);  // B
+    }
+    return v;
+  }();
 
-    -0.5, -0.5, 0.5,  0.5, 0.0, 0.5,  // Cyan
-    +0.5, -0.5, 0.5,  0.0, 1.0, 1.0,  // Magenta
-    +0.5, +0.5, 0.5,  1.0, 0.0, 1.0,  // Purple
-    +0.5, +0.5, 0.5,  1.0, 0.0, 1.0,  // Purple
-    -0.5, +0.5, 0.5,  0.0, 1.0, 0.5,  // Teal
-    -0.5, -0.5, 0.5,  0.5, 0.0, 0.5,  // Cyan
-
-    -0.5, +0.5, +0.5, 1.0, 0.5, 0.0,  // Orange
-    -0.5, +0.5, -0.5, 0.0, 0.0, 1.0,  // Blue
-    -0.5, -0.5, -0.5, 0.5, 0.5, 0.5,  // Gray
-    -0.5, -0.5, -0.5, 0.5, 0.5, 0.5,  // Gray
-    -0.5, -0.5, +0.5, 0.1, 0.9, 0.1,  // Light Green
-    -0.5, +0.5, +0.5, 1.0, 0.5, 0.0,  // Orange
-
-    0.5,  +0.5, +0.5, 0.8, 0.2, 0.3,  // Light Red
-    0.5,  +0.5, -0.5, 0.3, 0.9, 0.2,  // Light Green
-    0.5,  -0.5, -0.5, 0.7, 0.1, 0.5,  // Light Blue
-    0.5,  -0.5, -0.5, 0.7, 0.1, 0.5,  // Light Blue
-    0.5,  -0.5, +0.5, 0.2, 0.4, 0.6,  // Light Cyan
-    0.5,  +0.5, +0.5, 0.8, 0.2, 0.3,  // Light Red
-
-    -0.5, -0.5, -0.5, 0.6, 0.6, 0.1,  // Light Yellow
-    +0.5, -0.5, -0.5, 0.4, 0.4, 0.9,  // Light Blue
-    +0.5, -0.5, +0.5, 0.1, 0.8, 0.3,  // Light Green
-    +0.5, -0.5, +0.5, 0.1, 0.8, 0.3,  // Light Green
-    -0.5, -0.5, +0.5, 0.7, 0.2, 0.9,  // Light Purple
-    -0.5, -0.5, -0.5, 0.6, 0.6, 0.1,  // Light Yellow
-
-    -0.5, 0.5,  -0.5, 0.1, 0.1, 0.1,  // Dark Gray
-    +0.5, 0.5,  -0.5, 0.5, 0.5, 0.5,  // Light Gray
-    +0.5, 0.5,  +0.5, 0.9, 0.9, 0.9,  // Light White
-    +0.5, 0.5,  +0.5, 0.9, 0.9, 0.9,  // Light White
-    -0.5, 0.5,  +0.5, 0.4, 0.8, 0.2,  // Light Green
-    -0.5, 0.5,  -0.5, 0.1, 0.1, 0.1   // Dark Gray
+  std::array<unsigned int, 36> indices = {
+    0, 1, 2, 2, 3, 0,  // back face
+    4, 5, 6, 6, 7, 4,  // front face
+    4, 0, 3, 3, 7, 4,  // left face
+    1, 5, 6, 6, 2, 1,  // right face
+    4, 5, 1, 1, 0, 4,  // bottom face
+    3, 2, 6, 6, 7, 3   // top face
   };
 
   GLuint compileShader(GLenum type, const char *src)
@@ -107,26 +95,36 @@ void main() {
     return prog;
   }
 
-  void setupVAO(GLuint &VAO, GLuint &VBO)
+  void setupVAO(GLuint &VAO, GLuint &VBO, GLuint &EBO)
   {
     glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(
-      GL_ARRAY_BUFFER,
-      sizeof(cubeVertices),
-      cubeVertices.data(),
+      GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(
+      GL_ELEMENT_ARRAY_BUFFER,
+      sizeof(indices),
+      indices.data(),
       GL_STATIC_DRAW);
 
     // Position attribute
     glVertexAttribPointer(
       0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
+
     // Color attribute
     glVertexAttribPointer(
       1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
   }
 
 }  // namespace
@@ -154,7 +152,8 @@ int main()
 
   GLuint VAO;
   GLuint VBO;
-  setupVAO(VAO, VBO);
+  GLuint EBO;
+  setupVAO(VAO, VBO, EBO);
 
   GLuint shader = createProgram();
 
@@ -176,17 +175,18 @@ int main()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shader);
+    glBindVertexArray(VAO);
     GLint mvpLoc = glGetUniformLocation(shader, "mvp");
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp[0][0]);
 
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
     SDL_GL_SwapWindow(window);
   }
 
   glDeleteBuffers(1, &VBO);
   glDeleteVertexArrays(1, &VAO);
+  glDeleteBuffers(1, &EBO);
   glDeleteProgram(shader);
 
   SDL_GL_DeleteContext(context);
