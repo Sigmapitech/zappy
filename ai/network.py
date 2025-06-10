@@ -1,3 +1,4 @@
+import logging
 import socket
 import time
 
@@ -19,7 +20,7 @@ class Network:
                 self.sock.connect(self.server_address)
                 return
             except socket.error as e:
-                print(
+                logging.warning(
                     f"Connection failed: {e}. Retrying in {self.delay} seconds..."
                 )
                 time.sleep(self.delay)
