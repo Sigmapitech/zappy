@@ -15,6 +15,7 @@ const std::string GUI_USAGE = {
 
 static constexpr const int EXIT_TEK_FAILURE = 84;
 
+[[gnu::weak]]
 int main(int argc, char *argv[])
 {
   Args params;

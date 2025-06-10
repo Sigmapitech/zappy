@@ -28,7 +28,13 @@
         pkgs.mkShell {
           inherit (self.checks.${pkgs.system}.pre-commit-check) shellHook;
 
-          env.MAKEFLAGS = "-j";
+          env = {
+            MAKEFLAGS = "-j";
+            LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
+              mesa
+            ]);
+          };
+
           hardeningDisable = ["fortify"];
           inputsFrom = with self.packages.${pkgs.system}; [
             ai
@@ -45,6 +51,7 @@
               hl-log-viewer
               pkg-config
               SDL2
+              SDL2_image
               libGL
               libGLU
               glew
