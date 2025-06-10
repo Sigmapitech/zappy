@@ -4,6 +4,11 @@
   ncurses,
   pkg-config,
   SDL2,
+  SDL2_image,
+  libGL,
+  libGLU,
+  glew,
+  glm,
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "zappy-gui";
@@ -11,8 +16,19 @@ stdenv.mkDerivation (finalAttrs: {
 
   src = ../.;
 
-  nativeBuildInputs = [ncurses pkg-config];
-  buildInputs = [SDL2];
+  nativeBuildInputs = [
+    ncurses
+    pkg-config
+  ];
+
+  buildInputs = [
+    SDL2
+    SDL2_image
+    libGL
+    libGLU
+    glew
+    glm
+  ];
 
   makeFlags = ["zappy_gui"];
   enableParallelBuilding = true;
