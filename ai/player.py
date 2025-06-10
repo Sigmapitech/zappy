@@ -84,10 +84,8 @@ class Player(Commands):
 
     def reproduce(self):
         if self.can_reproduce():
-            self.fork()
             print("Reproducing")
-            # Lancer un nouveau processus pour une nouvelle instance du joueur
-            subprocess.Popen([sys.executable, __file__, *sys.argv[1:]])
+            self.fork()
 
     def can_evolve(self) -> bool:
         if str(self.level + 1) not in self.elevation_requirements:
@@ -194,7 +192,11 @@ class Player(Commands):
         inventory_response = inventory_response.strip("[]").split(", ")
         inventory = {}
         for item in inventory_response:
-            key, value = item.split()
+            try:
+                key, value = item.split()
+            except ValueError:
+                print("Error reading item: ", item)
+                continue
             inventory[key] = int(value)
         self.food_stock = inventory.get("food", 0)
         self.resources = {
