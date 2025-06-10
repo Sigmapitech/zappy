@@ -5,6 +5,18 @@ import sys
 
 from .network import Network
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    "%(asctime)s - %(name)-11s - %(levelname)-8s - %(message)s",
+    datefmt="%H:%M:%S",
+)
+
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+
+logger.addHandler(stream_handler)
+
 
 class Commands:
     def __init__(self, network: Network, team_name: str):
@@ -12,10 +24,10 @@ class Commands:
         self.team_name = team_name
 
     def __send_command(self, command: str) -> str:
-        logging.debug(f"Sending: {command}")
+        logger.debug(f"Sending: {command}")
         self.network.send_message(command)
         response = self.network.receive_message()
-        logging.debug(f"Sent: {command}, Received: {response}")
+        logger.debug(f"Sent: {command}, Received: {response}")
         return response
 
     def look(self) -> str:
