@@ -44,7 +44,7 @@ class Player(Commands):
                 client_num = self.network.receive_message()
                 logging.debug(f"Received: {client_num}")
         except Exception as e:
-            logging.error(f"Failed to connect: {e}")
+            logging.warning(f"Failed to connect: {e}")
 
     def handle_look_response(self, look_response: str) -> List[List[str]]:
         tiles = look_response.strip("[]").split(",")
@@ -198,7 +198,7 @@ class Player(Commands):
             try:
                 key, value = item.split()
             except ValueError:
-                logging.error("Error reading item: ", item)
+                logging.warning("Error reading item: ", item)
                 continue
             inventory[key] = int(value)
         self.food_stock = inventory.get("food", 0)
