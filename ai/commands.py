@@ -39,7 +39,7 @@ class Commands:
         return self.__send_command("Incantation")
 
     def broadcast(self, message: str) -> str:
-        self.network.send_message(f"Broadcast {message}")
+        self.network.send_message(f'"Broadcast {message}"')
         return self.network.receive_message()
 
     def fork(self):
