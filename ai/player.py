@@ -10,12 +10,12 @@ from .commands import Commands
 from .network import Network
 
 
-class Player:
+class Player(Commands):
     def __init__(self, server_address: tuple, team_name: str):
         self.server_address = server_address
         self.team_name = team_name
         self.network = Network(server_address)
-        self.commands = Commands(self.network, team_name)
+        Commands().__init__(self.network, team_name)
         self.buffer_size = 4096
         self.food_stock = 0
         self.level = 1
@@ -59,7 +59,7 @@ class Player:
     def take_all_on_tile(self, tile_data: List[str]):
         if tile_data:
             for item in tile_data:
-                self.commands.take(item)
+                self.take(item)
 
     def handle_tile_actions(self, tiles: List[List[str]]):
         for tile in tiles:
@@ -73,7 +73,7 @@ class Player:
                 "thystame",
             ]:
                 if obj in tile:
-                    self.commands.take(obj)
+                    self.take(obj)
                     if obj == "food":
                         self.food_stock += 1
                     else:
@@ -84,7 +84,7 @@ class Player:
 
     def reproduce(self):
         if self.can_reproduce():
-            self.commands.fork()
+            self.fork()
             print("Reproducing")
             # Lancer un nouveau processus pour une nouvelle instance du joueur
             subprocess.Popen([sys.executable, __file__, *sys.argv[1:]])
@@ -101,30 +101,32 @@ class Player:
         return True
 
     def evolve(self):
-        if self.can_evolve():
-            print("Starting incantation")
-            evolution_result = self.commands.start_incantation()
-            if "Elevation underway" in evolution_result:
-                print("Elevation underway")
-                final_result = self.network.receive_message()
-                if "Current level" in final_result:
-                    self.level += 1
-                    requirements = self.elevation_requirements[str(self.level)]
-                    for resource, amount in requirements.items():
-                        if (
-                            resource != "players"
-                        ):  # We don't subtract players, just resources
-                            self.resources[resource] -= amount
-                    print(f"Evolved to level {self.level}")
-                else:
-                    print("Elevation failed")
-            else:
-                print("Elevation did not start")
-        else:
+        if not self.can_evolve():
             print("Cannot evolve yet. Insufficient resources.")
 
+        print("Starting incantation")
+        evolution_result = self.start_incantation()
+
+        if "Elevation underway" not in evolution_result:
+            print("Elevation did not start")
+
+        print("Elevation underway")
+        final_result = self.network.receive_message()
+
+        if "Current level" not in final_result:
+            print("Elevation failed")
+
+        self.level += 1
+        requirements = self.elevation_requirements[str(self.level)]
+        for resource, amount in requirements.items():
+            if (
+                resource != "players"
+            ):  # We don't subtract players, just resources
+                self.resources[resource] -= amount
+        print(f"Evolved to level {self.level}")
+
     def broadcast_message(self, message: str):
-        self.commands.broadcast(message)
+        self.broadcast(message)
 
     def handle_incoming_messages(self, message: str):
         if "message" in message:
@@ -137,7 +139,7 @@ class Player:
             # Handle other types of incoming messages as needed
 
     def look_for_food(self):
-        look_response = self.commands.look()
+        look_response = self.look()
         tiles = self.parse_look_response(look_response)
         # if tiles[0] == "food":
         tiles.pop(0)
@@ -154,20 +156,20 @@ class Player:
     def move_to_food(self, food_tile_index):
         direction = self.calculate_direction(food_tile_index)
         if direction == "left":
-            self.commands.turn_left()
+            self.turn_left()
         elif direction == "right":
-            self.commands.turn_right()
-        self.commands.move_up()
-        new_tile = self.commands.look()[0]
+            self.turn_right()
+        self.move_up()
+        new_tile = self.look()[0]
         self.handle_tile_actions([new_tile])
         print(f"Food found in tile {food_tile_index}, moving {direction}")
 
     def random_movement(self):
         if random.choice([True, False]):
-            self.commands.turn_left()
+            self.turn_left()
         else:
-            self.commands.turn_right()
-        self.commands.move_up()
+            self.turn_right()
+        self.move_up()
         print("No food found, turning randomly and moving up")
 
     def search_food(self):
@@ -178,7 +180,7 @@ class Player:
         )
         if food_tile_index is not None:
             if food_tile_index == 0:
-                self.commands.take("food")
+                self.take("food")
                 self.food_stock += 1
                 print("Food found and taken")
                 self.reproduce()
@@ -188,7 +190,7 @@ class Player:
             self.random_movement()
 
     def get_inventory(self):
-        inventory_response = self.commands.inventory()
+        inventory_response = self.inventory()
         inventory_response = inventory_response.strip("[]").split(", ")
         inventory = {}
         for item in inventory_response:
