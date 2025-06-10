@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import sys
@@ -11,10 +12,10 @@ class Commands:
         self.team_name = team_name
 
     def __send_command(self, command: str) -> str:
-        print(f"Sending: {command}")
+        logging.debug(f"Sending: {command}")
         self.network.send_message(command)
         response = self.network.receive_message()
-        print(f"Sent: {command}, Received: {response}")
+        logging.debug(f"Sent: {command}, Received: {response}")
         return response
 
     def look(self) -> str:

@@ -1,4 +1,5 @@
 import json
+import logging
 import pathlib
 import random
 import select
@@ -37,13 +38,13 @@ class Player(Commands):
         try:
             self.network.connect()
             welcome_message = self.network.receive_message()
-            print(f"Received: {welcome_message}")
+            logging.debug(f"Received: {welcome_message}")
             if "WELCOME" in welcome_message:
                 self.network.send_message(self.team_name)
                 client_num = self.network.receive_message()
-                print(f"Received: {client_num}")
+                logging.debug(f"Received: {client_num}")
         except Exception as e:
-            print(f"Failed to connect: {e}")
+            logging.error(f"Failed to connect: {e}")
 
     def handle_look_response(self, look_response: str) -> List[List[str]]:
         tiles = look_response.strip("[]").split(",")
@@ -84,7 +85,7 @@ class Player(Commands):
 
     def reproduce(self):
         if self.can_reproduce():
-            print("Reproducing")
+            logging.debug("Reproducing")
             self.fork()
 
     def can_evolve(self) -> bool:
@@ -100,19 +101,19 @@ class Player(Commands):
 
     def evolve(self):
         if not self.can_evolve():
-            print("Cannot evolve yet. Insufficient resources.")
+            logging.debug("Cannot evolve yet. Insufficient resources.")
 
-        print("Starting incantation")
+        logging.debug("Starting incantation")
         evolution_result = self.start_incantation()
 
         if "Elevation underway" not in evolution_result:
-            print("Elevation did not start")
+            logging.debug("Elevation did not start")
 
-        print("Elevation underway")
+        logging.debug("Elevation underway")
         final_result = self.network.receive_message()
 
         if "Current level" not in final_result:
-            print("Elevation failed")
+            logging.debug("Elevation failed")
 
         self.level += 1
         requirements = self.elevation_requirements[str(self.level)]
@@ -121,7 +122,7 @@ class Player(Commands):
                 resource != "players"
             ):  # We don't subtract players, just resources
                 self.resources[resource] -= amount
-        print(f"Evolved to level {self.level}")
+        logging.debug(f"Evolved to level {self.level}")
 
     def broadcast_message(self, message: str):
         self.broadcast(message)
@@ -141,7 +142,7 @@ class Player(Commands):
         tiles = self.parse_look_response(look_response)
         # if tiles[0] == "food":
         tiles.pop(0)
-        print(f"Look response: {tiles}")
+        logging.debug(f"Look response: {tiles}")
         return tiles
 
     def calculate_direction(self, food_tile_index):
@@ -160,7 +161,9 @@ class Player(Commands):
         self.move_up()
         new_tile = self.look()[0]
         self.handle_tile_actions([new_tile])
-        print(f"Food found in tile {food_tile_index}, moving {direction}")
+        logging.debug(
+            f"Food found in tile {food_tile_index}, moving {direction}"
+        )
 
     def random_movement(self):
         if random.choice([True, False]):
@@ -168,7 +171,7 @@ class Player(Commands):
         else:
             self.turn_right()
         self.move_up()
-        print("No food found, turning randomly and moving up")
+        logging.debug("No food found, turning randomly and moving up")
 
     def search_food(self):
         tiles = self.look_for_food()
@@ -180,7 +183,7 @@ class Player(Commands):
             if food_tile_index == 0:
                 self.take("food")
                 self.food_stock += 1
-                print("Food found and taken")
+                logging.debug("Food found and taken")
                 self.reproduce()
             else:
                 self.move_to_food(food_tile_index)
@@ -195,7 +198,7 @@ class Player(Commands):
             try:
                 key, value = item.split()
             except ValueError:
-                print("Error reading item: ", item)
+                logging.error("Error reading item: ", item)
                 continue
             inventory[key] = int(value)
         self.food_stock = inventory.get("food", 0)
@@ -203,12 +206,11 @@ class Player(Commands):
             resource: inventory.get(resource, 0)
             for resource in self.resources.keys()
         }
-        print(f"Updated inventory: {self.resources}")
+        logging.debug(f"Updated inventory: {self.resources}")
 
     def main_loop(self):
-        print("Player main loop")
+        logging.debug("Player main loop")
         while True:
-            print("je passe")
             self.get_inventory()
 
             if self.can_evolve():
@@ -220,7 +222,7 @@ class Player(Commands):
             if ready_to_read:
                 incoming_message = self.network.receive_message()
                 if "dead" in incoming_message:
-                    print("Received 'dead', exiting.")
+                    logging.debug("Received 'dead', exiting.")
                     self.close()
                     sys.exit(0)
                 self.handle_incoming_messages(incoming_message)
