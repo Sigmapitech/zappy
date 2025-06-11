@@ -22,13 +22,15 @@
 
         #define HEAD __FILE_NAME__, __LINE__
 
-        #define HEAD_FMT_FILE BOLD BLUE "%-6s" RESET
+        #define HEAD_FMT_FILE BOLD BLUE "%-24s" RESET
         #define HEAD_FMT_LINE ": " BOLD PURPLE "%-3d" RESET ":"
 
         #define HEAD_FMT(fmt) HEAD_FMT_FILE HEAD_FMT_LINE "  " fmt "\n"
 
         #define DEBUG_MSG(msg) printf(HEAD_FMT("%s"), HEAD, msg)
         #define DEBUG(fmt, ...) printf(HEAD_FMT(fmt), HEAD, __VA_ARGS__)
+        #define DEBUG_RAW_MSG(msg) printf("%s", msg)
+        #define DEBUG_RAW(fmt, ...) printf(fmt, __VA_ARGS__)
 
         #define DEBUG_CALL(func, ...) func(__VA_ARGS__)
 
@@ -44,6 +46,8 @@
 
         #define DEBUG_MSG(msg) OMIT
         #define DEBUG(fmt, ...) OMIT
+        #define DEBUG_RAW_MSG(msg) OMIT
+        #define DEBUG_RAW(fmt, ...) OMIT
 
         #define DEBUG_CALL(func, ...) OMIT
         #define DEBUG_USED __attribute__((unused))
