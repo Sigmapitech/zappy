@@ -1,5 +1,11 @@
 #include <cstdlib>
 #include <iostream>
+#include "Display.hpp"
+
+#include "logging/Logger.hpp"
+#include "args_parser.hpp"
+#include "./Network/Network.hpp"
+
 #include <thread>
 
 #include "ArgsParser.hpp"
@@ -27,6 +33,10 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
   }
   std::cout << params;
+
+  Network networkClass(params.port, params.host);
+  std::cout << "Network started.\n";
+  std::jthread network_thread(&Network::runNetwork, &networkClass);
   // std::jthread ui_thread(Display::run_display);
   return EXIT_SUCCESS;
 }
