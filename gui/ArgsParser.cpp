@@ -1,6 +1,5 @@
-#include <bits/getopt_core.h>
 #include <cstdio>
-#include <getopt.h>  // NOLINT getopt must be before bits/getopt_core.h
+#include <getopt.h>
 
 #include <array>
 #include <cstdint>
