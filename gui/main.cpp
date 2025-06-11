@@ -2,6 +2,7 @@
 #include <iostream>
 #include <thread>
 
+#include "./Network/Network.hpp"
 #include "ArgsParser.hpp"
 #include "Display.hpp"
 #include "logging/Logger.hpp"
@@ -27,6 +28,10 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
   }
   std::cout << params;
+
+  Network networkClass(params.GetPort(), params.GetHost());
+  std::cout << "Network started.\n";
+  std::jthread network_thread(&Network::runNetwork, &networkClass);
   // std::jthread ui_thread(Display::run_display);
   return EXIT_SUCCESS;
 }
