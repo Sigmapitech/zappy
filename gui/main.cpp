@@ -1,19 +1,8 @@
 #include <cstdlib>
 #include <iostream>
-#include "Display.hpp"
-
-#include "logging/Logger.hpp"
-#include "args_parser.hpp"
-#include "./Network/Network.hpp"
-
 #include <thread>
-const std::string GUI_USAGE = {
-  "Usage: ./zappy_gui [OPTIONS]\n"
-  "Options:\n"
-  "  --help                Show this help message and exit\n"
-  "  -p, --port <port>         Set the port number\n"
-  "  -h, --host <machine>      Set the host machine\n"};
 
+#include "./Network/Network.hpp"
 #include "ArgsParser.hpp"
 #include "Display.hpp"
 #include "logging/Logger.hpp"
@@ -40,7 +29,7 @@ int main(int argc, char *argv[])
   }
   std::cout << params;
 
-  Network networkClass(params.port, params.host);
+  Network networkClass(params.GetPort(), params.GetHost());
   std::cout << "Network started.\n";
   std::jthread network_thread(&Network::runNetwork, &networkClass);
   // std::jthread ui_thread(Display::run_display);
