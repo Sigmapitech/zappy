@@ -1,18 +1,41 @@
 #include "Display.hpp"
+#include "Network/Network.hpp"
+#include "args_parser.hpp"
+#include "logging/Logger.hpp"
 
-#include "./Network/Network.hpp"
-
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
 #include <thread>
 
-int main()
-{
-  std::string host = "127.0.0.1";
+const std::string GUI_USAGE = {
+  "Usage: ./zappy_ai [OPTIONS]\n"
+  "Options:\n"
+  "  -H, --help                Show this help message and exit\n"
+  "  -p, --port <port>         Set the port number\n"
+  "  -h, --host <machine>      Set the host machine\n"};
 
-  Network networkClass(4242, host);
-  std::cout << "Network started.\n";
+static constexpr const int EXIT_TEK_FAILURE = 84;
+
+int main(int argc, char *argv[])
+{
+  parameters_s params;
+  Log::info << "GUI started.";
+
+  if (!parse_args(params, argc, argv))
+    return EXIT_TEK_FAILURE;
+  if (params.help) {
+    std::cerr << GUI_USAGE;
+    return EXIT_SUCCESS;
+  }
+  print_params(params);
+
+  Network networkClass(params.port, params.host);
+
+  Log::info << "Network started.\n";
   std::jthread network_thread(&Network::runNetwork, &networkClass);
 
-  std::cout << "GUI started.\n";
+  Log::info << "GUI started.\n";
   std::jthread ui_thread(Display::run_display);
-  return 0;
+  return EXIT_SUCCESS;
 }
