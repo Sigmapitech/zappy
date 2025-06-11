@@ -1,6 +1,6 @@
+#include "ArgsParser.hpp"
 #include "Display.hpp"
 #include "Network/Network.hpp"
-#include "args_parser.hpp"
 #include "logging/Logger.hpp"
 
 #include <cstdio>
@@ -19,22 +19,22 @@ static constexpr const int EXIT_TEK_FAILURE = 84;
 
 int main(int argc, char *argv[])
 {
-  parameters_s params;
+  Args params;
 
-  if (!parse_args(params, argc, argv))
+  if (!params.Parse(argc, argv))
     return EXIT_TEK_FAILURE;
-  if (params.help) {
+  if (params.GetHelp()) {
     std::cerr << GUI_USAGE;
     return EXIT_SUCCESS;
   }
-  print_params(params);
+  std::cout << params;
 
-  Network networkClass(params.port, params.host);
+  Network networkClass(params.GetPort(), params.GetHost());
 
-  Log::info << "Network started.\n";
-  std::jthread network_thread(&Network::runNetwork, &networkClass);
+  Log::info << "Network started.";
+  std::jthread network_thread(&Network::RunNetwork, &networkClass);
 
-  Log::info << "GUI started.\n";
+  Log::info << "GUI started.";
   std::jthread ui_thread(Display::run_display);
   return EXIT_SUCCESS;
 }
