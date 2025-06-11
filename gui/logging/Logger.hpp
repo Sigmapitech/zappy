@@ -41,6 +41,8 @@ public:
   static void
   logger_configure(const std::string &log_path, LogLevel level, LogType type);
 
+  static std::string cleanString(std::string str);
+
 private:
   LogLevel _level;
   const char *_file;

@@ -2,15 +2,12 @@
 
 #include <arpa/inet.h>
 #include <cstring>
-#include <iostream>
 #include <netinet/in.h>
 #include <poll.h>
-#include <stdexcept>
 #include <string>
 #include <sys/poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <vector>
 
 #define MAX_MESSAGE_SIZE 1024
 

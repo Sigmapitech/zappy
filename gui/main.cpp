@@ -4,7 +4,6 @@
 
 #include "./Network/Network.hpp"
 #include "ArgsParser.hpp"
-#include "Display.hpp"
 #include "logging/Logger.hpp"
 
 const std::string GUI_USAGE = {
