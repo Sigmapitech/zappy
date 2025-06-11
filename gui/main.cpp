@@ -1,4 +1,3 @@
-#include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <thread>
@@ -18,16 +17,16 @@ static constexpr const int EXIT_TEK_FAILURE = 84;
 
 int main(int argc, char *argv[])
 {
-  parameters_s params;
+  Args params;
   Log::info << "GUI started.";
 
-  if (!parse_args(params, argc, argv))
+  if (!params.Parse(argc, argv))
     return EXIT_TEK_FAILURE;
-  if (params.help) {
+  if (params.GetHelp()) {
     std::cerr << GUI_USAGE;
     return EXIT_SUCCESS;
   }
-  print_params(params);
+  std::cout << params;
   // std::jthread ui_thread(Display::run_display);
   return EXIT_SUCCESS;
 }
