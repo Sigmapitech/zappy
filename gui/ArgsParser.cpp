@@ -1,44 +1,51 @@
-#include <getopt.h> // NOLINT getopt must be before bits/getopt_core.h
 #include <bits/getopt_core.h>
+#include <getopt.h>  // NOLINT getopt must be before bits/getopt_core.h
 
 #include <array>
 #include <cstdint>
 #include <iostream>
 #include <sstream>
 
-#include "args_parser.hpp"
+#include "ArgsParser.hpp"
 
 #define HELP_OPT 1000
 
 // Structure to hold the command line parameters, to be used by getopt_long
-static
-const std::array<struct option, 4>  long_options = {{
-  {"help", no_argument, nullptr, HELP_OPT},
-  {"port", required_argument, nullptr, 'p'},
-  {"host", required_argument, nullptr, 'h'},
-  {nullptr, 0, nullptr, 0}
-}};
+static const std::array<struct option, 4> long_options = {
+  {{"help", no_argument, nullptr, HELP_OPT},
+   {"port", required_argument, nullptr, 'p'},
+   {"host", required_argument, nullptr, 'h'},
+   {nullptr, 0, nullptr, 0}}};
 
-uint16_t Args::ParseNumber(const std::string &arg, const char *name, uint16_t min, uint16_t max)
+uint16_t Args::ParseNumber(
+  const std::string &arg,
+  const char *name,
+  uint16_t min,
+  uint16_t max)
 {
   std::stringstream ss(arg);
   long value;
   if (!(ss >> value)) {
-    std::cerr << "Invalid value for " << name << ": " << arg << " (not a number)\n";
-    return 0;
+
+    std::cerr
+      << "Invalid value for " << name << ": " << arg << " (not a number)\n";
   }
   if (!ss.eof()) {
-    std::cerr << "Invalid value for " << name << ": " << arg << " (extra characters after number)\n";
+    std::cerr
+      << "Invalid value for " << name << ": " << arg
+      << " (extra characters after number)\n";
     return 0;
   }
   if (value < min || value > max) {
-    std::cerr << "Invalid value for " << name << ": " << arg << " (must be between " << min << " and " << max << ")\n";
+    std::cerr
+      << "Invalid value for " << name << ": " << arg << " (must be between "
+      << min << " and " << max << ")\n";
     return 0;
   }
   return value;
 }
 
-bool Args::Dispatcher(char **argv, char opt)
+bool Args::Dispatcher(char **argv, int opt)
 {
   (void)argv;
   switch (opt) {
