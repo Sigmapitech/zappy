@@ -10,7 +10,7 @@ RM ?= rm --force
 CFLAGS := -std=c2x
 
 CXXFLAGS := -std=c++20
-CXXFLAGS += -iquote $/libs -iquote $/include
+CXXFLAGS += -iquote $/libs -iquote $/gui
 
 CFLAGS += $(shell grep -vP '^(#|$$)' ./warning_flags.c.conf)
 CXXFLAGS += $(shell grep -vP '^(#|$$)' ./warning_flags.cpp.conf)
