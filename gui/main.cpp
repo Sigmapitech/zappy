@@ -9,9 +9,9 @@
 #include <thread>
 
 const std::string GUI_USAGE = {
-  "Usage: ./zappy_ai [OPTIONS]\n"
+  "Usage: ./zappy_gui [OPTIONS]\n"
   "Options:\n"
-  "  -H, --help                Show this help message and exit\n"
+  "  --help                Show this help message and exit\n"
   "  -p, --port <port>         Set the port number\n"
   "  -h, --host <machine>      Set the host machine\n"};
 
@@ -20,7 +20,6 @@ static constexpr const int EXIT_TEK_FAILURE = 84;
 int main(int argc, char *argv[])
 {
   parameters_s params;
-  Log::info << "GUI started.";
 
   if (!parse_args(params, argc, argv))
     return EXIT_TEK_FAILURE;
