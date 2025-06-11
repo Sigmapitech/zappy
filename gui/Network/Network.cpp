@@ -1,4 +1,8 @@
-#include "./Network.hpp"
+#include "Network.hpp"
+#include "logging/Logger.hpp"
+
+#include <stdexcept>
+#include <vector>
 
 Network::Network(int port, const std::string &hostname)
   : _port(port), _hostname(hostname)
@@ -36,14 +40,14 @@ void Network::runNetwork()
   struct pollfd *poll_fd = createPollFd(_fdServer, POLLIN, 0);
 
   Network::pollMaker(poll_fd, 1, -1);
-  std::cout << "Message receive : " << receiveMessage();
-  std::string msg = "GRAPHIC";
+  Log::info << "Message receive : " << Log::cleanString(receiveMessage());
+  std::string msg = "GRAPHIC\n";
   sendMessage(msg);
 
   while (!end) {
     Network::pollMaker(poll_fd, 1, -1);
     if (poll_fd[0].revents & POLLIN)
-      std::cout << "Message receive : " << receiveMessage();
+      Log::info << "Message receive : " << Log::cleanString(receiveMessage());
     // add ParserMessage
   }
   delete (poll_fd);
@@ -51,7 +55,7 @@ void Network::runNetwork()
 
 void Network::sendMessage(std::string &msg) const
 {
-  std::cout << "Message sent : " << msg << "\n";
+  Log::info << "Message sent : " << Log::cleanString(msg);
   if (send(_fdServer, msg.c_str(), msg.size(), 0) == -1)
     throw(std::runtime_error(
       "Error: send, Function: sendMessage, File: "
