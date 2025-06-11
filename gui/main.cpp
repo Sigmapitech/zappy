@@ -1,12 +1,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <thread>
-const std::string GUI_USAGE = {
-  "Usage: ./zappy_gui [OPTIONS]\n"
-  "Options:\n"
-  "  --help                Show this help message and exit\n"
-  "  -p, --port <port>         Set the port number\n"
-  "  -h, --host <machine>      Set the host machine\n"};
 
 #include "ArgsParser.hpp"
 #include "Display.hpp"
