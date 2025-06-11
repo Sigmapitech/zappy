@@ -2,14 +2,14 @@
 #include <iostream>
 #include <thread>
 
+#include "ArgsParser.hpp"
 #include "Display.hpp"
-#include "args_parser.hpp"
 #include "logging/Logger.hpp"
 
 const std::string GUI_USAGE = {
-  "Usage: ./zappy_ai [OPTIONS]\n"
+  "Usage: ./zappy_gui [OPTIONS]\n"
   "Options:\n"
-  "  -H, --help                Show this help message and exit\n"
+  "  --help                    Show this help message and exit\n"
   "  -p, --port <port>         Set the port number\n"
   "  -h, --host <machine>      Set the host machine\n"};
 
