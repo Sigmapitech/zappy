@@ -1,7 +1,13 @@
 #include "Network.hpp"
 #include "logging/Logger.hpp"
 
+#include <arpa/inet.h>
+#include <array>
+#include <netinet/in.h>
+#include <poll.h>
 #include <stdexcept>
+#include <sys/socket.h>
+#include <unistd.h>
 #include <vector>
 
 Network::Network(int port, const std::string &hostname)
@@ -9,91 +15,91 @@ Network::Network(int port, const std::string &hostname)
 {
   _fdServer = socket(AF_INET, SOCK_STREAM, 0);
   if (_fdServer < 0) {
-    throw(std::runtime_error(
-      "Error: socket, Function Network, File: "
-      "Network.cpp"));
+    throw std::
+      runtime_error("Error: socket, Function: Network, File: Network.cpp");
   }
 }
 
-void Network::runNetwork()
+void Network::RunNetwork()
 {
-  struct sockaddr_in serverAddr{};
-  serverAddr.sin_family = AF_INET;
-  serverAddr.sin_port = htons(_port);
+  sockaddr_in server_addr{};
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_port = htons(_port);
 
-  if (inet_pton(AF_INET, _hostname.c_str(), &serverAddr.sin_addr) <= 0)
-    throw(std::runtime_error(
-      "Error: inet_pton, Function: RunNewtwork, File: "
-      "Network.cpp"));
+  if (inet_pton(AF_INET, _hostname.c_str(), &server_addr.sin_addr) != 1) {
+    throw std::runtime_error(
+      "Error: inet_pton failed. Function: RunNetwork, File: Network.cpp");
+  }
 
   if (
     connect(
       _fdServer,
-      reinterpret_cast<struct sockaddr *>(&serverAddr),
-      sizeof(serverAddr))
-    < 0)
-    throw(std::runtime_error(
-      "Error: connect, Function: RunNewtwork, File: "
-      "Network.cpp"));
+      reinterpret_cast<const sockaddr *>(&server_addr),
+      sizeof(server_addr))
+    < 0) {
+    throw std::runtime_error(
+      "Error: connect failed. Function: RunNetwork, File: Network.cpp");
+  }
 
   bool end = false;
-  struct pollfd *poll_fd = createPollFd(_fdServer, POLLIN, 0);
+  auto poll_fd = CreatePollFd(_fdServer, POLLIN | POLLOUT);
 
-  Network::pollMaker(poll_fd, 1, -1);
-  Log::info << "Message receive : " << Log::cleanString(receiveMessage());
-  std::string msg = "GRAPHIC\n";
-  sendMessage(msg);
+  if (poll(poll_fd.data(), 1, -1) == -1) {
+    throw std::runtime_error(
+      "Error: poll failed. Function: RunNetwork, File: Network.cpp");
+  }
+
+  if ((poll_fd[0].revents & POLLIN) != 0)
+    Log::info << "Message received: " << Log::cleanString(ReceiveMessage());
+
+  if ((poll_fd[0].revents & POLLOUT) != 0) {
+    std::string msg = "GRAPHIC\n";
+    SendMessage(msg);
+  }
 
   while (!end) {
-    Network::pollMaker(poll_fd, 1, -1);
-    if (poll_fd[0].revents & POLLIN)
-      Log::info << "Message receive : " << Log::cleanString(receiveMessage());
-    // add ParserMessage
+    if (poll(poll_fd.data(), 1, -1) == -1) {
+      throw std::runtime_error(
+        "Error: poll failed. Function: RunNetwork, File: Network.cpp");
+    }
+
+    if (poll_fd[0].revents & POLLIN) {
+      Log::info << "Message received: " << Log::cleanString(ReceiveMessage());
+      // add ParserMessage
+    }
   }
-  delete (poll_fd);
 }
 
-void Network::sendMessage(std::string &msg) const
+void Network::SendMessage(std::string &msg) const
 {
   Log::info << "Message sent : " << Log::cleanString(msg);
-  if (send(_fdServer, msg.c_str(), msg.size(), 0) == -1)
-    throw(std::runtime_error(
-      "Error: send, Function: sendMessage, File: "
-      "Network.cpp"));
-}
-
-std::string Network::receiveMessage() const
-{
-  std::vector<char> buffer(MAX_MESSAGE_SIZE);
-
-  ssize_t bytesReceived = recv(_fdServer, buffer.data(), buffer.size() - 1, 0);
-  if (bytesReceived <= 0) {
-    throw(std::runtime_error(
-      "Error: recv, Function: receiveMessage, File: "
-      "Network.cpp"));
+  if (send(_fdServer, msg.c_str(), msg.size(), 0) == -1) {
+    throw std::
+      runtime_error("Error: send, Function: SendMessage, File: Network.cpp");
   }
-
-  buffer[bytesReceived] = '\0';
-  std::string message(buffer.data());
-
-  return message;
 }
 
-struct pollfd *Network::createPollFd(int fd, short event, short revent)
+std::string Network::ReceiveMessage() const
 {
-  auto *pollList = new struct pollfd[1];
+  constexpr std::size_t buffer_size = 65536;
+  std::vector<char> buffer(buffer_size);
 
+  ssize_t bytes_received = recv(_fdServer, buffer.data(), buffer_size, 0);
+
+  if (bytes_received < 0) {
+    throw std::runtime_error(
+      "Error: recv failed, Function: ReceiveMessage, File: Network.cpp");
+  }
+  if (bytes_received == 0)
+    return {};
+  return std::string(buffer.data(), static_cast<std::size_t>(bytes_received));
+}
+
+std::array<struct pollfd, 1> Network::CreatePollFd(int fd, short events)
+{
+  std::array<struct pollfd, 1> pollList;
   pollList[0].fd = fd;
-  pollList[0].events = event;
-  pollList[0].revents = revent;
+  pollList[0].events = events;
+  pollList[0].revents = 0;
   return pollList;
-}
-
-void Network::pollMaker(struct pollfd *pollList, int sizePollList, int timeout)
-{
-  int ret = poll(pollList, sizePollList, timeout);
-  if (ret < 0)
-    throw(std::runtime_error(
-      "Error: poll, Function: runNetwork, File: "
-      "Network.cpp"));
 }

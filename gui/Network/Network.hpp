@@ -9,8 +9,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define MAX_MESSAGE_SIZE 1024
-
 class Network {
 private:
   int _port;
@@ -30,21 +28,21 @@ public:
   /**
    * @brief Run the network of the client.
    */
-  void runNetwork();
+  void RunNetwork();
 
   /**
    * @brief Send a message to the server.
    *
    * @param msg Contain the message to send.
    */
-  void sendMessage(std::string &msg) const;
+  void SendMessage(std::string &msg) const;
 
   /**
    * @brief Receive a message from the server.
    *
    * @return Return as a std::string the message sent by the server.
    */
-  [[nodiscard]] std::string receiveMessage() const;
+  [[nodiscard]] std::string ReceiveMessage() const;
 
   /**
    * @brief Create a Poll Fd object.
@@ -54,15 +52,5 @@ public:
    * @param revent Contain the revent that will allow to interact.
    * @return Return as a struct pollfd* the pollfd needed by poll
    */
-  static struct pollfd *createPollFd(int fd, short event, short revent);
-
-  /**
-   * @brief Use poll
-   *
-   * @param pollList Contain the list of pollfd checked by poll.
-   * @param sizePollList Contain the number of element in the list.
-   * @param timeout Contain the time when the poll need to check.
-   */
-  static void
-  pollMaker(struct pollfd *pollList, int sizePollList, int timeout);
+  static std::array<struct pollfd, 1> CreatePollFd(int fd, short events);
 };

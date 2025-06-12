@@ -2,9 +2,9 @@
 #include <iostream>
 #include <thread>
 
-#include "./Network/Network.hpp"
 #include "ArgsParser.hpp"
 #include "Display.hpp"
+#include "Network/Network.hpp"
 #include "logging/Logger.hpp"
 
 const std::string GUI_USAGE = {
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
   Network networkClass(params.GetPort(), params.GetHost());
   std::cout << "Network started.\n";
-  std::jthread network_thread(&Network::runNetwork, &networkClass);
+  std::jthread network_thread(&Network::RunNetwork, &networkClass);
   // std::jthread ui_thread(Display::run_display);
   return EXIT_SUCCESS;
 }
