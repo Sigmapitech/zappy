@@ -27,6 +27,7 @@ __pycache__
 # Editors
 .idea
 .vscode
+.cache
 compile_commands.json
 ecsls.toml
 
