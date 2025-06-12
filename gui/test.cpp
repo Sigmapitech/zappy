@@ -264,9 +264,13 @@ void main() {
       glDeleteBuffers(1, &EBO);
     }
 
-    void Draw() const
+    void Draw(GLuint shader) const
     {
       glBindVertexArray(VAO);
+
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, _texture);
+      glUniform1i(glGetUniformLocation(shader, "tex"), 0);
       glDrawElements(GL_TRIANGLES, _indices->size(), GL_UNSIGNED_INT, nullptr);
     }
 
@@ -317,9 +321,7 @@ void main() {
         std::string vertexStr;
         std::vector<unsigned int> faceIndices;
 
-        for (int i = 0; i < 3; i++) {
-          ss >> vertexStr;
-          std::cerr << "Vertex: " << vertexStr << '\n';
+        while (ss >> vertexStr) {
           if (uniqueVertexMap.count(vertexStr) == 0) {
             std::istringstream vss(vertexStr);
 
@@ -413,7 +415,7 @@ void main() {
       GLint mvpLoc = glGetUniformLocation(shader, "mvp");
       glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, &mvp[0][0]);
 
-      meshOpt->Draw();
+      meshOpt->Draw(shader);
 
       sdl.SwapWindow();
     }
