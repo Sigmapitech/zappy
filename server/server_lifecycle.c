@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "args_parser.h"
+#include "data_structure/event.h"
 #include "data_structure/resizable_array.h"
 #include "debug.h"
 #include "server.h"
@@ -55,71 +56,26 @@ bool setup_teams(server_t *srv, params_t *p, uint64_t timestamp)
     return true;
 }
 
-static DEBUG_USED
-void log_map(server_t *srv)
-{
-    DEBUG_USED size_t y = 0;
-    DEBUG_USED size_t x = 0;
-
-    DEBUG_MSG("=======================MAP========================");
-    DEBUG_MSG("Map contents:");
-    for (size_t i = 0; i < (uint64_t)(srv->map_height * srv->map_width); i++) {
-        y = i / srv->map_width;
-        x = i % srv->map_width;
-        DEBUG_RAW("(%zu, %zu): ", x, y);
-        for (size_t n = 0; n < RES_COUNT; n++)
-            DEBUG_RAW("%s: %u%s", RES_NAMES[n], srv->map[y][x].qnts[n],
-                (n < RES_COUNT - 1) ? ", " : "");
-        DEBUG_RAW_MSG("\n");
-    }
-    DEBUG_MSG("Total items in map:");
-    for (size_t n = 0; n < RES_COUNT; n++)
-        DEBUG_RAW("%s: %u%s", RES_NAMES[n], srv->total_item_in_map.qnts[n],
-            (n < RES_COUNT - 1) ? ", " : "");
-    DEBUG_RAW_MSG("\n");
-    DEBUG_MSG("==================================================");
-}
-
-static
-void fill_ressource(server_t *srv, uint8_t height, uint8_t width)
-{
-    size_t quantity;
-    size_t x = 0;
-    size_t y = 0;
-    static constexpr const float DENSITIES[RES_COUNT] = {
-        0.5F, 0.3F, 0.15F, 0.1F, 0.1F, 0.08F, 0.05F,
-    };
-
-    for (size_t n = 0; n < RES_COUNT; n++) {
-        quantity = (size_t)(height * width * DENSITIES[n]);
-        for (size_t i = 0; i < quantity; i++) {
-            x = rand() % width;
-            y = rand() % height;
-            srv->map[y][x].qnts[n]++;
-            srv->total_item_in_map.qnts[n]++;
-        }
-    }
-    DEBUG_CALL(log_map, srv);
-}
-
 static
 bool server_boot(server_t *srv, params_t *p)
 {
     static constexpr const int BACKLOG = 32;
     struct sockaddr_in default_sa = {
-        .sin_family = AF_INET,
-        .sin_port = htons(p->port),
-        .sin_addr.s_addr = INADDR_ANY
-    };
+        .sin_family = AF_INET, .sin_port = htons(p->port),
+        .sin_addr.s_addr = INADDR_ANY};
+    event_t meteor_event = {
+        .timestamp = srv->start_time, .id = 0,
+        .command = {"meteor"}};
 
     srv->self_fd = socket_open(&default_sa);
     if (srv->self_fd < 0 || listen(srv->self_fd, BACKLOG) < 0)
         return false;
-    srv->client_count = 0;
     srv->map_height = p->map_height;
     srv->map_width = p->map_width;
-    fill_ressource(srv, p->map_height, p->map_width);
-    return true;
+    srv->start_time = get_timestamp();
+    srv->frequency = p->frequency;
+    meteor_event.timestamp = srv->start_time;
+    return event_heap_push(&srv->events, &meteor_event);
 }
 
 static
@@ -134,6 +90,8 @@ bool server_allocate(server_t *srv, params_t *p, uint64_t timestamp)
     srv->pfds.buff[srv->pfds.nmemb] = (pollfd_t){
         .fd = srv->self_fd, .events = POLLIN, .revents = 0};
     srv->pfds.nmemb++;
+    if (!event_heap_init(&srv->events))
+        return perror("malloc"), false;
     return true;
 }
 
@@ -144,12 +102,14 @@ void server_destroy(server_t *srv)
         close(srv->self_fd);
     free(srv->eggs.buff);
     free(srv->pfds.buff);
+    event_heap_free(&srv->events);
     srv->is_running = false;
 }
 
 bool server_run(params_t *p, uint64_t timestamp)
 {
     server_t srv = {.self_fd = -1, 0};
+    int32_t to;
 
     if (!server_allocate(&srv, p, timestamp) || !server_boot(&srv, p))
         return server_destroy(&srv), false;
@@ -159,6 +119,13 @@ bool server_run(params_t *p, uint64_t timestamp)
         // Placeholder for actual server loop logic
         // Here you would typically handle incoming connections,
         // process commands, and manage the game state.
+        server_process_events(&srv);
+        to = compute_timeout(&srv);
+        if (to < 0) {
+            DEBUG("WANRING: Server can't keep up with the events, "
+                "timeout is negative (%u ms), skipping tick", to);
+            continue;
+        }
     }
     server_destroy(&srv);
     return true;
