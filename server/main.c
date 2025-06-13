@@ -34,7 +34,8 @@ int main(int argc, char *argv[])
         return EXIT_TEK_FAILURE;
     if (params.help)
         return printf("%s\n", SERVER_USAGE), free(params.teams), EXIT_SUCCESS;
-    server_run(&params, get_timestamp());
+    if (!server_run(&params, get_timestamp()))
+        return free(params.teams), EXIT_TEK_FAILURE;
     free(params.teams);
     return EXIT_SUCCESS;
 }

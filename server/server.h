@@ -26,10 +26,6 @@ enum {
     RES_COUNT
 };
 
-DEBUG_USED static const char *RES_NAMES[RES_COUNT] = {
-    "food", "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"
-};
-
 typedef struct pollfd pollfd_t;
 
 typedef union {
