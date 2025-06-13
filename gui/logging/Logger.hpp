@@ -5,6 +5,7 @@
 #include <cstring>
 #include <ctime>
 #include <sstream>
+#include <string>
 
 enum class LogLevel : std::uint8_t {
   DEBUG,
@@ -40,6 +41,7 @@ public:
   static auto log(LogLevel lvl, const char *file, int line) -> LogStream;
   static void
   logger_configure(const std::string &log_path, LogLevel level, LogType type);
+  static std::string cleanString(std::string str);
 
 private:
   LogLevel _level;
