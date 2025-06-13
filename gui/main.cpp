@@ -19,23 +19,24 @@ static constexpr const int EXIT_TEK_FAILURE = 84;
 
 int main(int argc, char *argv[])
 {
-  try {
-    Args params;
-    Log::info << "GUI started.";
-    if (!params.Parse(argc, argv))
-      return EXIT_TEK_FAILURE;
-    if (params.GetHelp()) {
-      std::cerr << GUI_USAGE;
-      return EXIT_SUCCESS;
-    }
-    std::cout << params;
-    Network networkClass(params.GetPort(), params.GetHost());
-    Log::info << "Network started.";
-    std::jthread network_thread(&Network::RunNetwork, &networkClass);
-    // std::jthread ui_thread(Display::run_display);
+  Args params;
+  Log::info << "GUI started.";
+  if (!params.Parse(argc, argv))
+    return EXIT_TEK_FAILURE;
+  if (params.GetHelp()) {
+    std::cerr << GUI_USAGE;
     return EXIT_SUCCESS;
+  }
+  std::cout << params;
+
+  Network networkClass(params.GetPort(), params.GetHost());
+  Log::info << "Network started.";
+  try {
+    std::jthread network_thread(&Network::RunNetwork, &networkClass);
   } catch (const std::runtime_error &e) {
     Log::warn << "Runtime warn: " << e.what();
     return EXIT_FAILURE;
   }
+  // std::jthread ui_thread(Display::run_display);
+  return EXIT_SUCCESS;
 }
