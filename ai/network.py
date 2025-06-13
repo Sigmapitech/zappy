@@ -3,16 +3,6 @@ import socket
 import time
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    "%(asctime)s - %(name)-11s - %(levelname)-8s - %(message)s",
-    datefmt="%H:%M:%S",
-)
-
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-
-logger.addHandler(stream_handler)
 
 
 class Network:
@@ -33,7 +23,9 @@ class Network:
                 return
             except socket.error as e:
                 logger.warning(
-                    f"Connection failed: {e}. Retrying in {self.delay} seconds..."
+                    f"Connection failed: %s. Retrying in %s seconds...",
+                    e,
+                    self.delay,
                 )
                 time.sleep(self.delay)
         raise Exception(
@@ -41,10 +33,13 @@ class Network:
         )
 
     def send_message(self, message: str):
+        logger.debug("-> %s", message)
         self.sock.sendall(f"{message}\n".encode("ascii"))
 
     def receive_message(self) -> str:
-        return self.sock.recv(self.buffer_size).decode("ascii").strip()
+        received = self.sock.recv(self.buffer_size).decode("ascii").strip()
+        logger.debug("<- %s", received)
+        return received
 
     def close(self):
         if self.sock:
