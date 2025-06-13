@@ -8,6 +8,7 @@
     #include <sys/time.h>
 
     #include "args_parser.h"
+    #include "data_structure/event.h"
     #include "debug.h"
 
     #define MAP_MAX_SIDE_SIZE 42
@@ -89,7 +90,6 @@ typedef struct {
 
 typedef struct {
     int self_fd;
-    uint16_t client_count;
     volatile bool is_running;
     client_state_array_t cstates;
     egg_array_t eggs;
@@ -99,9 +99,13 @@ typedef struct {
     uint8_t map_width;
     inventory_t total_item_in_map;
     inventory_t map[MAP_MAX_SIDE_SIZE][MAP_MAX_SIDE_SIZE];
+    event_heap_t events;
+    uint64_t start_time;
+    uint16_t frequency; // reciprocal of time unit
 } server_t;
 
 bool server_run(params_t *p, uint64_t timestamp);
+void server_process_events(server_t *srv);
 
 static constexpr const int MIRCOSEC_IN_SEC = 1000000;
 
@@ -120,4 +124,11 @@ static inline uint64_t add_time(
     return timestamp + (sec * MIRCOSEC_IN_SEC) + usec;
 }
 
+static inline int32_t compute_timeout(server_t *srv)
+{
+    uint64_t current_time = get_timestamp();
+    uint64_t next_event_time = event_heap_peek(&srv->events)->timestamp;
+
+    return (int32_t)((next_event_time - current_time) / 1000);
+}
 #endif

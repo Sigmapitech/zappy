@@ -9,7 +9,7 @@ bool sized_struct_ensure_capacity(
     size_t endsize = INITIAL_SIZE;
     void *newp;
 
-    if (arr->capacity == 0) {
+    if (arr->capacity == 0 && requested <= INITIAL_SIZE) {
         arr->buff = malloc(INITIAL_SIZE * objsize);
         arr->nmemb = 0;
         arr->capacity = INITIAL_SIZE;
@@ -25,5 +25,5 @@ bool sized_struct_ensure_capacity(
         return false;
     arr->buff = newp;
     arr->capacity = endsize;
-    return false;
+    return true;
 }
