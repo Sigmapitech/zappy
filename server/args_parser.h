@@ -1,9 +1,13 @@
 #ifndef ARGS_H_
     #define ARGS_H_
 
+    #include <limits.h>
     #include <stdbool.h>
     #include <stddef.h>
     #include <stdint.h>
+
+    // Maximum number of teams allowed including GRAPHIC
+    #define TEAM_COUNT_LIMIT 1 << (CHAR_BIT * sizeof (char))
 
 /**
  * @brief Structure to hold command line parameters for the server.

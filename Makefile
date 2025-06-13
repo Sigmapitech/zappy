@@ -7,7 +7,7 @@ LD := $(CC)
 AR ?= ar
 RM ?= rm --force
 
-CFLAGS := -std=c2x
+CFLAGS := -std=c2x -iquote $/server
 
 CXXFLAGS := -std=c++20
 CXXFLAGS += -iquote $/libs -iquote $/include

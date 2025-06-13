@@ -80,7 +80,7 @@ static char **parse_teams(char *argv[], int *idx)
     if (argv[*idx] == nullptr)
         return nullptr;
     for (; argv[*idx + i] && strcspn(argv[*idx + i], "-") != 0; i++);
-    if (!team_ensure_capacity(&teams, i + 1))
+    if (!team_ensure_capacity(&teams, i + 1) || teams.cap > TEAM_COUNT_LIMIT)
         return free(teams.arr), nullptr;
     for (size_t j = 0; j < i; j++) {
         teams.arr[teams.count] = argv[*idx + j];
@@ -187,18 +187,19 @@ bool arg_dispatcher(params_t *params, char *argv[], char opt)
  *
  * @param params Params structure containing the parsed command line arguments.
  */
+static DEBUG_USED
 void print_params(const params_t *params)
 {
-    printf("===================Zappy Server===================\n");
-    printf("port = %d\n", params->port);
-    printf("width = %d\n", params->map_width);
-    printf("heigth = %d\n", params->map_height);
-    printf("clients_nb = %d\n", params->team_capacity);
-    printf("freq = %d\n", params->frequency);
-    printf("Teams:\n");
+    DEBUG_MSG("===================Zappy Server===================");
+    DEBUG("port = %d", params->port);
+    DEBUG("width = %d", params->map_width);
+    DEBUG("heigth = %d", params->map_height);
+    DEBUG("clients_nb = %d", params->team_capacity);
+    DEBUG("freq = %d", params->frequency);
+    DEBUG_MSG("Teams:");
     for (size_t i = 0; params->teams[i] != nullptr; i++)
-        printf("  - %s\n", params->teams[i]);
-    printf("==================================================\n");
+        DEBUG("  - %s: id = [%03zu]", params->teams[i], i);
+    DEBUG_MSG("==================================================");
 }
 
 bool parse_args(params_t *params, int argc, char *argv[])
