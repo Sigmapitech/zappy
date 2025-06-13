@@ -93,6 +93,7 @@ class Player(Commands):
                     else:
                         self.resources[obj] += 1
 
+    @property
     def can_reproduce(self) -> bool:
         return self.food_stock >= 1
 
