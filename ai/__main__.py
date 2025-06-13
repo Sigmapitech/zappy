@@ -1,4 +1,5 @@
 import argparse
+import logging
 from contextlib import contextmanager
 from typing import Any, Sequence
 
@@ -54,7 +55,24 @@ def game(player):
     player.close()
 
 
+def setup_logger():
+    logger = logging.getLogger(__package__)
+
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        "%(asctime)s %(name)-11s:%(lineno)-4d %(levelname)-8s %(message)s",
+        datefmt="%H:%M:%S",
+    )
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
+
+    logger.addHandler(stream_handler)
+
+
 def main():
+    setup_logger()
+
     # signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
     args = parse_args()
 

@@ -11,16 +11,6 @@ from .commands import Commands
 from .network import Network
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    "%(asctime)s - %(name)-11s - %(levelname)-8s - %(message)s",
-    datefmt="%H:%M:%S",
-)
-
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-
-logger.addHandler(stream_handler)
 
 
 class Player(Commands):
@@ -51,13 +41,11 @@ class Player(Commands):
         try:
             self.network.connect()
             welcome_message = self.network.receive_message()
-            logger.debug(f"Received: {welcome_message}")
             if "WELCOME" in welcome_message:
                 self.network.send_message(self.team_name)
                 client_num = self.network.receive_message()
-                logger.debug(f"Received: {client_num}")
         except Exception as e:
-            logger.warning(f"Failed to connect: {e}")
+            logger.warning(f"Failed to connect: %s", e)
 
     def handle_look_response(self, look_response: str) -> List[List[str]]:
         tiles = look_response.strip("[]").split(",")
@@ -156,7 +144,7 @@ class Player(Commands):
         tiles = self.parse_look_response(look_response)
         if tiles != [] and tiles[0] == "food":
             tiles.pop(0)
-        logger.debug(f"Look response: {tiles}")
+        logger.debug(f"Look response: %s", tiles)
         return tiles
 
     def calculate_direction(self, food_tile_index):
@@ -176,7 +164,7 @@ class Player(Commands):
         new_tile = self.look()[0]
         self.handle_tile_actions([new_tile])
         logger.debug(
-            f"Food found in tile {food_tile_index}, moving {direction}"
+            f"Food found in tile %s, moving %s", food_tile_index, direction
         )
 
     def random_movement(self):
@@ -216,7 +204,7 @@ class Player(Commands):
             resource: inventory.get(resource, 0)
             for resource in self.resources.keys()
         }
-        logger.debug(f"Updated inventory: {self.resources}")
+        logger.debug(f"Updated inventory: %s", self.resources)
 
     def main_loop(self):
         logger.debug("Player main loop")
