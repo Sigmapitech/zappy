@@ -4,7 +4,6 @@
 #include <thread>
 
 #include "ArgsParser.hpp"
-#include "Display.hpp"
 #include "Network/Network.hpp"
 #include "logging/Logger.hpp"
 
