@@ -69,7 +69,7 @@ bool server_boot(server_t *srv, params_t *p)
 
     srv->self_fd = socket_open(&default_sa);
     if (srv->self_fd < 0 || listen(srv->self_fd, BACKLOG) < 0)
-        return false;
+        return perror("Cannot open server socket"), false;
     srv->map_height = p->map_height;
     srv->map_width = p->map_width;
     srv->start_time = get_timestamp();

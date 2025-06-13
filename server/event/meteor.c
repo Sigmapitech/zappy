@@ -8,6 +8,10 @@ static constexpr const float DENSITIES[RES_COUNT] = {
     0.5F, 0.3F, 0.15F, 0.1F, 0.1F, 0.08F, 0.05F,
 };
 
+static const DEBUG_USED char *RES_NAMES[RES_COUNT] = {
+    "food", "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"
+};
+
 static DEBUG_USED
 void log_map(server_t *srv)
 {
@@ -58,8 +62,8 @@ bool meteor_handler(server_t *srv, const event_t *event)
     size_t y = 0;
 
     DEBUG("Meteor incoming at %lu.%06lu sec since server start",
-        (event->timestamp - srv->start_time) / 1000000,
-        (event->timestamp - srv->start_time) % 1000000);
+        (event->timestamp - srv->start_time) / MIRCOSEC_IN_SEC,
+        (event->timestamp - srv->start_time) % MIRCOSEC_IN_SEC);
     for (size_t n = 0; n < RES_COUNT; n++) {
         qty_needed = (size_t)(srv->map_height * srv->map_width * DENSITIES[n])
             - srv->total_item_in_map.qnts[n];
