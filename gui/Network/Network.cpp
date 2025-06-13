@@ -3,9 +3,11 @@
 
 #include <arpa/inet.h>
 #include <array>
+#include <iostream>
 #include <netinet/in.h>
 #include <poll.h>
 #include <stdexcept>
+#include <sys/poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <vector>
@@ -22,48 +24,49 @@ Network::Network(int port, const std::string &hostname)
 
 void Network::RunNetwork()
 {
-  sockaddr_in server_addr{};
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_port = htons(_port);
+  sockaddr_in serverAddr{};
+  serverAddr.sin_family = AF_INET;
+  serverAddr.sin_port = htons(_port);
+  socklen_t sockLen = sizeof(serverAddr);
 
-  if (inet_pton(AF_INET, _hostname.c_str(), &server_addr.sin_addr) != 1) {
+  if (inet_pton(AF_INET, _hostname.c_str(), &serverAddr.sin_addr) != 1) {
     throw std::runtime_error(
       "Error: inet_pton failed. Function: RunNetwork, File: Network.cpp");
   }
 
   if (
     connect(
-      _fdServer,
-      reinterpret_cast<const sockaddr *>(&server_addr),
-      sizeof(server_addr))
+      _fdServer, reinterpret_cast<const sockaddr *>(&serverAddr), sockLen)
     < 0) {
     throw std::runtime_error(
       "Error: connect failed. Function: RunNetwork, File: Network.cpp");
   }
 
   bool end = false;
-  auto poll_fd = CreatePollFd(_fdServer, POLLIN | POLLOUT);
+  std::array<struct pollfd, 1> pollFd;
+  pollFd[0].fd = _fdServer;
+  pollFd[0].events = POLLIN | POLLOUT;
+  pollFd[0].revents = 0;
 
-  if (poll(poll_fd.data(), 1, -1) == -1) {
+  if (poll(pollFd.data(), 1, -1) == -1) {
     throw std::runtime_error(
       "Error: poll failed. Function: RunNetwork, File: Network.cpp");
   }
 
-  if ((poll_fd[0].revents & POLLIN) != 0)
+  if (pollFd[0].revents & POLLIN)
     Log::info << "Message received: " << Log::cleanString(ReceiveMessage());
-
-  if ((poll_fd[0].revents & POLLOUT) != 0) {
+  if (pollFd[0].revents & POLLOUT) {
     std::string msg = "GRAPHIC\n";
     SendMessage(msg);
   }
 
   while (!end) {
-    if (poll(poll_fd.data(), 1, -1) == -1) {
+    if (poll(pollFd.data(), 1, -1) == -1) {
       throw std::runtime_error(
         "Error: poll failed. Function: RunNetwork, File: Network.cpp");
     }
 
-    if (poll_fd[0].revents & POLLIN) {
+    if (pollFd[0].revents & POLLIN) {
       Log::info << "Message received: " << Log::cleanString(ReceiveMessage());
       // add ParserMessage
     }
@@ -79,27 +82,52 @@ void Network::SendMessage(std::string &msg) const
   }
 }
 
+// std::string Network::ReceiveMessage() const
+//{
+//   constexpr std::size_t buffer_chunk_size = 1024;
+//   std::vector<char> buffer;
+//   char temp[buffer_chunk_size];
+//
+//   while (true) {
+//     ssize_t bytes_received = recv(_fdServer, temp, buffer_chunk_size, 0);
+//
+//     if (bytes_received < 0) {
+//       if (errno == EINTR)
+//         continue;
+//       throw std::runtime_error(
+//         "Error: recv failed, Function: ReceiveMessage, File: Network.cpp");
+//     }
+//     if (bytes_received == 0)
+//       break;
+//
+//     buffer.insert(buffer.end(), temp, temp + bytes_received);
+//     if (bytes_received < static_cast<ssize_t>(buffer_chunk_size))
+//       break;
+//   }
+//
+//   return std::string(buffer.begin(), buffer.end());
+// }
+
 std::string Network::ReceiveMessage() const
 {
-  constexpr std::size_t buffer_size = 65536;
-  std::vector<char> buffer(buffer_size);
+  constexpr std::size_t chunk_size = 1024;
+  std::vector<char> buffer;
 
-  ssize_t bytes_received = recv(_fdServer, buffer.data(), buffer_size, 0);
-
-  if (bytes_received < 0) {
-    throw std::runtime_error(
-      "Error: recv failed, Function: ReceiveMessage, File: Network.cpp");
+  while (true) {
+    std::vector<char> chunk(chunk_size);
+    ssize_t bytes_received = recv(_fdServer, chunk.data(), chunk.size(), 0);
+    if (bytes_received < 0) {
+      if (errno == EINTR)
+        continue;
+      throw std::runtime_error(
+        "Error: recv failed, Function: ReceiveMessage, File: Network.cpp");
+    }
+    if (bytes_received == 0)
+      break;
+    buffer.insert(buffer.end(), chunk.begin(), chunk.begin() + bytes_received);
+    if (static_cast<std::size_t>(bytes_received) < chunk_size)
+      break;
   }
-  if (bytes_received == 0)
-    return {};
-  return std::string(buffer.data(), static_cast<std::size_t>(bytes_received));
-}
 
-std::array<struct pollfd, 1> Network::CreatePollFd(int fd, short events)
-{
-  std::array<struct pollfd, 1> pollList;
-  pollList[0].fd = fd;
-  pollList[0].events = events;
-  pollList[0].revents = 0;
-  return pollList;
+  return std::string(buffer.begin(), buffer.end());
 }
