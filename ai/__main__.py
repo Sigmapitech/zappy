@@ -1,7 +1,8 @@
 import argparse
+import asyncio
 import logging
-from contextlib import contextmanager
-from typing import Any, Sequence
+from functools import wraps
+from typing import Any, NoReturn, Sequence
 
 from .player import Player
 
@@ -47,14 +48,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-@contextmanager
-def game(player):
-    player.connect()
-    print("Player connected")
-    yield player
-    player.close()
-
-
 def setup_logger():
     logger = logging.getLogger(__package__)
 
@@ -70,18 +63,26 @@ def setup_logger():
     logger.addHandler(stream_handler)
 
 
-def main():
+def make_async(func):
+
+    def wrapper_signature() -> NoReturn: ...
+
+    @wraps(wrapper_signature)  # make pyhon happy
+    def wrapped():
+        asyncio.run(func())
+
+    return wrapped
+
+
+@make_async
+async def main():
     setup_logger()
 
-    # signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
     args = parse_args()
+    client = Player(args.host, args.port)
 
-    print("args:", args)
-    server_address = (args.host, args.port)
-    team_name = args.name
-
-    with game(Player(server_address, team_name)) as player:
-        player.main_loop()
+    await client.connect(team=args.name)
+    await client.run_until_death()
 
 
 if __name__ == "__main__":

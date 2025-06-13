@@ -3,24 +3,17 @@ import logging
 import pathlib
 import random
 import select
-import subprocess
-import sys
-from typing import Dict, List
+from typing import List
 
-from .commands import Commands
-from .network import Network
+from .crow import Client
 
 logger = logging.getLogger(__name__)
 
 
-class Player(Commands):
-    def __init__(self, server_address: tuple, team_name: str):
-        self.server_address = server_address
-        self.team_name = team_name
-        self.network = Network(server_address)
-        super().__init__(self.network, team_name)
-        self.buffer_size = 4096
-        self.alive = True
+class Player(Client):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         self.level = 1
         self.food_stock = 0
         self.resources = {
@@ -37,16 +30,6 @@ class Player(Commands):
         with open(current_dir / "elevation.json") as f:
             self.elevation_requirements = json.load(f)
 
-    def connect(self):
-        try:
-            self.network.connect()
-            welcome_message = self.network.receive_message()
-            if "WELCOME" in welcome_message:
-                self.network.send_message(self.team_name)
-                client_num = self.network.receive_message()
-        except Exception as e:
-            logger.warning(f"Failed to connect: %s", e)
-
     def handle_look_response(self, look_response: str) -> List[List[str]]:
         tiles = look_response.strip("[]").split(",")
         return [tile.strip().split() for tile in tiles]
@@ -58,12 +41,12 @@ class Player(Commands):
         items = player_tile.split()
         return items
 
-    def take_all_on_tile(self, tile_data: List[str]):
+    async def take_all_on_tile(self, tile_data: List[str]):
         if tile_data:
             for item in tile_data:
-                self.take(item)
+                await self.take(item)
 
-    def handle_tile_actions(self, tiles: List[List[str]]):
+    async def handle_tile_actions(self, tiles: List[List[str]]):
         for tile in tiles:
             for obj in [
                 "food",
@@ -75,7 +58,7 @@ class Player(Commands):
                 "thystame",
             ]:
                 if obj in tile:
-                    self.take(obj)
+                    await self.take(obj)
                     if obj == "food":
                         self.food_stock += 1
                     else:
@@ -85,10 +68,10 @@ class Player(Commands):
     def can_reproduce(self) -> bool:
         return self.food_stock >= 1
 
-    def reproduce(self):
-        if self.can_reproduce():
+    async def reproduce(self):
+        if self.can_reproduce:
             logger.debug("Reproducing")
-            self.fork()
+            await self.fork()
 
     def can_evolve(self) -> bool:
         if str(self.level + 1) not in self.elevation_requirements:
@@ -101,18 +84,18 @@ class Player(Commands):
                 return False
         return True
 
-    def evolve(self):
+    async def evolve(self):
         if not self.can_evolve():
             return logger.debug("Cannot evolve yet. Insufficient resources.")
 
         logger.debug("Starting incantation")
-        evolution_result = self.start_incantation()
+        evolution_result = await self.start_incantation()
 
         if "Elevation underway" not in evolution_result:
             return logger.debug("Elevation did not start")
 
         logger.debug("Elevation underway")
-        final_result = self.network.receive_message()
+        final_result = await self._sock._next_non_message()
 
         if "Current level" not in final_result:
             return logger.debug("Elevation failed")
@@ -126,21 +109,20 @@ class Player(Commands):
                 self.resources[resource] -= amount
         logger.debug(f"Evolved to level {self.level}")
 
-    def broadcast_message(self, message: str):
-        self.broadcast(message)
+    async def broadcast_message(self, message: str):
+        await self.broadcast(message)
 
-    def handle_incoming_messages(self, message: str):
-        if "message" in message:
-            _, direction, text = message.split(", ")
-            direction = int(direction)
-            if text.startswith("level "):
-                other_level = int(text.split(" ")[1])
-                if other_level == self.level:
-                    pass
-            # Handle other types of incoming messages as needed
+    @Client.broadcast_receiver
+    async def handle_incoming_messages(self, direction: int, message: str):
+        logger.debug(">>> %s", message)
 
-    def look_for_food(self):
-        look_response = self.look()
+        if message.startswith("level "):
+            other_level = int(message.split(" ")[1])
+            if other_level == self.level:
+                pass
+
+    async def look_for_food(self):
+        look_response = await self.look()
         tiles = self.parse_look_response(look_response)
         if tiles != [] and tiles[0] == "food":
             tiles.pop(0)
@@ -154,46 +136,46 @@ class Player(Commands):
             return "left"
         return "up"
 
-    def move_to_food(self, food_tile_index):
+    async def move_to_food(self, food_tile_index):
         direction = self.calculate_direction(food_tile_index)
         if direction == "left":
-            self.turn_left()
+            await self.turn_left()
         elif direction == "right":
-            self.turn_right()
-        self.move_up()
-        new_tile = self.look()[0]
-        self.handle_tile_actions([new_tile])
+            await self.turn_right()
+        await self.move_up()
+        new_tile = (await self.look())[0]
+        await self.handle_tile_actions([new_tile])
         logger.debug(
             f"Food found in tile %s, moving %s", food_tile_index, direction
         )
 
-    def random_movement(self):
+    async def random_movement(self):
         if random.choice([True, False]):
-            self.turn_left()
+            await self.turn_left()
         else:
-            self.turn_right()
-        self.move_up()
+            await self.turn_right()
+        await self.move_up()
         logger.debug("No food found, turning randomly and moving up")
 
-    def search_food(self):
-        tiles = self.look_for_food()
-        self.take_all_on_tile(tiles)
+    async def search_food(self):
+        tiles = await self.look_for_food()
+        await self.take_all_on_tile(tiles)
         food_tile_index = next(
             (i for i, tile in enumerate(tiles) if "food" in tile), None
         )
         if food_tile_index is not None:
             if food_tile_index == 0:
-                self.take("food")
+                await self.take("food")
                 self.food_stock += 1
                 logger.debug("Food found and taken")
-                self.reproduce()
+                await self.reproduce()
             else:
-                self.move_to_food(food_tile_index)
+                await self.move_to_food(food_tile_index)
         else:
-            self.random_movement()
+            await self.random_movement()
 
-    def get_inventory(self):
-        inventory_response = self.inventory()
+    async def get_inventory(self):
+        inventory_response = await self.inventory()
         inventory_response = inventory_response.strip("[]").split(", ")
         inventory = {}
         for item in inventory_response:
@@ -206,27 +188,13 @@ class Player(Commands):
         }
         logger.debug(f"Updated inventory: %s", self.resources)
 
-    def main_loop(self):
-        logger.debug("Player main loop")
-        while self.alive:
-            self.get_inventory()
+    async def run_until_death(self):
+        while True:
+            await self.get_inventory()
 
             if self.can_evolve():
-                self.evolve()
+                await self.evolve()
             else:
-                self.search_food()
+                await self.search_food()
 
-            # Fix ready_to_read (doesn't receive server notifications)
-            ready_to_read, _, _ = select.select([self.network.sock], [], [], 0)
-            if ready_to_read:
-                incoming_message = self.network.receive_message()
-                if "dead" in incoming_message:
-                    logger.debug("Received 'dead', exiting.")
-                    self.close()
-                self.handle_incoming_messages(incoming_message)
-
-            self.broadcast_message(f"level {self.level}")
-
-    def close(self):
-        self.alive = False
-        self.network.close()
+            await self.broadcast(f"level {self.level}")
