@@ -74,6 +74,9 @@ bool server_boot(server_t *srv, params_t *p)
     srv->map_width = p->map_width;
     srv->start_time = get_timestamp();
     srv->frequency = p->frequency;
+    srv->pfds.buff[srv->pfds.nmemb] = (pollfd_t){
+        .fd = srv->self_fd, .events = POLLIN, .revents = 0};
+    srv->pfds.nmemb++;
     meteor_event.timestamp = srv->start_time;
     return event_heap_push(&srv->events, &meteor_event);
 }
@@ -81,15 +84,11 @@ bool server_boot(server_t *srv, params_t *p)
 static
 bool server_allocate(server_t *srv, params_t *p, uint64_t timestamp)
 {
-
     if (!setup_teams(srv, p, timestamp))
         return false;
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->pfds,
         1, sizeof(client_state_t)))
         return perror("malloc"), false;
-    srv->pfds.buff[srv->pfds.nmemb] = (pollfd_t){
-        .fd = srv->self_fd, .events = POLLIN, .revents = 0};
-    srv->pfds.nmemb++;
     if (!event_heap_init(&srv->events))
         return perror("malloc"), false;
     return true;
@@ -98,8 +97,10 @@ bool server_allocate(server_t *srv, params_t *p, uint64_t timestamp)
 static
 void server_destroy(server_t *srv)
 {
-    if (srv->self_fd >= 0)
-        close(srv->self_fd);
+    for (size_t i = 0; i < srv->pfds.nmemb; i++) {
+        if (srv->pfds.buff[i].fd >= 0)
+            close(srv->pfds.buff[i].fd);
+    }
     free(srv->eggs.buff);
     free(srv->pfds.buff);
     event_heap_free(&srv->events);
@@ -115,10 +116,6 @@ bool server_run(params_t *p, uint64_t timestamp)
         return server_destroy(&srv), false;
     srv.is_running = true;
     for (; srv.is_running;) {
-        break;
-        // Placeholder for actual server loop logic
-        // Here you would typically handle incoming connections,
-        // process commands, and manage the game state.
         server_process_events(&srv);
         to = compute_timeout(&srv);
         if (to < 0) {
@@ -126,6 +123,9 @@ bool server_run(params_t *p, uint64_t timestamp)
                 "timeout is negative (%u ms), skipping tick", to);
             continue;
         }
+        process_poll(&srv, to);
+        process_fds(&srv);
+        process_clients_buff(&srv);
     }
     server_destroy(&srv);
     return true;
