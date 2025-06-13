@@ -63,7 +63,7 @@ typedef struct {
 
 // For the next 3 structures, we use a resizable array pattern
 // to manage dynamic arrays of client states, eggs, and poll file descriptors.
-// But for it to work it need to follow this exact memory layout:
+// It requires the following memory layout in order to work:
 // - buff: pointer to the allocated memory
 // - nmemb: number of elements currently in the array
 // - capacity: total capacity of the allocated memory
@@ -110,21 +110,22 @@ void process_poll(server_t *srv, uint64_t timeout);
 void process_fds(server_t *srv);
 void process_clients_buff(server_t *srv);
 
-static constexpr const int MIRCOSEC_IN_SEC = 1000000;
+static constexpr const int MICROSEC_IN_SEC = 1000000;
+static constexpr const int MILISEC_IN_SEC = 1000;
 
 static inline uint64_t get_timestamp(void)
 {
     struct timeval tv;
 
     gettimeofday(&tv, NULL);
-    return (uint64_t)((tv.tv_sec * MIRCOSEC_IN_SEC) + tv.tv_usec);
+    return (uint64_t)((tv.tv_sec * MICROSEC_IN_SEC) + tv.tv_usec);
 }
 
 static inline uint64_t add_time(
     uint64_t timestamp, uint64_t sec, uint64_t usec
 )
 {
-    return timestamp + (sec * MIRCOSEC_IN_SEC) + usec;
+    return timestamp + (sec * MICROSEC_IN_SEC) + usec;
 }
 
 static inline int32_t compute_timeout(server_t *srv)
@@ -132,6 +133,6 @@ static inline int32_t compute_timeout(server_t *srv)
     uint64_t current_time = get_timestamp();
     uint64_t next_event_time = event_heap_peek(&srv->events)->timestamp;
 
-    return (int32_t)((next_event_time - current_time) / 1000);
+    return (int32_t)((next_event_time - current_time) / MILISEC_IN_SEC);
 }
 #endif

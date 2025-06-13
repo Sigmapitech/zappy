@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "args_parser.h"
+#include "client.h"
 #include "data_structure/event.h"
 #include "data_structure/resizable_array.h"
 #include "debug.h"
@@ -21,7 +22,7 @@ int socket_open(struct sockaddr_in *srv_sa)
     int fd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (fd < 0)
-        return perror("zappy_server"), -1;
+        return -1;
     if (
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0
         || bind(fd, (struct sockaddr *)srv_sa, sizeof *srv_sa) < 0
@@ -40,7 +41,7 @@ bool setup_teams(server_t *srv, params_t *p, uint64_t timestamp)
     for (; p->teams[t_counter] != nullptr; t_counter++);
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->eggs,
         t_counter * p->team_capacity, sizeof(egg_t)))
-        return perror("malloc"), false;
+        return perror("Allocation for start's egg fail"), false;
     for (size_t t_idx = 0; t_idx < t_counter; t_idx++) {
         srv->team_names[t_idx] = p->teams[t_idx];
         for (size_t t_egg_id = 0; t_egg_id < p->team_capacity; t_egg_id++) {
@@ -63,13 +64,12 @@ bool server_boot(server_t *srv, params_t *p)
     struct sockaddr_in default_sa = {
         .sin_family = AF_INET, .sin_port = htons(p->port),
         .sin_addr.s_addr = INADDR_ANY};
-    event_t meteor_event = {
-        .timestamp = srv->start_time, .id = 0,
+    event_t meteor = {.timestamp = srv->start_time, .trigger_fd = 0,
         .command = {"meteor"}};
 
     srv->self_fd = socket_open(&default_sa);
     if (srv->self_fd < 0 || listen(srv->self_fd, BACKLOG) < 0)
-        return perror("Cannot open server socket"), false;
+        return perror("Can't open server socket"), false;
     srv->map_height = p->map_height;
     srv->map_width = p->map_width;
     srv->start_time = get_timestamp();
@@ -77,8 +77,9 @@ bool server_boot(server_t *srv, params_t *p)
     srv->pfds.buff[srv->pfds.nmemb] = (pollfd_t){
         .fd = srv->self_fd, .events = POLLIN, .revents = 0};
     srv->pfds.nmemb++;
-    meteor_event.timestamp = srv->start_time;
-    return event_heap_push(&srv->events, &meteor_event);
+    meteor.timestamp = srv->start_time;
+    meteor.trigger_fd = srv->self_fd;
+    return event_heap_push(&srv->events, &meteor);
 }
 
 static
@@ -88,9 +89,9 @@ bool server_allocate(server_t *srv, params_t *p, uint64_t timestamp)
         return false;
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->pfds,
         1, sizeof(client_state_t)))
-        return perror("malloc"), false;
+        return perror("Can't allocate pollfd array"), false;
     if (!event_heap_init(&srv->events))
-        return perror("malloc"), false;
+        return perror("Can't initialise event priority queue"), false;
     return true;
 }
 
@@ -98,11 +99,14 @@ static
 void server_destroy(server_t *srv)
 {
     for (size_t i = 0; i < srv->pfds.nmemb; i++) {
-        if (srv->pfds.buff[i].fd >= 0)
-            close(srv->pfds.buff[i].fd);
+        if (srv->pfds.buff[i].fd == srv->self_fd)
+            close(srv->self_fd);
+        if (srv->pfds.buff[i].fd != srv->self_fd)
+            remove_client(srv, srv->pfds.buff[i].fd);
     }
     free(srv->eggs.buff);
     free(srv->pfds.buff);
+    free(srv->cstates.buff);
     event_heap_free(&srv->events);
     srv->is_running = false;
 }

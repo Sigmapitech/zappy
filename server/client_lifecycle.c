@@ -2,28 +2,29 @@
 #include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #include "client.h"
 #include "data_structure/resizable_array.h"
 #include "server.h"
 
+static constexpr const uint8_t INVALID_TEAM_ID = 254;
+
 static
 void add_client_state(server_t *srv, int fd)
 {
     client_state_t client_state = {.input = {},
-        .inv = {}, .team_id = 0, .x = 0, .y = 0, .tier = 0, .fd = fd,
-        .in_buff_idx = 0};
+        .inv = {}, .team_id = INVALID_TEAM_ID, .x = 0, .y = 0, .tier = 0,
+        .fd = fd, .in_buff_idx = 0};
 
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->cstates,
         1, sizeof *srv->cstates.buff)) {
-        perror("malloc");
+        perror("Can't resize client state");
         close(fd);
         return;
     }
-    append_to_output(srv, &client_state, "WELCOME\n");
     srv->cstates.buff[srv->cstates.nmemb] = client_state;
+    append_to_output(srv, &srv->cstates.buff[srv->cstates.nmemb], "WELCOME\n");
     srv->cstates.nmemb++;
 }
 
@@ -39,7 +40,7 @@ void add_client(server_t *srv)
     }
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->pfds,
         1, sizeof *srv->pfds.buff)) {
-        perror("malloc");
+        perror("Can't resize poll file descriptors");
         close(new_fd);
         return;
     }
@@ -51,19 +52,15 @@ void add_client(server_t *srv)
         new_fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 }
 
-void remove_client(server_t *srv, int fd)
+void remove_client(server_t *srv, uint32_t idx)
 {
-    for (size_t i = 0; i < srv->pfds.nmemb; i++) {
-        if (srv->pfds.buff[i].fd == fd) {
-            close(fd);
-            free(srv->cstates.buff[i - 1].input.buff);
-            srv->cstates.buff[i - 1] =
-                srv->cstates.buff[srv->cstates.nmemb - 1];
-            srv->cstates.nmemb--;
-            srv->pfds.buff[i] = srv->pfds.buff[srv->pfds.nmemb - 1];
-            srv->pfds.nmemb--;
-            DEBUG("Client disconnected: fd=%d", fd);
-            return;
-        }
-    }
+    close(srv->cstates.buff[idx - 1].fd);
+    free(srv->cstates.buff[idx - 1].input.buff);
+    free(srv->cstates.buff[idx - 1].output.buff);
+    srv->cstates.buff[idx - 1] =
+        srv->cstates.buff[srv->cstates.nmemb - 1];
+    srv->cstates.nmemb--;
+    srv->pfds.buff[idx] = srv->pfds.buff[srv->pfds.nmemb - 1];
+    srv->pfds.nmemb--;
+    DEBUG("Client disconnected: fd=%d", srv->cstates.buff[idx - 1].fd);
 }

@@ -11,84 +11,64 @@
 #include "data_structure/resizable_array.h"
 
 static constexpr const size_t BUFFER_SIZE = 1024;
+static constexpr const size_t ITER_MAX = 4;
 
 static
-client_state_t *get_client_state(server_t *srv, int fd)
+bool recv_wrapper(server_t *srv, uint32_t idx, char *buffer, ssize_t *res)
 {
-    for (size_t i = 0; i < srv->cstates.nmemb; i++) {
-        if (srv->cstates.buff[i].fd == fd) {
-            return &srv->cstates.buff[i];
-        }
-    }
-    DEBUG("Client state not found for fd=%d", fd);
-    return nullptr;
-}
+    client_state_t *client = &srv->cstates.buff[idx - 1];
+    ssize_t recv_res = recv(client->fd, buffer, BUFFER_SIZE - 1, 0);
 
-static
-bool recv_wrapper(server_t *srv, uint32_t fd, char *buffer, ssize_t *res)
-{
-    ssize_t recv_res = recv(fd, buffer, BUFFER_SIZE - 1, 0);
-
+    printf("Receiving data from client %d\n", client->fd);
     if (recv_res < 0) {
         perror("recv failed");
-        remove_client(srv, fd);
+        remove_client(srv, idx);
         return false;
     }
     if (recv_res == 0) {
-        remove_client(srv, fd);
+        remove_client(srv, idx);
         return false;
     }
     *res = recv_res;
     return true;
 }
 
-void read_client(server_t *srv, uint32_t fd)
+void read_client(server_t *srv, uint32_t idx)
 {
     char buffer[BUFFER_SIZE] = {0};
     ssize_t recv_res = sizeof(buffer) - 1;
-    client_state_t *client = get_client_state(srv, fd);
+    client_state_t *client = &srv->cstates.buff[idx - 1];
 
     if (client == nullptr)
         return;
-    while (recv_res == sizeof(buffer) - 1) {
-        if (!recv_wrapper(srv, fd, buffer, &recv_res))
+    for (size_t i = 0; i < ITER_MAX && recv_res == sizeof(buffer) - 1; i++) {
+        if (!recv_wrapper(srv, idx, buffer, &recv_res))
             return;
         if (!sized_struct_ensure_capacity(
             &client->input, recv_res + 1, sizeof *client->input.buff)) {
-            perror("malloc");
-            remove_client(srv, fd);
+            perror("Input buffer resize failed");
+            remove_client(srv, idx);
             return;
         }
         memcpy(client->input.buff + client->input.nmemb, buffer, recv_res);
-        client->input.nmemb += recv_res + 1;
-        client->input.buff[client->input.nmemb - 1] = '\0';
+        client->input.nmemb += recv_res;
+        client->input.buff[client->input.nmemb] = '\0';
     }
-    DEBUG("Received from client %d: %s", fd, buffer);
+    DEBUG("Received from client %d: %s", client->fd, buffer);
 }
 
-static
-void reset_pollout(server_t *srv, int fd)
+void write_client(server_t *srv, uint32_t idx)
 {
-    for (size_t i = 0; i < srv->pfds.nmemb; i++) {
-        if (srv->pfds.buff[i].fd == fd) {
-            srv->pfds.buff[i].events &= ~POLLOUT;
-            return;
-        }
-    }
-}
-
-void write_client(server_t *srv, int fd)
-{
-    client_state_t *cli = get_client_state(srv, fd);
-    size_t remaining = cli ? cli->output.nmemb - cli->out_buff_idx : 0;
+    client_state_t *cli = &srv->cstates.buff[idx - 1];
     ssize_t sent;
 
     if (!cli || cli->output.nmemb <= cli->out_buff_idx)
         return;
-    sent = send(fd, cli->output.buff + cli->out_buff_idx, remaining, 0);
+    sent = send(cli->fd, cli->output.buff + cli->out_buff_idx,
+        cli->output.nmemb - cli->out_buff_idx, 0);
     if (sent < 0) {
         perror("send failed");
-        remove_client(srv, fd);
+        remove_client(srv, idx);
         return;
     }
     cli->out_buff_idx += sent;
@@ -96,22 +76,22 @@ void write_client(server_t *srv, int fd)
         return;
     cli->output.nmemb = 0;
     cli->out_buff_idx = 0;
-    reset_pollout(srv, fd);
+    srv->pfds.buff[idx + 1].events &= ~POLLOUT;
 }
 
 void append_to_output(server_t *srv, client_state_t *client, const char *msg)
 {
     size_t len = strlen(msg);
+    size_t idx = client - srv->cstates.buff;
 
     if (!sized_struct_ensure_capacity(&client->output, len + 1,
         sizeof *client->output.buff)) {
-        perror("malloc");
-        remove_client(srv, client->fd);
+        perror("Output buffer resize failed");
+        remove_client(srv, idx);
         return;
     }
     strncpy(client->output.buff + client->output.nmemb, msg, len);
     client->output.nmemb += len;
-    client->output.buff[client->output.nmemb] = '\0';
     if (!strchr(msg, '\n'))
         return;
     for (size_t i = 0; i < srv->pfds.nmemb; i++) {
