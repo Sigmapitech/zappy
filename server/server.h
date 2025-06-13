@@ -42,13 +42,14 @@ typedef union {
 } inventory_t;
 
 typedef struct {
-    resizable_array_t buff;
+    resizable_array_t input;
     inventory_t inv;
     uint8_t team_id;
     uint8_t x;
     uint8_t y;
     uint8_t tier;
     uint32_t fd;
+    size_t in_buff_idx;
 } client_state_t;
 
 typedef struct {

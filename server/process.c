@@ -27,10 +27,9 @@ void process_poll(server_t *srv, uint64_t timeout)
 static
 void add_client_state(server_t *srv, int fd)
 {
-    client_state_t client_state = {
-        .buff = {}, .inv = {}, .team_id = 0,
-        .x = 0, .y = 0, .tier = 0, .fd = fd
-    };
+    client_state_t client_state = {.input = {},
+        .inv = {}, .team_id = 0, .x = 0, .y = 0, .tier = 0, .fd = fd,
+        .in_buff_idx = 0};
 
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->cstates,
         1, sizeof *srv->cstates.buff)) {
@@ -73,6 +72,10 @@ void remove_client(server_t *srv, int fd)
     for (size_t i = 0; i < srv->pfds.nmemb; i++) {
         if (srv->pfds.buff[i].fd == fd) {
             close(fd);
+            free(srv->cstates.buff[i - 1].input.buff);
+            srv->cstates.buff[i - 1] =
+                srv->cstates.buff[srv->cstates.nmemb - 1];
+            srv->cstates.nmemb--;
             srv->pfds.buff[i] = srv->pfds.buff[srv->pfds.nmemb - 1];
             srv->pfds.nmemb--;
             DEBUG("Client disconnected: fd=%d", fd);
@@ -104,7 +107,6 @@ bool recv_wrapper(server_t *srv, uint32_t fd, char *buffer, ssize_t *res)
         return false;
     }
     if (recv_res == 0) {
-        DEBUG("Client disconnected: fd=%d", fd);
         remove_client(srv, fd);
         return false;
     }
@@ -115,7 +117,7 @@ bool recv_wrapper(server_t *srv, uint32_t fd, char *buffer, ssize_t *res)
 static
 void read_client(server_t *srv, uint32_t fd)
 {
-    char buffer[1024];
+    char buffer[BUFFER_SIZE] = {0};
     ssize_t recv_res = sizeof(buffer) - 1;
     client_state_t *client = get_client_state(srv, fd);
 
@@ -125,14 +127,14 @@ void read_client(server_t *srv, uint32_t fd)
         if (!recv_wrapper(srv, fd, buffer, &recv_res))
             return;
         if (!sized_struct_ensure_capacity(
-            &client->buff, recv_res + 1, sizeof *client->buff.buff)) {
+            &client->input, recv_res + 1, sizeof *client->input.buff)) {
             perror("malloc");
             remove_client(srv, fd);
             return;
         }
-        memcpy(client->buff.buff + client->buff.nmemb, buffer, recv_res);
-        client->buff.nmemb += recv_res + 1;
-        client->buff.buff[client->buff.nmemb - 1] = '\0';
+        memcpy(client->input.buff + client->input.nmemb, buffer, recv_res);
+        client->input.nmemb += recv_res + 1;
+        client->input.buff[client->input.nmemb - 1] = '\0';
     }
     DEBUG("Received from client %d: %s", fd, buffer);
 }
