@@ -59,6 +59,17 @@ void Mesh::GenMesh()
     (void *)offsetof(Vertex, texCoord));  // NOLINT
   glEnableVertexAttribArray(1);
 
+  // Normal
+  // layout(location = 2) = normal
+  glVertexAttribPointer(
+    2,
+    3,
+    GL_FLOAT,
+    GL_FALSE,
+    sizeof(Vertex),
+    (void *)offsetof(Vertex, normal));  // NOLINT
+  glEnableVertexAttribArray(2);
+
   glBindVertexArray(0);
 }
 
@@ -69,8 +80,9 @@ Mesh::Mesh(const std::string &path)
     throw std::runtime_error("Failed to open OBJ file: " + path);
   std::vector<glm::vec3> positions;
   std::vector<glm::vec2> texCoords;
-  std::unordered_map<std::string, unsigned int> uniqueVertexMap;
+  std::vector<glm::vec3> normals;
 
+  std::unordered_map<std::string, unsigned int> uniqueVertexMap;
   std::string line;
   unsigned int index = 0;
 
@@ -88,6 +100,10 @@ Mesh::Mesh(const std::string &path)
       ss >> uv.x >> uv.y;
       uv.y = 1.0 - uv.y;  // Flip Y for OpenGL
       texCoords.push_back(uv);
+    } else if (prefix == "vn") {
+      glm::vec3 norm;
+      ss >> norm.x >> norm.y >> norm.z;
+      normals.push_back(norm);
     } else if (prefix == "f") {
       std::string vertexStr;
       std::vector<unsigned int> faceIndices;
@@ -95,16 +111,23 @@ Mesh::Mesh(const std::string &path)
       while (ss >> vertexStr) {
         if (uniqueVertexMap.count(vertexStr) == 0) {
           std::istringstream vss(vertexStr);
+          std::string v;
+          std::string t;
+          std::string n;
 
-          std::string vIdxStr;  // Vertex index
-          std::string tIdxStr;  // Texture index
-          std::getline(vss, vIdxStr, '/');
-          std::getline(vss, tIdxStr);
+          std::getline(vss, v, '/');
+          std::getline(vss, t, '/');
+          std::getline(vss, n, '/');
 
-          int vIdx = std::stoi(vIdxStr) - 1;
-          int tIdx = std::stoi(tIdxStr) - 1;
+          Vertex vert = {};
+          vert.position = positions[std::stoi(v) - 1];
 
-          _vertices.push_back(Vertex{positions[vIdx], texCoords[tIdx]});
+          if (!t.empty())
+            vert.texCoord = texCoords[std::stoi(t) - 1];
+          if (!n.empty())
+            vert.normal = normals[std::stoi(n) - 1];
+
+          _vertices.push_back(vert);
           uniqueVertexMap[vertexStr] = index++;
         }
         faceIndices.push_back(uniqueVertexMap[vertexStr]);
