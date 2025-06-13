@@ -9,6 +9,7 @@
 
     #include "args_parser.h"
     #include "data_structure/event.h"
+    #include "data_structure/resizable_array.h"
     #include "debug.h"
 
     #define MAP_MAX_SIDE_SIZE 42
@@ -45,7 +46,7 @@ typedef union {
 } inventory_t;
 
 typedef struct {
-    char *buff;
+    resizable_array_t buff;
     inventory_t inv;
     uint8_t team_id;
     uint8_t x;
@@ -106,6 +107,9 @@ typedef struct {
 
 bool server_run(params_t *p, uint64_t timestamp);
 void server_process_events(server_t *srv);
+void process_poll(server_t *srv, uint64_t timeout);
+void process_fds(server_t *srv);
+void process_clients_buff(server_t *srv);
 
 static constexpr const int MIRCOSEC_IN_SEC = 1000000;
 
