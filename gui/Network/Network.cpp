@@ -47,23 +47,22 @@ void Network::RunNetwork()
   pollFd[0].events = POLLIN | POLLOUT;
   pollFd[0].revents = 0;
 
-  if (poll(pollFd.data(), 1, -1) == -1) {
+  if (poll(pollFd.data(), 1, -1) == -1)
     throw std::runtime_error(
       "Error: poll failed. Function: RunNetwork, File: Network.cpp");
-  }
 
   if (pollFd[0].revents & POLLIN)
     Log::info << "Message received: " << Log::cleanString(ReceiveMessage());
+
   if (pollFd[0].revents & POLLOUT) {
     std::string msg = "GRAPHIC\n";
     SendMessage(msg);
   }
 
   while (!end) {
-    if (poll(pollFd.data(), 1, -1) == -1) {
+    if (poll(pollFd.data(), 1, -1) == -1)
       throw std::runtime_error(
         "Error: poll failed. Function: RunNetwork, File: Network.cpp");
-    }
 
     if (pollFd[0].revents & POLLIN) {
       Log::info << "Message received: " << Log::cleanString(ReceiveMessage());
@@ -75,10 +74,9 @@ void Network::RunNetwork()
 void Network::SendMessage(std::string &msg) const
 {
   Log::info << "Message sent : " << Log::cleanString(msg);
-  if (send(_fdServer, msg.c_str(), msg.size(), 0) == -1) {
+  if (send(_fdServer, msg.c_str(), msg.size(), 0) == -1)
     throw std::
       runtime_error("Error: send, Function: SendMessage, File: Network.cpp");
-  }
 }
 
 std::string Network::ReceiveMessage() const
