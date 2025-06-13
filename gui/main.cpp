@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <thread>
 
 #include "ArgsParser.hpp"
@@ -18,20 +19,23 @@ static constexpr const int EXIT_TEK_FAILURE = 84;
 
 int main(int argc, char *argv[])
 {
-  Args params;
-  Log::info << "GUI started.";
-
-  if (!params.Parse(argc, argv))
-    return EXIT_TEK_FAILURE;
-  if (params.GetHelp()) {
-    std::cerr << GUI_USAGE;
+  try {
+    Args params;
+    Log::info << "GUI started.";
+    if (!params.Parse(argc, argv))
+      return EXIT_TEK_FAILURE;
+    if (params.GetHelp()) {
+      std::cerr << GUI_USAGE;
+      return EXIT_SUCCESS;
+    }
+    std::cout << params;
+    Network networkClass(params.GetPort(), params.GetHost());
+    Log::info << "Network started.";
+    std::jthread network_thread(&Network::RunNetwork, &networkClass);
+    // std::jthread ui_thread(Display::run_display);
     return EXIT_SUCCESS;
+  } catch (const std::runtime_error &e) {
+    Log::warn << "Runtime warn: " << e.what();
+    return EXIT_FAILURE;
   }
-  std::cout << params;
-
-  Network networkClass(params.GetPort(), params.GetHost());
-  std::cout << "Network started.\n";
-  std::jthread network_thread(&Network::RunNetwork, &networkClass);
-  // std::jthread ui_thread(Display::run_display);
-  return EXIT_SUCCESS;
 }
