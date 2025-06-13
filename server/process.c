@@ -21,7 +21,6 @@ void process_poll(server_t *srv, uint64_t timeout)
     }
 }
 
-
 void process_fds(server_t *srv)
 {
     for (size_t i = 0; i < srv->pfds.nmemb; i++) {
