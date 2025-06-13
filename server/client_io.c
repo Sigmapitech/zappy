@@ -55,7 +55,7 @@ void read_client(server_t *srv, uint32_t fd)
             return;
         if (!sized_struct_ensure_capacity(
             &client->input, recv_res + 1, sizeof *client->input.buff)) {
-            perror("malloc");
+            perror("Input buffer resize failed");
             remove_client(srv, fd);
             return;
         }
@@ -80,12 +80,12 @@ void reset_pollout(server_t *srv, int fd)
 void write_client(server_t *srv, int fd)
 {
     client_state_t *cli = get_client_state(srv, fd);
-    size_t remaining = cli ? cli->output.nmemb - cli->out_buff_idx : 0;
     ssize_t sent;
 
     if (!cli || cli->output.nmemb <= cli->out_buff_idx)
         return;
-    sent = send(fd, cli->output.buff + cli->out_buff_idx, remaining, 0);
+    sent = send(fd, cli->output.buff + cli->out_buff_idx,
+        cli->output.nmemb - cli->out_buff_idx, 0);
     if (sent < 0) {
         perror("send failed");
         remove_client(srv, fd);
@@ -105,7 +105,7 @@ void append_to_output(server_t *srv, client_state_t *client, const char *msg)
 
     if (!sized_struct_ensure_capacity(&client->output, len + 1,
         sizeof *client->output.buff)) {
-        perror("malloc");
+        perror("Output buffer resize failed");
         remove_client(srv, client->fd);
         return;
     }

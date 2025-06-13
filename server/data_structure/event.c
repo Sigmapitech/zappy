@@ -1,6 +1,8 @@
+#include <stdlib.h>
+
+#include "debug.h"
 #include "event.h"
 #include "resizable_array.h"
-#include <stdlib.h>
 
 static void swap(event_t *a, event_t *b)
 {
@@ -91,7 +93,9 @@ event_t event_heap_pop(event_heap_t *heap)
 
 const event_t *event_heap_peek(const event_heap_t *heap)
 {
-    if (heap->nmemb == 0)
+    if (heap->nmemb == 0) {
+        DEBUG_MSG("Event heap is empty, Can't peek");
         return nullptr;
+    }
     return &heap->buff[0];
 }

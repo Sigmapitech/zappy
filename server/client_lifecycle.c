@@ -9,16 +9,18 @@
 #include "data_structure/resizable_array.h"
 #include "server.h"
 
+static constexpr const uint8_t INVALID_TEAM_ID = 254;
+
 static
 void add_client_state(server_t *srv, int fd)
 {
     client_state_t client_state = {.input = {},
-        .inv = {}, .team_id = 0, .x = 0, .y = 0, .tier = 0, .fd = fd,
-        .in_buff_idx = 0};
+        .inv = {}, .team_id = INVALID_TEAM_ID, .x = 0, .y = 0, .tier = 0,
+        .fd = fd, .in_buff_idx = 0};
 
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->cstates,
         1, sizeof *srv->cstates.buff)) {
-        perror("malloc");
+        perror("Can't resize client state");
         close(fd);
         return;
     }
@@ -39,7 +41,7 @@ void add_client(server_t *srv)
     }
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->pfds,
         1, sizeof *srv->pfds.buff)) {
-        perror("malloc");
+        perror("Can't resize poll file descriptors");
         close(new_fd);
         return;
     }
@@ -66,4 +68,5 @@ void remove_client(server_t *srv, int fd)
             return;
         }
     }
+    DEBUG("Client with fd=%d not found", fd);
 }

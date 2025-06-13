@@ -1,8 +1,8 @@
-#ifndef SWITCH_H_
-    #define SWITCH_H_
+#ifndef HANDLER_H_
+    #define HANDLER_H_
 
     #include "server.h"
 
 bool meteor_handler(server_t *srv, const event_t *event);
 
-#endif /* !SWITCH_H_ */
+#endif /* !HANDLER_H_ */

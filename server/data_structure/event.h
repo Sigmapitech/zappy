@@ -9,7 +9,7 @@ static constexpr const int COMMAND_WORD_COUNT = 4;
 
 typedef struct {
     uint64_t timestamp;
-    uint32_t id;
+    int id;
     char *command[COMMAND_WORD_COUNT];
 } event_t;
 
