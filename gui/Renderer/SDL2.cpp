@@ -30,6 +30,12 @@ SDL2::SDL2()
   if (glewInit() != GLEW_OK)
     throw std::runtime_error("GLEW initialization failed!");
   glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
+
+  glEnable(GL_CULL_FACE);  // enable face culling,
+                           //  eg: triangles facing away from the camera
+  glCullFace(GL_BACK);     // cull back-facing polygons
+  glFrontFace(GL_CCW);  // winding order, eg: determines front-facing polygons
 
   if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
     throw std::
