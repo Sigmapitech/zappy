@@ -66,31 +66,37 @@ void read_client(server_t *srv, uint32_t fd)
     DEBUG("Received from client %d: %s", fd, buffer);
 }
 
+static
+void reset_pollout(server_t *srv, int fd)
+{
+    for (size_t i = 0; i < srv->pfds.nmemb; i++) {
+        if (srv->pfds.buff[i].fd == fd) {
+            srv->pfds.buff[i].events &= ~POLLOUT;
+            return;
+        }
+    }
+}
+
 void write_client(server_t *srv, int fd)
 {
-    client_state_t *client = get_client_state(srv, fd);
-    size_t remaining = client ? client->output.nmemb - client->out_buff_idx : 0;
+    client_state_t *cli = get_client_state(srv, fd);
+    size_t remaining = cli ? cli->output.nmemb - cli->out_buff_idx : 0;
     ssize_t sent;
 
-    if (!client || client->output.nmemb <= client->out_buff_idx)
+    if (!cli || cli->output.nmemb <= cli->out_buff_idx)
         return;
-    sent = send(fd, client->output.buff + client->out_buff_idx, remaining, 0);
+    sent = send(fd, cli->output.buff + cli->out_buff_idx, remaining, 0);
     if (sent < 0) {
         perror("send failed");
         remove_client(srv, fd);
         return;
     }
-    client->out_buff_idx += sent;
-    if (client->out_buff_idx != client->output.nmemb)
+    cli->out_buff_idx += sent;
+    if (cli->out_buff_idx != cli->output.nmemb)
         return;
-    client->output.nmemb = 0;
-    client->out_buff_idx = 0;
-    for (size_t i = 0; i < srv->pfds.nmemb; i++) {
-        if (srv->pfds.buff[i].fd == fd) {
-            srv->pfds.buff[i].events &= ~POLLOUT;
-            break;
-        }
-    }
+    cli->output.nmemb = 0;
+    cli->out_buff_idx = 0;
+    reset_pollout(srv, fd);
 }
 
 void append_to_output(server_t *srv, client_state_t *client, const char *msg)
