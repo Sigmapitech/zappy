@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "switch.h"
+#include "handler.h"
 
 static constexpr const float DENSITIES[RES_COUNT] = {
     0.5F, 0.3F, 0.15F, 0.1F, 0.1F, 0.08F, 0.05F,
@@ -11,6 +11,8 @@ static constexpr const float DENSITIES[RES_COUNT] = {
 static const DEBUG_USED char *RES_NAMES[RES_COUNT] = {
     "food", "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"
 };
+
+static constexpr const double METEOR_PERIODICITY_SEC = 20.0F;
 
 static DEBUG_USED
 void log_map(server_t *srv)
@@ -39,11 +41,11 @@ void log_map(server_t *srv)
 
 static bool meteor_rescedule(server_t *srv, const event_t *event)
 {
-    double interval_sec = 20.0 / srv->frequency;
+    double interval_sec = METEOR_PERIODICITY_SEC / srv->frequency;
     size_t new_sec = (size_t)interval_sec;
-    size_t new_usec = (size_t)((interval_sec - new_sec) * MIRCOSEC_IN_SEC);
+    size_t new_usec = (size_t)((interval_sec - new_sec) * MICROSEC_IN_SEC);
     event_t new = {
-        .id = event->id,
+        .trigger_fd = event->trigger_fd,
         .command = { "meteor" },
         .timestamp = add_time(event->timestamp, new_sec, new_usec),
     };
@@ -62,8 +64,8 @@ bool meteor_handler(server_t *srv, const event_t *event)
     size_t y = 0;
 
     DEBUG("Meteor incoming at %lu.%06lu sec since server start",
-        (event->timestamp - srv->start_time) / MIRCOSEC_IN_SEC,
-        (event->timestamp - srv->start_time) % MIRCOSEC_IN_SEC);
+        (event->timestamp - srv->start_time) / MICROSEC_IN_SEC,
+        (event->timestamp - srv->start_time) % MICROSEC_IN_SEC);
     for (size_t n = 0; n < RES_COUNT; n++) {
         qty_needed = (size_t)(srv->map_height * srv->map_width * DENSITIES[n])
             - srv->total_item_in_map.qnts[n];

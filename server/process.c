@@ -16,8 +16,8 @@ void process_poll(server_t *srv, uint64_t timeout)
     int poll_result = poll(srv->pfds.buff, srv->pfds.nmemb, timeout);
 
     if (poll_result < 0) {
-        perror("poll failed");
-        srv->is_running = false;
+        if (srv->is_running)
+            perror("poll failed");
     }
 }
 
@@ -28,13 +28,13 @@ void process_fds(server_t *srv)
             && srv->pfds.buff[i].fd == srv->self_fd)
             add_client(srv);
         if (srv->pfds.buff[i].revents & POLLHUP)
-            remove_client(srv, srv->pfds.buff[i].fd);
+            remove_client(srv, i);
         if ((srv->pfds.buff[i].revents & POLLIN)
             && srv->pfds.buff[i].fd != srv->self_fd)
-            read_client(srv, srv->pfds.buff[i].fd);
+            read_client(srv, i);
         if ((srv->pfds.buff[i].revents & POLLOUT)
             && srv->pfds.buff[i].fd != srv->self_fd)
-            write_client(srv, srv->pfds.buff[i].fd);
+            write_client(srv, i);
     }
 }
 

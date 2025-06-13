@@ -5,12 +5,15 @@
     #include <stddef.h>
     #include <stdint.h>
 
-static constexpr const int COMMAND_WORD_COUNT = 4;
+static constexpr const int COMMAND_WORD_COUNT = 5;
 
 typedef struct {
     uint64_t timestamp;
-    uint32_t id;
-    char *command[COMMAND_WORD_COUNT];
+    int trigger_fd;
+    union {
+        char *command[COMMAND_WORD_COUNT];
+        char *action[COMMAND_WORD_COUNT];
+    };
 } event_t;
 
 typedef struct {
