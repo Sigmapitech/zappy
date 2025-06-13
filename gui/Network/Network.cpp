@@ -3,7 +3,6 @@
 
 #include <arpa/inet.h>
 #include <array>
-#include <iostream>
 #include <netinet/in.h>
 #include <poll.h>
 #include <stdexcept>
@@ -81,32 +80,6 @@ void Network::SendMessage(std::string &msg) const
       runtime_error("Error: send, Function: SendMessage, File: Network.cpp");
   }
 }
-
-// std::string Network::ReceiveMessage() const
-//{
-//   constexpr std::size_t buffer_chunk_size = 1024;
-//   std::vector<char> buffer;
-//   char temp[buffer_chunk_size];
-//
-//   while (true) {
-//     ssize_t bytes_received = recv(_fdServer, temp, buffer_chunk_size, 0);
-//
-//     if (bytes_received < 0) {
-//       if (errno == EINTR)
-//         continue;
-//       throw std::runtime_error(
-//         "Error: recv failed, Function: ReceiveMessage, File: Network.cpp");
-//     }
-//     if (bytes_received == 0)
-//       break;
-//
-//     buffer.insert(buffer.end(), temp, temp + bytes_received);
-//     if (bytes_received < static_cast<ssize_t>(buffer_chunk_size))
-//       break;
-//   }
-//
-//   return std::string(buffer.begin(), buffer.end());
-// }
 
 std::string Network::ReceiveMessage() const
 {
