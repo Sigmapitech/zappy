@@ -99,3 +99,10 @@ void LogStream::
     }
   }
 }
+
+std::string LogStream::cleanString(std::string str)
+{
+  if (str.back() == '\n')
+    str.pop_back();
+  return str;
+}
