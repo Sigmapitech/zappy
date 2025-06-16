@@ -65,8 +65,12 @@ void Network::RunNetwork()
         "Error: poll failed. Function: RunNetwork, File: Network.cpp");
 
     if (pollFd[0].revents & POLLIN) {
-      Log::info << "Message received: " << Log::cleanString(ReceiveMessage());
-      // add ParserMessage
+      std::string message = ReceiveMessage();
+      Log::info << "Message received: " << Log::cleanString(message);
+      api.ParseManageCommande(message);
+    }
+    if (pollFd[0].revents & POLLOUT) {
+      // Send Message
     }
   }
 }
