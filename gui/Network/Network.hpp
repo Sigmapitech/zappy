@@ -1,5 +1,7 @@
 #pragma once
 
+#include "API/API.hpp"
+
 #include <arpa/inet.h>
 #include <cstring>
 #include <netinet/in.h>
@@ -14,6 +16,7 @@ private:
   int _port;
   const std::string _hostname;
   int _fdServer;
+  API api;
 
 public:
   /**
