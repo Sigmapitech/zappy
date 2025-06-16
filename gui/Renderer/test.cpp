@@ -53,12 +53,11 @@ void main() {
     vec3 diffuse = diff * vec3(1.0); // white light
 
     vec3 texColor = texture(tex, TexCoord).rgb;
-    vec3 ambient = 0.1 * texColor;
+    vec3 ambient = 0.5 * texColor;
     vec3 finalColor = ambient + diffuse * texColor;
 
     FragColor = vec4(finalColor, 1.0);
 }
-
 )";
 
   GLuint CompileShader(GLenum type, const char *src)
@@ -91,8 +90,8 @@ void main() {
 
   void run(SDL2 &sdl)
   {
-    Mesh mesh("cube.obj");
-    std::shared_ptr<SDL2::Texture> textureOpt = sdl.LoadTexture("texture.png");
+    Mesh mesh("maxwell.obj");
+    std::shared_ptr<SDL2::Texture> textureOpt = sdl.LoadTexture("Dingus.png");
     if (!textureOpt)
       throw std::runtime_error("Failed to load texture from texture.png");
     mesh.LoadTexture(*textureOpt);
@@ -107,11 +106,11 @@ void main() {
 
       float t = SDL_GetTicks() / 1000.0;
       glm::mat4 model = glm::
-        rotate(glm::mat4(1.0), t, glm::vec3(0.5, 1.0, 0.0));
+        rotate(glm::mat4(1.0), t, glm::vec3(0.0, 1.0, 0.0));
       glm::mat4 view = glm::
-        translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, -3.0));
+        translate(glm::mat4(1.0), glm::vec3(0.0, -75.0, -500.0));
       glm::mat4 proj = glm::
-        perspective<float>(glm::radians(45.0), 800.0 / 600.0, 0.1, 100.0);
+        perspective<float>(glm::radians(45.0), 800.0 / 600.0, 0.1, 10000.0);
 
       glClearColor(0.1, 0.12, 0.15, 1.0);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -124,7 +123,7 @@ void main() {
       glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
       glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
-      glm::vec3 lightPos(2.0, 2.0, 2.0);  // arbitrary light position
+      glm::vec3 lightPos(200.0, 500.0, 200.0);  // arbitrary light position
       glm::vec3 viewPos = glm::vec3(glm::inverse(view)[3]);  // camera position
 
       GLint lightPosLoc = glGetUniformLocation(shader, "lightPos");
