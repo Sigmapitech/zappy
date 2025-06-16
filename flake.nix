@@ -87,6 +87,7 @@
               server
               gui
               ai
+              ref
             ];
           };
         }
@@ -94,6 +95,14 @@
           ref-gui = pkgs.callPackage ./nix/ref-gui.nix {};
 
           ref-server = pkgs.callPackage ./nix/ref-server.nix {};
+
+          ref = pkgs.symlinkJoin {
+            name = "ref";
+            paths = with pkgs'; [
+              ref-gui
+              ref-server
+            ];
+          };
         }
         // {
           cpp-fmt = pkgs.writeShellScriptBin "cpp-fmt" ''

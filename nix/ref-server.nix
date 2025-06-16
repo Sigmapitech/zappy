@@ -1,6 +1,6 @@
 {stdenvNoCC}:
 stdenvNoCC.mkDerivation {
-  pname = "ref-server-src";
+  pname = "ref-server";
   version = "3.0.1";
 
   src = ../zappy_ref.tgz;
@@ -10,8 +10,8 @@ stdenvNoCC.mkDerivation {
 
   postInstall = ''
     mkdir -p $out/bin
-    install -Dm 577 ./zappy_server $out/bin/zappy_server
+    install -Dm 577 ./zappy_server $out/bin/ref-server
   '';
 
-  meta.mainProgram = "zappy_server";
+  meta.mainProgram = "ref-server";
 }
