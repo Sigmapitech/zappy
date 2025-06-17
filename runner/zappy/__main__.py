@@ -33,6 +33,9 @@ def parse_args() -> argparse.Namespace:
         .add_arg("--gui-branch", type=str)
         .add_arg("--server-branch", type=str)
         .add_arg("--ai-branch", type=str)
+        .add_arg("--local-ai", action="store_true")
+        .add_arg("--local-gui", action="store_true")
+        .add_arg("--local-server", action="store_true")
         .parse_args()
     )
 
@@ -47,6 +50,9 @@ def main():
             args.use_ref_server,
             args.nom,
             args.use_respective_branches,
+            args.local_server,
+            args.local_gui,
+            args.local_ai,
         )
     ):
         build_settings |= int(flag) << c
