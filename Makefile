@@ -31,6 +31,12 @@ LDFLAGS_gui != pkg-config --libs-only-L sdl2
 LDLIBS_gui != pkg-config --libs-only-l sdl2 SDL2_image glew gl glu
 CXXFLAGS_gui += $(shell pkg-config --cflags sdl2)
 
+
+# Used to simplify the nix build
+GUI_ASSET_DIR ?= assets
+
+CXXFLAGS_gui += -DASSET_DIR='"$(GUI_ASSET_DIR)"'
+
 MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --no-print-directory
 

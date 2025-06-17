@@ -33,10 +33,15 @@ stdenv.mkDerivation (finalAttrs: {
   makeFlags = ["zappy_gui"];
   enableParallelBuilding = true;
 
+  env.GUI_ASSET_DIR = "${placeholder "out"}/share/gui/assets";
+
   installPhase = ''
     runHook preInstall
 
     install -Dm 577 zappy_gui -t $out/bin
+
+    mkdir -p $out/share/gui
+    cp -r assets $out/share/gui/assets
 
     runHook postInstall
   '';
