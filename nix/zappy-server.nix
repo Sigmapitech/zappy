@@ -2,8 +2,14 @@
   stdenv,
   lib,
   ncurses,
+  debugServer ? false,
 }:
-stdenv.mkDerivation (finalAttrs: {
+stdenv.mkDerivation (finalAttrs: let
+  srv-bin-name =
+    if debugServer
+    then "debug_server"
+    else "zappy_server";
+in {
   pname = "zappy-server";
   version = "0.0.1";
 
@@ -11,19 +17,20 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [ncurses];
 
-  makeFlags = ["zappy_server"];
+  makeFlags = [srv-bin-name];
+
   enableParallelBuilding = true;
 
   installPhase = ''
     runHook preInstall
 
-    install -Dm 577 zappy_server -t $out/bin
+    install -Dm 577 ${srv-bin-name} -t $out/bin
 
     runHook postInstall
   '';
 
   meta = {
     maintainers = with lib.maintainers; [sigmanificient];
-    mainProgram = "zappy_server";
+    mainProgram = srv-bin-name;
   };
 })

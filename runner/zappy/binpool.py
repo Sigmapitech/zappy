@@ -20,6 +20,8 @@ class Settings(IntFlag):
     USE_LOCAL_GUI = 1 << 5
     USE_LOCAL_AI = 1 << 6
 
+    USE_SERVER_DEBUG = 1 << 7
+
 
 @dataclass
 class Source:
@@ -122,8 +124,15 @@ def create_bin_pool(
     else:
         pool = {SOURCES["dev"]}
 
+    final_pool = custom_branches | pool
+
+    if build & Settings.USE_SERVER_DEBUG:
+        for target in final_pool:
+            if target.deriv == "server":
+                target.deriv += "-debug"
+
     # ensure custom_branches take priority when comparing
-    deriv_paths = make_deriv_paths(custom_branches | pool, build)
+    deriv_paths = make_deriv_paths(final_pool, build)
 
     return ZappyPool(
         server=deriv_paths[srv], gui=deriv_paths[gui], ai=deriv_paths["ai"]
