@@ -92,6 +92,8 @@
               ai
               ref
             ];
+
+            meta.mainProgram = "zappy";
           };
         }
         // {
