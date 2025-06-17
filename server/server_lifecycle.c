@@ -1,4 +1,7 @@
+#define _GNU_SOURCE
+
 #include <arpa/inet.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -15,6 +18,20 @@
 #include "debug.h"
 #include "server.h"
 
+static
+void signal_handler(int signum, siginfo_t *info, void *context)
+{
+    static server_t *server = nullptr;
+
+    if (info == nullptr && !signum) {
+        server = (server_t *)context;
+        return;
+    }
+    if (signum == SIGINT || signum == SIGTERM) {
+        DEBUG_MSG("Received signal, shutting down server");
+        server->is_running = false;
+    }
+}
 
 static
 int socket_open(struct sockaddr_in *srv_sa)
@@ -85,6 +102,14 @@ bool server_boot(server_t *srv, params_t *p)
 static
 bool server_allocate(server_t *srv, params_t *p, uint64_t timestamp)
 {
+    struct sigaction sa = {
+        .sa_flags = SA_SIGINFO,
+        .sa_sigaction = signal_handler
+    };
+
+    if (sigaction(SIGINT, &sa, nullptr) < 0
+        || sigaction(SIGTERM, &sa, nullptr) < 0)
+        return perror("Can't set signal handler"), false;
     if (!setup_teams(srv, p, timestamp))
         return false;
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->pfds,
@@ -92,6 +117,7 @@ bool server_allocate(server_t *srv, params_t *p, uint64_t timestamp)
         return perror("Can't allocate pollfd array"), false;
     if (!event_heap_init(&srv->events))
         return perror("Can't initialise event priority queue"), false;
+    signal_handler(0, nullptr, srv);
     return true;
 }
 
