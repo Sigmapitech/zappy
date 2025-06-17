@@ -12,6 +12,49 @@
 #include "data_structure/event.h"
 #include "server.h"
 
+struct ai_lut_entry {
+    char *command;
+    uint64_t time_needed;
+};
+
+struct gui_lut_entry {
+    char *command;
+};
+
+static const struct ai_lut_entry AI_LUT[] = {
+    {"Broadcast", 7},
+    {"Connect_nbr", 0},
+    {"Eject", 42},
+    {"Fork", 42},
+    {"Forward", 7},
+    {"Incantation", 300},
+    {"Inventroy", 1},
+    {"Left", 7},
+    {"Look", 7},
+    {"Right", 7},
+    {"Set", 7},
+    {"Take", 7},
+};
+
+static const struct gui_lut_entry GUI_LUT[] = {
+    {"msz"},
+    {"bct"},
+    {"mct"},
+    {"tna"},
+    {"ppo"},
+    {"plv"},
+    {"pin"},
+    {"sgt"},
+    {"sst"},
+};
+
+static constexpr const size_t AI_LUT_SIZE = (
+    sizeof(AI_LUT) / sizeof(AI_LUT[0])
+);
+static constexpr const size_t GUI_LUT_SIZE = (
+    sizeof(GUI_LUT) / sizeof(GUI_LUT[0])
+);
+
 void process_poll(server_t *srv, uint64_t timeout)
 {
     int poll_result = poll(srv->pfds.buff, srv->pfds.nmemb, timeout);
@@ -84,27 +127,84 @@ bool command_split(char *buff, char *argv[static COMMAND_WORD_COUNT],
     return true;
 }
 
+//TODO: send starting data to clients
 static
-void split_command(char *command,
-    char *dest[static COMMAND_WORD_COUNT], size_t command_len)
+bool handle_team(server_t *srv, client_state_t *client,
+    char *split[static COMMAND_WORD_COUNT])
 {
-    char sub[command_len + 1];
+    if (client->team_id != INVALID_TEAM_ID)
+        return false;
+    if (!strcmp(split[0], GRAPHIC_COMMAND)) {
+        client->team_id = GRAPHIC_TEAM_ID;
+        DEBUG("Client %d assigned to GRAPHIC team", client->fd);
+        return true;
+    }
+    for (size_t i = 0; srv->team_names[i] != nullptr; i++) {
+        DEBUG("Checking team '%s' against '%s'", srv->team_names[i], split[0]);
+        if (!strcmp(srv->team_names[i], split[0])) {
+            client->team_id = i;
+            DEBUG("Client %d assigned to team '%s' with id %zu",
+                client->fd, srv->team_names[i], i);
+            return true;
+        }
+    }
+    return false;
+}
 
-    DEBUG("Command '%.*s' with length %zu",
-        (int)command_len, command, command_len);
-    strncpy(sub, command, command_len);
-    sub[command_len] = '\0';
-    DEBUG("Splitting command: '%s' with length %zu", sub, command_len);
-    command_split(sub, dest, command_len);
+static
+uint64_t get_late_event(server_t *srv, client_state_t *client)
+{
+    uint64_t late_event = 0;
+
+    for (size_t i = 0; i < srv->events.nmemb; i++) {
+        if (srv->events.buff[i].trigger_fd == client->fd
+            && srv->events.buff[i].timestamp > late_event) {
+            late_event = srv->events.buff[i].timestamp;
+        }
+    }
+    return late_event;
+}
+
+static
+void event_create(server_t *srv, client_state_t *client,
+    char *split[static COMMAND_WORD_COUNT], uint64_t time_needed)
+{
+    event_t event = {.trigger_fd = client->fd};
+
+    memcpy(event.command, split, sizeof(event.command));
+    if (client->team_id != GRAPHIC_TEAM_ID)
+        event.timestamp = get_late_event(srv, client) + (time_needed);
+    else
+        event.timestamp = get_timestamp();
+    DEBUG("Creating event for client %d: '%s' at %lu",
+        client->fd, event.command[0], event.timestamp);
+    if (!event_heap_push(&srv->events, &event))
+        srv->is_running = false;
 }
 
 static
 void handle_command(server_t *srv, client_state_t *client,
     char *split[static COMMAND_WORD_COUNT])
 {
-    DEBUG("Processing command from client %d", client->fd);
-    for (size_t i = 0; i < COMMAND_WORD_COUNT; i++)
-        DEBUG("Command word %zu: '%s'", i, split[i] ? split[i] : "(null)");
+    if (client->team_id == INVALID_TEAM_ID) {
+        if (!handle_team(srv, client, split))
+            append_to_output(srv, client, "ko\n");
+        return;
+    }
+    for (size_t i = 0; i < AI_LUT_SIZE
+        && client->team_id != GRAPHIC_TEAM_ID; i++) {
+        if (strcmp(AI_LUT[i].command, split[0]) == 0) {
+            event_create(srv, client, split, AI_LUT[i].time_needed);
+            return;
+        }
+    }
+    for (size_t i = 0; i < GUI_LUT_SIZE
+        && client->team_id == GRAPHIC_TEAM_ID; i++) {
+        if (strcmp(GUI_LUT[i].command, split[0]) == 0) {
+            event_create(srv, client, split, 0);
+            return;
+        }
+    }
 }
 
 void process_clients_buff(server_t *srv)
@@ -121,9 +221,10 @@ void process_clients_buff(server_t *srv)
             continue;
         if (!(srv->pfds.buff[i + 1].revents & POLLIN)
             || client->in_buff_idx >= client->input.nmemb)
-            return;
+            continue;
         command_len = strcspn(client->input.buff + client->in_buff_idx, "\n");
-        split_command(client->input.buff + client->in_buff_idx,
+        (client->input.buff + client->in_buff_idx)[command_len] = '\0';
+        command_split(client->input.buff + client->in_buff_idx,
             split, command_len);
         client->in_buff_idx += command_len + 1;
         handle_command(srv, client, split);
