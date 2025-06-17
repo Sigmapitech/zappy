@@ -55,6 +55,17 @@ bool team_ensure_capacity(struct team_acc *ta, size_t requested)
     return true;
 }
 
+bool is_already_registered(char **teams, const char *team_name, size_t count)
+{
+    if (teams == nullptr)
+        return false;
+    for (size_t i = 0; i < count; i++) {
+        if (strcmp(teams[i], team_name) == 0)
+            return true;
+    }
+    return false;
+}
+
 /**
  * @brief Parses team names from command line arguments.
  *
@@ -71,11 +82,7 @@ bool team_ensure_capacity(struct team_acc *ta, size_t requested)
 static char **parse_teams(char *argv[], int *idx)
 {
     size_t i = 0;
-    static struct team_acc teams = {
-        .arr = nullptr,
-        .count = 0,
-        .cap = 0,
-    };
+    static struct team_acc teams = {.arr = nullptr, .count = 0, .cap = 0};
 
     if (argv[*idx] == nullptr)
         return nullptr;
@@ -83,6 +90,10 @@ static char **parse_teams(char *argv[], int *idx)
     if (!team_ensure_capacity(&teams, i + 1) || teams.cap > TEAM_COUNT_LIMIT)
         return free(teams.arr), nullptr;
     for (size_t j = 0; j < i; j++) {
+        if (is_already_registered(teams.arr, argv[*idx + j], teams.count)) {
+            DEBUG("Team '%s' is already registered.\n", argv[*idx + j]);
+            return free(teams.arr), nullptr;
+        }
         teams.arr[teams.count] = argv[*idx + j];
         teams.count++;
     }
