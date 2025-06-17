@@ -8,8 +8,6 @@
 #include "data_structure/resizable_array.h"
 #include "server.h"
 
-static constexpr const uint8_t INVALID_TEAM_ID = 254;
-
 static
 void add_client_state(server_t *srv, int fd)
 {
@@ -54,13 +52,17 @@ void add_client(server_t *srv)
 
 void remove_client(server_t *srv, uint32_t idx)
 {
-    close(srv->cstates.buff[idx - 1].fd);
+    DEBUG("Client disconnected: fd=%d", srv->cstates.buff[idx - 1].fd);
+    if (srv->cstates.buff[idx - 1].fd >= 0)
+        close(srv->cstates.buff[idx - 1].fd);
+    srv->cstates.buff[idx - 1].fd = -1;
     free(srv->cstates.buff[idx - 1].input.buff);
+    srv->cstates.buff[idx - 1].input.buff = nullptr;
     free(srv->cstates.buff[idx - 1].output.buff);
+    srv->cstates.buff[idx - 1].output.buff = nullptr;
     srv->cstates.buff[idx - 1] =
         srv->cstates.buff[srv->cstates.nmemb - 1];
     srv->cstates.nmemb--;
     srv->pfds.buff[idx] = srv->pfds.buff[srv->pfds.nmemb - 1];
     srv->pfds.nmemb--;
-    DEBUG("Client disconnected: fd=%d", srv->cstates.buff[idx - 1].fd);
 }

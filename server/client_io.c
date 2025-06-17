@@ -19,7 +19,6 @@ bool recv_wrapper(server_t *srv, uint32_t idx, char *buffer, ssize_t *res)
     client_state_t *client = &srv->cstates.buff[idx - 1];
     ssize_t recv_res = recv(client->fd, buffer, BUFFER_SIZE - 1, 0);
 
-    printf("Receiving data from client %d\n", client->fd);
     if (recv_res < 0) {
         perror("recv failed");
         remove_client(srv, idx);

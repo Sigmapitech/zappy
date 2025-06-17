@@ -21,10 +21,6 @@ static constexpr const size_t COMMAND_HANDLERS_COUNT = (
     sizeof(COMMAND_HANDLERS) / sizeof(COMMAND_HANDLERS[0])
 );
 
-static const char *GRAPHIC_COMMAND = "GRAPHIC";
-static constexpr const uint8_t GRAPHIC_TEAM_ID = 254;
-static constexpr const uint8_t INVALID_TEAM_ID = 255;
-
 static
 bool (*find_handler(const char *command))(server_t *, const event_t *)
 {
