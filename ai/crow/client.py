@@ -30,6 +30,7 @@ class Client(CommandManager):
 
         map_size = await self._sock._next_non_message()
         print(f"map size: {map_size}")
+        return id_msg, map_size
 
     @classmethod
     def broadcast_receiver(cls, func):
