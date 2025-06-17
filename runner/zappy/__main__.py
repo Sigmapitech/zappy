@@ -3,7 +3,8 @@ import argparse
 import sys
 from typing import Self
 
-from zappy.binpool import Settings, create_bin_pool
+from .binpool import Settings, create_bin_pool
+from .run import run_zappy
 
 EXIT_KO = 84
 
@@ -29,6 +30,9 @@ def parse_args() -> argparse.Namespace:
         .add_arg("--use-ref-server", action="store_true")
         .add_arg("--nom", action="store_true")
         .add_arg("--use-respective-branches", action="store_true")
+        .add_arg("--gui-branch", type=str)
+        .add_arg("--server-branch", type=str)
+        .add_arg("--ai-branch", type=str)
         .parse_args()
     )
 
@@ -47,8 +51,9 @@ def main():
     ):
         build_settings |= int(flag) << c
 
-    bins = create_bin_pool(Settings(build_settings))
-    print(bins)
+    branches = (args.server_branch, args.gui_branch, args.ai_branch)
+    bins = create_bin_pool(Settings(build_settings), branches)
+    run_zappy(bins, args)
 
     return EXIT_KO
 

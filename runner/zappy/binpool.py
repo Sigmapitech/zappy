@@ -30,20 +30,23 @@ class Source:
         return hash(self.flakepath)
 
 
+DEV = "zappy-runner"
 SOURCES = {
-    "dev": Source("dev", "default"),
+    "dev": Source(DEV, "default"),
     "ai": Source("ia", "ai"),
     "server": Source("server", "server"),
     "gui": Source("gui", "gui"),
-    "ref-gui": Source("dev", "ref-gui"),
-    "ref-server": Source("dev", "ref-server"),
+    "ref-gui": Source(DEV, "ref-gui"),
+    "ref-server": Source(DEV, "ref-server"),
 }
 
 
 def build_package(source: Source, use_nom: bool) -> str:
+    print("Building", source.flakepath)
     cmd = (
         "nom" if use_nom else "nix",
         "build",
+        "--refresh",
         source.flakepath,
         "--print-build-logs",
         "--no-link",
@@ -66,7 +69,13 @@ class ZappyPool:
     ai: str
 
 
-def create_bin_pool(build: Settings) -> ZappyPool:
+def create_bin_pool(
+    build: Settings, branches: tuple[str, str, str]
+) -> ZappyPool:
+    for branch, name in zip(branches, ("server", "gui", "ai")):
+        if branch is not None:
+            SOURCES[name].branch = branch
+
     gui = "ref-gui" if build & Settings.USE_REF_GUI else "gui"
     srv = "ref-server" if build & Settings.USE_REF_SERVER else "server"
 
