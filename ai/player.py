@@ -2,15 +2,54 @@ import json
 import logging
 import pathlib
 import random
-import select
 from typing import List
 
+from .cipher import DecodedMessage, decode, derive_team_key, encode
 from .crow import Client
 
 logger = logging.getLogger(__name__)
 
 
-class Player(Client):
+class SecretivePlayer(Client):
+    counter = 0
+
+    def __wrap_receiver(self, func):
+        async def wrapped(direction, msg):
+            msg = decode(msg, self.__secret)
+
+            if msg is None:
+                return
+
+            logger.debug("<< %s", msg)
+            return await func(direction, msg)
+
+        return wrapped
+
+    async def connect(self, team: str):
+        if self._sock._broadcast_callback is not None:
+            self._sock._broadcast_callback = self.__wrap_receiver(
+                self._sock._broadcast_callback
+            )
+
+        self.__secret = derive_team_key(team)
+
+        id_, map_size = await super().connect(team)
+        self.id_ = int(id_)
+
+        return id_, map_size
+
+    async def broadcast(self, message: str) -> str:
+        self.counter += 1
+        self.counter %= 255
+
+        ciphered = encode(
+            self.id_, self.counter, message.encode("ascii"), self.__secret
+        )
+
+        return await super().broadcast(ciphered)
+
+
+class Player(SecretivePlayer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -113,11 +152,11 @@ class Player(Client):
         await self.broadcast(message)
 
     @Client.broadcast_receiver
-    async def handle_incoming_messages(self, direction: int, message: str):
-        logger.debug(">>> %s", message)
-
-        if message.startswith("level "):
-            other_level = int(message.split(" ")[1])
+    async def handle_incoming_messages(
+        self, direction: int, message: DecodedMessage
+    ):
+        if message.content.startswith("level "):
+            other_level = int(message.content.split(" ")[1])
             if other_level == self.level:
                 pass
 

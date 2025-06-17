@@ -1,5 +1,8 @@
 import asyncio
+import logging
 import socket
+
+logger = logging.getLogger(__name__)
 
 
 class AsyncSocketClient:
@@ -27,6 +30,7 @@ class AsyncSocketClient:
         async with self.command_lock:
             if not self._connected:
                 raise ConnectionError("Not connected")
+            logger.debug("-> %s", command)
             await self._send_line(command)
             return await self._next_non_message()
 
@@ -35,8 +39,16 @@ class AsyncSocketClient:
             msg = await self._incoming_queue.get()
 
             if msg.startswith("message "):
-                # todo: parse the broadcast
-                await self._broadcast_callback(0, f">>> {msg}")
+                _, direction, content = msg.split(" ")
+
+                direction = direction.removesuffix(",")
+                if not direction.isdigit():
+                    continue
+
+                if content[0] == '"' and content[-1] == '"':
+                    content = content[1:-1]
+
+                await self._broadcast_callback(int(direction), content)
                 continue
 
             if msg == "dead":
