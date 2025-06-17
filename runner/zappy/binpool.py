@@ -130,6 +130,7 @@ def create_bin_pool(
         for target in final_pool:
             if target.deriv == "server":
                 target.deriv += "-debug"
+                srv = "debug_" + srv
 
     # ensure custom_branches take priority when comparing
     deriv_paths = make_deriv_paths(final_pool, build)
