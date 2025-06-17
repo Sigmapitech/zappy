@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Mesh.hpp"
+#include "asset_dir.h"
 
 namespace {
 
@@ -90,8 +91,9 @@ void main() {
 
   void run(SDL2 &sdl)
   {
-    Mesh mesh("maxwell.obj");
-    std::shared_ptr<SDL2::Texture> textureOpt = sdl.LoadTexture("Dingus.png");
+    Mesh mesh(ASSET_DIR "/maxwell.obj");
+    std::shared_ptr<SDL2::Texture> textureOpt = sdl.LoadTexture(
+      ASSET_DIR "/Dingus.png");
     if (!textureOpt)
       throw std::runtime_error("Failed to load texture from texture.png");
     mesh.LoadTexture(*textureOpt);
