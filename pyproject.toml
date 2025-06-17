@@ -1,12 +1,30 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.black]
-line-length = 79
-target-version = [ "py310" ]
-include = "\\.pyi?$"
+[project]
+name = "zappy_ai"
+version = "0.0.1"
+authors = [
+  { name = "Sigmanificient", email = "yohann.boniface@epitech.eu" }
+]
+requires-python = ">=3.10"
+classifiers = [
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3 :: Only"
+]
 
-[tool.isort]
-profile = "black"
-src_paths = [ "zappy_ai" ]
+dependencies = []
+# license = { text = "" }
+
+[tool.hatch.build]
+packages = [
+  "ai",
+  "ai.crow"
+]
+
+[tool.hatch.build.package-data]
+"ai" = ["*.json"]
+
+[project.scripts]
+zappy_ai = "ai.__main__:main"

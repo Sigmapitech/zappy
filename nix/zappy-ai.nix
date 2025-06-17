@@ -1,7 +1,7 @@
 {
   lib,
   buildPythonPackage,
-  setuptools,
+  hatchling,
 }:
 buildPythonPackage {
   name = "zappy-ai";
@@ -10,9 +10,7 @@ buildPythonPackage {
 
   src = ../.;
 
-  build-system = [setuptools];
-
-  doCheck = false; # no tests yet!
+  build-system = [hatchling];
 
   pythonImportsCheck = "ai";
 
