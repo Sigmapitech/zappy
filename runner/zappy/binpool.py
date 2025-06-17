@@ -16,6 +16,10 @@ class Settings(IntFlag):
     USE_NOM = 1 << 2
     USE_RESPECTIVE_BRANCHES = 1 << 3
 
+    USE_LOCAL_SERVER = 1 << 4
+    USE_LOCAL_GUI = 1 << 5
+    USE_LOCAL_AI = 1 << 6
+
 
 @dataclass
 class Source:
@@ -24,10 +28,17 @@ class Source:
 
     @property
     def flakepath(self) -> str:
+        if self.branch == "":
+            return f".#{self.deriv}"
         return f"github:Sigmapitech/zappy/{self.branch}#{self.deriv}"
 
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Source):
+            raise ValueError
+        return self.deriv == other.deriv
+
     def __hash__(self) -> int:
-        return hash(self.flakepath)
+        return hash(self.deriv)
 
 
 DEV = "zappy-runner"
@@ -69,12 +80,38 @@ class ZappyPool:
     ai: str
 
 
+def make_deriv_paths(pool: set[Source], build: Settings) -> dict[str, str]:
+    deriv_paths = {}
+
+    for target in pool:
+        out = Path(build_package(target, bool(build & Settings.USE_NOM)))
+
+        for entry in (out / "bin").iterdir():
+            deriv_paths[entry.name.removeprefix("zappy_")] = entry
+
+    return deriv_paths
+
+
 def create_bin_pool(
     build: Settings, branches: tuple[str, str, str]
 ) -> ZappyPool:
+    custom_branches = set()
+
     for branch, name in zip(branches, ("server", "gui", "ai")):
         if branch is not None:
             SOURCES[name].branch = branch
+            custom_branches.add(SOURCES[name])
+
+    mk_local = lambda d: Source(branch="", deriv=d)
+
+    if build & Settings.USE_LOCAL_SERVER:
+        custom_branches.add(mk_local("server"))
+
+    if build & Settings.USE_LOCAL_GUI:
+        custom_branches.add(mk_local("gui"))
+
+    if build & Settings.USE_LOCAL_AI:
+        custom_branches.add(mk_local("ai"))
 
     gui = "ref-gui" if build & Settings.USE_REF_GUI else "gui"
     srv = "ref-server" if build & Settings.USE_REF_SERVER else "server"
@@ -85,12 +122,8 @@ def create_bin_pool(
     else:
         pool = {SOURCES["dev"]}
 
-    deriv_paths = {}
-    for target in pool:
-        out = Path(build_package(target, bool(build & Settings.USE_NOM)))
-
-        for entry in (out / "bin").iterdir():
-            deriv_paths[entry.name.removeprefix("zappy_")] = entry
+    # ensure custom_branches take priority when comparing
+    deriv_paths = make_deriv_paths(custom_branches | pool, build)
 
     return ZappyPool(
         server=deriv_paths[srv], gui=deriv_paths[gui], ai=deriv_paths["ai"]
