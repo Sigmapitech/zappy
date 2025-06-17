@@ -124,11 +124,13 @@ bool server_allocate(server_t *srv, params_t *p, uint64_t timestamp)
 static
 void server_destroy(server_t *srv)
 {
-    for (size_t i = 0; i < srv->pfds.nmemb; i++) {
+    size_t fd_count = srv->pfds.nmemb;
+
+    for (size_t i = 0; i < fd_count; i++) {
         if (srv->pfds.buff[i].fd == srv->self_fd)
             close(srv->self_fd);
         if (srv->pfds.buff[i].fd != srv->self_fd)
-            remove_client(srv, srv->pfds.buff[i].fd);
+            remove_client(srv, i);
     }
     free(srv->eggs.buff);
     free(srv->pfds.buff);

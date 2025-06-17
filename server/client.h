@@ -3,6 +3,11 @@
 
     #include "server.h"
 
+static const char *GRAPHIC_COMMAND = "GRAPHIC";
+
+static constexpr const uint8_t INVALID_TEAM_ID = 255;
+static constexpr const uint8_t GRAPHIC_TEAM_ID = 254;
+
 void add_client(server_t *srv);
 void remove_client(server_t *srv, uint32_t idx);
 void write_client(server_t *srv, uint32_t idx);
