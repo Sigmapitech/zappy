@@ -36,6 +36,7 @@ def parse_args() -> argparse.Namespace:
         .add_arg("--local-ai", action="store_true")
         .add_arg("--local-gui", action="store_true")
         .add_arg("--local-server", action="store_true")
+        .add_arg("--server-debug", action="store_true")
         .parse_args()
     )
 
@@ -53,6 +54,7 @@ def main():
             args.local_server,
             args.local_gui,
             args.local_ai,
+            args.server_debug,
         )
     ):
         build_settings |= int(flag) << c
