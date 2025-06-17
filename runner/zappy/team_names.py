@@ -1,4 +1,5 @@
 import random
+from functools import wraps
 
 CONSONANT_STARTS = [
     "Z",
@@ -61,6 +62,24 @@ SUFFIXES = [
 ]
 
 
+def make_unique(func):
+    _names = set()
+
+    @wraps(func)
+    def wrapped():
+        nonlocal _names
+
+        gen = func()
+        while gen in _names:
+            gen = func()
+
+        _names.add(gen)
+        return gen
+
+    return wrapped
+
+
+@make_unique
 def generate_name() -> str:
     start = random.choice(CONSONANT_STARTS)
     vowel1 = random.choice(VOWELS)
