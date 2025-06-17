@@ -122,16 +122,40 @@ tests_run_server:
 tests_run_gui:
 endif
 
+IN_DOCKER != stat /.dockerenv >/dev/null 2>/dev/null && echo 1 || echo 0
+
+PIP_FLAGS := --quiet
+# unline
+PIP_FLAGS += --no-build-isolation
+PIP_FLAGS += --disable-pip-version-check
+
+ifneq ($(IN_DOCKER),1)
 venv:
-	$Q python -m venv venv
+	$Q bash configure-venv.sh
 	@ $(LOG_TIME) "PY $(C_YELLOW)$@ $(C_RESET)"
 
-zappy_ai: venv $(shell find ai -type f -name "*.py")
-	$Q venv/bin/pip install -e . -q                                           \
-		--no-build-isolation --disable-pip-version-check
-	@ $(LOG_TIME) "PP $(C_YELLOW)$@ $(C_RESET)"
-	$Q cp venv/bin/zappy_ai $@
-	@ $(LOG_TIME) "CP $(C_GREEN)$@ $(C_RESET)"
+venv/bin/zappy_ai: venv $(shell find ai -type f -name "*.py")
+	$Q venv/bin/pip install hatchling editables $(PIP_FLAGS)
+	$Q venv/bin/pip install -e . $(PIP_FLAGS)
+	@ $(LOG_TIME) "DL $(C_YELLOW)$@ $(C_RESET)"
+
+zappy_ai: venv/bin/zappy_ai
+	@ ln -fs $(PYENV)/bin/zappy_ai .
+	@ $(LOG_TIME) "LN $(C_GREEN)$@ $(C_RESET)"
+else
+
+# We have to break system packages
+# ¯\_(ツ)_/¯
+
+export PIP_ROOT_USER_ACTION=ignore
+
+zappy_ai:
+	pip install hatchling --break-system-packages
+	pip install . -q --break-system-packages $(PIP_FLAGS)
+	@ ln -fs $(shell which zappy_ai) .
+	@ $(LOG_TIME) "PY $(C_YELLOW)$@ $(C_RESET)"
+
+endif
 
 html-doc: #? html-doc: Build the static html documentation
 	doxygen Doxyfile
