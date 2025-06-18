@@ -95,7 +95,7 @@ void append_to_output(server_t *srv, client_state_t *client, const char *msg)
         remove_client(srv, idx);
         return;
     }
-    strncpy(client->output.buff + client->output.nmemb, msg, len);
+    strncpy(client->output.buff + client->output.nmemb, msg, len + 1);
     client->output.nmemb += len;
     if (!strchr(msg, '\n'))
         return;
