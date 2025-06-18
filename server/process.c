@@ -48,6 +48,8 @@ static const struct gui_lut_entry GUI_LUT[] = {
     {"sst"},
 };
 
+static const char *GRAPHIC_COMMAND = "GRAPHIC";
+
 static constexpr const size_t AI_LUT_SIZE = (
     sizeof(AI_LUT) / sizeof(AI_LUT[0])
 );

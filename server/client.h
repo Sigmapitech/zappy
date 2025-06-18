@@ -3,8 +3,6 @@
 
     #include "server.h"
 
-static const char *GRAPHIC_COMMAND = "GRAPHIC";
-
 static constexpr const uint8_t INVALID_TEAM_ID = 255;
 static constexpr const uint8_t GRAPHIC_TEAM_ID = 254;
 
