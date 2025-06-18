@@ -54,11 +54,11 @@ void main() {
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * vec3(1.0); // white light
 
-    vec3 texColor = texture(tex, TexCoord).rgb;
-    vec3 ambient = 0.5 * texColor;
-    vec3 finalColor = ambient + diffuse * texColor;
+    vec4 texColor = texture(tex, TexCoord);
+    vec3 ambient = 0.5 * texColor.rgb;
+    vec3 finalColor = ambient + diffuse * texColor.rgb;
 
-    FragColor = vec4(finalColor, 1.0);
+    FragColor = vec4(finalColor, texColor.a);  // use texture's alpha
 }
 )";
 
