@@ -6,8 +6,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Mesh.hpp"
 #include "asset_dir.h"
+
+#include "Object3D.hpp"
 
 namespace {
 
@@ -89,14 +90,31 @@ void main() {
     return prog;
   }
 
+  // // OpenGL debug callback function
+  // void myDebugCallback(GLenum source, GLenum type, GLuint id, GLenum
+  // severity,
+  //   GLsizei length, const GLchar* message, const void* userParam)
+  // {
+  //   std::cerr << "GL DEBUG: " << message << "\n";
+  // }
+
   void run(SDL2 &sdl)
   {
-    Mesh mesh(ASSET_DIR "/maxwell.obj");
-    std::shared_ptr<SDL2::Texture> textureOpt = sdl.LoadTexture(
+    // glEnable(GL_DEBUG_OUTPUT);
+    // glDebugMessageCallback(myDebugCallback, nullptr);
+
+    Object3D object(ASSET_DIR "/maxwell.obj");
+    std::shared_ptr<SDL2::Texture> texture = sdl.LoadTexture(
       ASSET_DIR "/Dingus.png");
-    if (!textureOpt)
+    if (!texture)
       throw std::runtime_error("Failed to load texture from texture.png");
-    mesh.LoadTexture(*textureOpt);
+    std::shared_ptr<SDL2::Texture> texture2 = sdl.LoadTexture(
+      ASSET_DIR "/mikustache.png");
+    if (!texture)
+      throw std::runtime_error("Failed to load texture from mikustache.png");
+
+    object._meshArr[0]->LoadTexture(*texture);
+    object._meshArr[1]->LoadTexture(*texture2);
 
     GLuint shader = CreateProgram();
 
@@ -107,23 +125,19 @@ void main() {
           running = false;
 
       float t = SDL_GetTicks() / 1000.0;
-      glm::mat4 model = glm::
-        rotate(glm::mat4(1.0), t, glm::vec3(0.0, 1.0, 0.0));
+
       glm::mat4 view = glm::
         translate(glm::mat4(1.0), glm::vec3(0.0, -75.0, -500.0));
       glm::mat4 proj = glm::
         perspective<float>(glm::radians(45.0), 800.0 / 600.0, 0.1, 10000.0);
 
+      object.modelMatrix = glm::
+        rotate(glm::mat4(1.0), t, glm::vec3(0.0, 1.0, 0.0));
+
       glClearColor(0.1, 0.12, 0.15, 1.0);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
       glUseProgram(shader);  // set the shader program before setting mvp
-      GLint modelLoc = glGetUniformLocation(shader, "model");
-      GLint viewLoc = glGetUniformLocation(shader, "view");
-      GLint projLoc = glGetUniformLocation(shader, "projection");
-      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-      glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-      glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
       glm::vec3 lightPos(200.0, 500.0, 200.0);  // arbitrary light position
       glm::vec3 viewPos = glm::vec3(glm::inverse(view)[3]);  // camera position
@@ -133,7 +147,11 @@ void main() {
       glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
       glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPos));
 
-      mesh.Draw(shader);
+      object.Draw(shader, view, proj);
+
+      // int e =  GL_NO_ERROR;
+      // while ((e = glGetError()) != GL_NO_ERROR)
+      //   std::cerr << "OpenGL Error: " << e << '\n';
 
       sdl.SwapWindow();
     }
