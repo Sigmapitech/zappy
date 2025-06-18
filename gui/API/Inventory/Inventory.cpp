@@ -77,3 +77,30 @@ void Inventory::SetInventory(Item item, size_t quantity)
       break;
   }
 }
+
+void Inventory::AddToInventory(Item item, size_t quantity)
+{
+  switch (item) {
+    case Item::FOOD:
+      _food += quantity;
+      break;
+    case Item::LINEMATE:
+      _linemate += quantity;
+      break;
+    case Item::DERAUMERE:
+      _deraumere += quantity;
+      break;
+    case Item::SIBUR:
+      _sibur += quantity;
+      break;
+    case Item::MENDIANE:
+      _mendiane += quantity;
+      break;
+    case Item::PHIRAS:
+      _phiras += quantity;
+      break;
+    case Item::THYSTAME:
+      _thystame += quantity;
+      break;
+  }
+}
