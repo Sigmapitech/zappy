@@ -32,10 +32,14 @@ SDL2::SDL2()
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
-  glEnable(GL_CULL_FACE);  // enable face culling,
-                           //  eg: triangles facing away from the camera
-  glCullFace(GL_BACK);     // cull back-facing polygons
+  // enable face culling, eg: triangles facing away from the camera
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);  // cull back-facing polygons
   glFrontFace(GL_CCW);  // winding order, eg: determines front-facing polygons
+
+  // Enable alpha blending
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
     throw std::
