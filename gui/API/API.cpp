@@ -3,6 +3,7 @@
 #include "Utils/Utils.hpp"
 
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <mutex>
 #include <sstream>
@@ -146,98 +147,65 @@ void API::AskPlayerInventory(int id)
 
 void API::ParseManageCommande(std::string &command)
 {
-  std::string word;
   if (command.empty())
     return;
+
+  static const std::map<std::string, std::function<void(std::stringstream &)>>
+    commandHandlers = {
+      {"msz", [this](std::stringstream &ss) { HandleMSZ(ss); }},
+      {"bct", [this](std::stringstream &ss) { HandleBCT(ss); }},
+      {"mct",
+       [](std::stringstream &ss) {
+         (void)ss;
+         API::HandleMCT();
+       }},
+      {"tna", [this](std::stringstream &ss) { HandleTNA(ss); }},
+      {"pnw", [this](std::stringstream &ss) { HandlePNW(ss); }},
+      {"ppo", [this](std::stringstream &ss) { HandlePPO(ss); }},
+      {"plv", [this](std::stringstream &ss) { HandlePLV(ss); }},
+      {"pin", [this](std::stringstream &ss) { HandlePIN(ss); }},
+      {"pex", [this](std::stringstream &ss) { HandlePEX(ss); }},
+      {"pbc", [this](std::stringstream &ss) { HandlePBC(ss); }},
+      {"pic", [this](std::stringstream &ss) { HandlePIC(ss); }},
+      {"pie", [this](std::stringstream &ss) { HandlePIE(ss); }},
+      {"pfk", [this](std::stringstream &ss) { HandlePFK(ss); }},
+      {"pdr", [this](std::stringstream &ss) { HandlePDR(ss); }},
+      {"pgt", [this](std::stringstream &ss) { HandlePGT(ss); }},
+      {"pdi", [this](std::stringstream &ss) { HandlePDI(ss); }},
+      {"enw", [this](std::stringstream &ss) { HandleENW(ss); }},
+      {"ebo", [this](std::stringstream &ss) { HandleEBO(ss); }},
+      {"edi", [this](std::stringstream &ss) { HandleEDI(ss); }},
+      {"sgt", [this](std::stringstream &ss) { HandleSGT(ss); }},
+      {"sst", [this](std::stringstream &ss) { HandleSST(ss); }},
+      {"seg", [this](std::stringstream &ss) { HandleSEG(ss); }},
+      {"smg", [this](std::stringstream &ss) { HandleSMG(ss); }},
+      {"suc",
+       [](std::stringstream &ss) {
+         (void)ss;
+         API::HandleSUC();
+       }},
+      {"sbp", [](std::stringstream &ss) {
+         (void)ss;
+         API::HandleSBP();
+       }}};
 
   std::istringstream stream(command);
   std::string line;
 
   while (std::getline(stream, line)) {
     std::stringstream lineParsed(line);
+    std::string word;
     lineParsed >> word;
-    switch (hash(word)) {
-      case hash("WELCOME"):
-        break;
-      case hash("msz"):
-        HandleMSZ(lineParsed);
-        break;
-      case hash("bct"):
-        HandleBCT(lineParsed);
-        break;
-      case hash("mct"):
-        API::HandleMCT();
-        break;
-      case hash("tna"):
-        HandleTNA(lineParsed);
-        break;
-      case hash("pnw"):
-        HandlePNW(lineParsed);
-        break;
-      case hash("ppo"):
-        HandlePPO(lineParsed);
-        break;
-      case hash("plv"):
-        HandlePLV(lineParsed);
-        break;
-      case hash("pin"):
-        HandlePIN(lineParsed);
-        break;
-      case hash("pex"):
-        HandlePEX(lineParsed);
-        break;
-      case hash("pbc"):
-        HandlePBC(lineParsed);
-        break;
-      case hash("pic"):
-        HandlePIC(lineParsed);
-        break;
-      case hash("pie"):
-        HandlePIE(lineParsed);
-        break;
-      case hash("pfk"):
-        HandlePFK(lineParsed);
-        break;
-      case hash("pdr"):
-        HandlePDR(lineParsed);
-        break;
-      case hash("pgt"):
-        HandlePGT(lineParsed);
-        break;
-      case hash("pdi"):
-        HandlePDI(lineParsed);
-        break;
-      case hash("enw"):
-        HandleENW(lineParsed);
-        break;
-      case hash("ebo"):
-        HandleEBO(lineParsed);
-        break;
-      case hash("edi"):
-        HandleEDI(lineParsed);
-        break;
-      case hash("sgt"):
-        HandleSGT(lineParsed);
-        break;
-      case hash("sst"):
-        HandleSST(lineParsed);
-        break;
-      case hash("seg"):
-        HandleSEG(lineParsed);
-        break;
-      case hash("smg"):
-        HandleSMG(lineParsed);
-        break;
-      case hash("suc"):
-        API::HandleSUC();
-        break;
-      case hash("sbp"):
-        API::HandleSBP();
-        break;
-      default:
-        throw(std::runtime_error(
-          "Error: unknown cmd, Function: "
-          "ParseManageCommande, File: API.cpp"));
+
+    if (word == "WELCOME")
+      continue;
+
+    auto it = commandHandlers.find(word);
+    if (it != commandHandlers.end()) {
+      it->second(lineParsed);
+    } else {
+      throw std::runtime_error(
+        "Error: unknown cmd, Function: ParseManageCommande, File: API.cpp");
     }
   }
 }
