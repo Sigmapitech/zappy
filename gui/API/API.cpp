@@ -520,12 +520,8 @@ void API::HandleENW(std::stringstream &ss)
     << " at (" << X << "," << Y << ")\n";
   for (std::string &teamNameTmp: _allTeamName)
     for (Trantor &trantorTmp: _teams[teamNameTmp])
-      if (trantorTmp.GetId() == std::stoi(nTmp)) {
-        AddEgg(
-          std::stoi(eTmp),
-          trantorTmp.GetPosition().first,
-          trantorTmp.GetPosition().second);
-      }
+      if (trantorTmp.GetId() == std::stoi(nTmp))
+        AddEgg(std::stoi(eTmp), X, Y);
 }
 
 void API::HandleEBO(std::stringstream &ss)
