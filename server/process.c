@@ -67,17 +67,14 @@ void process_poll(server_t *srv, uint64_t timeout)
 
 void process_fds(server_t *srv)
 {
-    for (size_t i = 0; i < srv->pfds.nmemb; i++) {
-        if ((srv->pfds.buff[i].revents & POLLIN)
-            && srv->pfds.buff[i].fd == srv->self_fd)
-            add_client(srv);
+    if (srv->pfds.buff[0].revents & POLLIN)
+        add_client(srv);
+    for (size_t i = 1; i < srv->pfds.nmemb; i++) {
         if (srv->pfds.buff[i].revents & POLLHUP)
             remove_client(srv, i);
-        if ((srv->pfds.buff[i].revents & POLLIN)
-            && srv->pfds.buff[i].fd != srv->self_fd)
+        if (srv->pfds.buff[i].revents & POLLIN)
             read_client(srv, i);
-        if ((srv->pfds.buff[i].revents & POLLOUT)
-            && srv->pfds.buff[i].fd != srv->self_fd)
+        if (srv->pfds.buff[i].revents & POLLOUT)
             write_client(srv, i);
     }
 }
