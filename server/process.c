@@ -178,6 +178,24 @@ void event_create(server_t *srv, client_state_t *client,
 }
 
 static
+void unknown_command(server_t *srv, client_state_t *client,
+    const char *command)
+{
+    event_t event = {.trigger_fd = client->fd, .command =
+        {client->team_id == GRAPHIC_TEAM_ID ? "suc" : "ko"}};
+
+    if (client->team_id != GRAPHIC_TEAM_ID)
+        event.timestamp = get_late_event(srv, client);
+    else
+        event.timestamp = get_timestamp();
+    DEBUG("Unknown command '%s' from client %d", command, client->fd);
+    if (!event_heap_push(&srv->events, &event)) {
+        srv->is_running = false;
+        return;
+    }
+}
+
+static
 void handle_command(server_t *srv, client_state_t *client,
     char *split[static COMMAND_WORD_COUNT])
 {
@@ -200,6 +218,7 @@ void handle_command(server_t *srv, client_state_t *client,
             return;
         }
     }
+    unknown_command(srv, client, split[0]);
 }
 
 void process_clients_buff(server_t *srv)
