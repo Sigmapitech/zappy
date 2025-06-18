@@ -66,7 +66,6 @@ void Network::RunNetwork()
 
     if (pollFd[0].revents & POLLIN) {
       std::string message = ReceiveMessage();
-      Log::info << "Message received: " << Log::cleanString(message);
       api.ParseManageCommande(message);
     }
     if (pollFd[0].revents & POLLOUT) {
