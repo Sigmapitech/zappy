@@ -99,10 +99,12 @@ bool assign_team(server_t *srv, const event_t *event)
 static
 void default_handler(server_t *srv, const event_t *event)
 {
+    client_state_t *client = find_client_by_fd(srv, event->trigger_fd);
+
     if (event->trigger_fd == srv->self_fd)
         return;
     if (!assign_team(srv, event))
-        append_to_output(srv, &srv->cstates.buff[event->trigger_fd], "ko\n");
+        append_to_output(srv, client, "ko\n");
 }
 
 void server_process_events(server_t *srv)
