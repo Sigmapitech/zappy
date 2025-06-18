@@ -55,75 +55,6 @@ static constexpr const size_t GUI_LUT_SIZE = (
     sizeof(GUI_LUT) / sizeof(GUI_LUT[0])
 );
 
-void process_poll(server_t *srv, uint64_t timeout)
-{
-    int poll_result = poll(srv->pfds.buff, srv->pfds.nmemb, timeout);
-
-    if (poll_result < 0) {
-        if (srv->is_running)
-            perror("poll failed");
-    }
-}
-
-void process_fds(server_t *srv)
-{
-    if (srv->pfds.buff[0].revents & POLLIN)
-        add_client(srv);
-    for (size_t i = 1; i < srv->pfds.nmemb; i++) {
-        if (srv->pfds.buff[i].revents & POLLHUP)
-            remove_client(srv, i);
-        if (srv->pfds.buff[i].revents & POLLIN)
-            read_client(srv, i);
-        if (srv->pfds.buff[i].revents & POLLOUT)
-            write_client(srv, i);
-    }
-}
-
-static
-bool eat_quoted_argument(
-    char **buffp, char *argv[static COMMAND_WORD_COUNT], size_t i
-)
-{
-    size_t next;
-    char *buff = *buffp;
-
-    buff++;
-    argv[i - 1]++;
-    next = strcspn(buff, "\"");
-    if (buff[next] != '\"')
-        return false;
-    buff += next;
-    *buff = ' ';
-    *buffp = buff;
-    return true;
-}
-
-static
-bool command_split(char *buff, char *argv[static COMMAND_WORD_COUNT],
-    size_t command_len)
-{
-    size_t next;
-    size_t i = 1;
-    char *ptr = buff;
-
-    for (; *buff == ' '; buff++);
-    argv[0] = buff;
-    for (; i < COMMAND_WORD_COUNT; i++) {
-        if (*buff == '"' && !eat_quoted_argument(&buff, argv, i))
-            return false;
-        next = strcspn(buff, " ");
-        buff += next;
-        *buff = '\0';
-        if ((size_t)(buff - ptr) == command_len)
-            return true;
-        for (buff++; *buff == ' '; buff++);
-        if (*buff == '\n')
-            return true;
-        argv[i] = buff;
-    }
-    return true;
-}
-
 static
 bool send_ai_team_assignment_respone(
     server_t *srv, client_state_t *client,
@@ -131,13 +62,13 @@ bool send_ai_team_assignment_respone(
 {
     unsigned int count = 0;
 
-    client->team_id = team_id;
-    DEBUG("Client %d assigned to team '%s' with id %zu",
-        client->fd, srv->team_names[team_id], team_id);
+    DEBUG("Client %d assigned to the team with id %zu", client->fd, team_id);
     for (size_t i = 0; i < srv->eggs.nmemb; i++)
-        count += srv->eggs.buff[i].team_id == team_id;
+        count += srv->eggs.buff[i].team_id == team_id
+            && srv->eggs.buff[i].hatch <= get_timestamp();
     if (count == 0)
         return vappend_to_output(srv, client, "ko\n"), false;
+    client->team_id = team_id;
     vappend_to_output(srv, client, "%u\n%hhu %hhu\n",
         count - 1, srv->map_width, srv->map_height);
     for (size_t i = 0; i < srv->eggs.nmemb; i++)
@@ -148,21 +79,67 @@ bool send_ai_team_assignment_respone(
             srv->eggs.nmemb--;
             return true;
         }
-    return false;
+    __builtin_unreachable();
 }
 
-//TODO: send starting data to clients
+static
+char *serialize_inventory(inventory_t *inv)
+{
+    static constexpr const uint8_t BUFFER_SIZE = 128;
+    static char buffer[BUFFER_SIZE];
+
+    snprintf(buffer, sizeof(buffer), "%u %u %u %u %u %u %u",
+        inv->food, inv->linemate, inv->deraumere, inv->sibur,
+        inv->mendiane, inv->phiras, inv->thystame);
+    return buffer;
+}
+
+static
+void send_players_info(server_t *srv, client_state_t *client)
+{
+    for (size_t i = 0; i < srv->cstates.nmemb; i++) {
+        if (srv->cstates.buff[i].team_id == GRAPHIC_TEAM_ID
+            || srv->cstates.buff[i].team_id == INVALID_TEAM_ID)
+            continue;
+        vappend_to_output(srv, client, "pnw #%zu %hhu %hhu %hu %s\n",
+            i, srv->cstates.buff[i].x, srv->cstates.buff[i].y,
+            srv->cstates.buff[i].tier,
+            srv->team_names[srv->cstates.buff[i].team_id]);
+        vappend_to_output(srv, client, "pin #%zu %s\n", i, serialize_inventory(
+            &srv->cstates.buff[i].inv));
+        vappend_to_output(srv, client, "plv #%zu %hhu\n", i,
+            srv->cstates.buff[i].tier);
+    }
+}
+
+static
+bool send_gui_team_assignment_respone(server_t *srv, client_state_t *client)
+{
+    client->team_id = GRAPHIC_TEAM_ID;
+    DEBUG("Client %d assigned to GRAPHIC team", client->fd);
+    vappend_to_output(srv, client, "msz %hhu %hhu\nsgt %hu\n",
+        srv->map_width, srv->map_height, srv->frequency);
+    for (size_t y = 0; y < srv->map_height; y++)
+        for (size_t x = 0; x < srv->map_width; x++)
+            vappend_to_output(srv, client, "bct %zu %zu %s\n",
+                x, y, serialize_inventory(&srv->map[y][x]));
+    for (size_t i = 0; srv->team_names[i] != nullptr; i++)
+        vappend_to_output(srv, client, "tna %s\n", srv->team_names[i]);
+    send_players_info(srv, client);
+    for (size_t i = 0; i < srv->eggs.nmemb; i++)
+        vappend_to_output(srv, client, "enw #%zu #-1 %hhu %hhu\n", i,
+            srv->eggs.buff[i].x, srv->eggs.buff[i].y);
+    return true;
+}
+
 static
 bool handle_team(server_t *srv, client_state_t *client,
     char *split[static COMMAND_WORD_COUNT])
 {
     if (client->team_id != INVALID_TEAM_ID)
         return false;
-    if (!strcmp(split[0], GRAPHIC_COMMAND)) {
-        client->team_id = GRAPHIC_TEAM_ID;
-        DEBUG("Client %d assigned to GRAPHIC team", client->fd);
-        return true;
-    }
+    if (!strcmp(split[0], GRAPHIC_COMMAND))
+        return send_gui_team_assignment_respone(srv, client);
     for (size_t i = 0; srv->team_names[i] != nullptr; i++)
         if (!strcmp(srv->team_names[i], split[0]))
             return send_ai_team_assignment_respone(srv, client, i);
