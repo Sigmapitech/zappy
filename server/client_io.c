@@ -1,5 +1,3 @@
-#define _GNU_SOURCE
-
 #include <poll.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -15,6 +13,11 @@
 
 static constexpr const size_t BUFFER_SIZE = 1024;
 static constexpr const size_t ITER_MAX = 4;
+
+struct network_data_s {
+    server_t *srv;
+    client_state_t *client;
+};
 
 static
 bool recv_wrapper(server_t *srv, uint32_t idx, char *buffer, ssize_t *res)
@@ -104,20 +107,44 @@ void append_to_output(server_t *srv, client_state_t *client, const char *msg)
     }
 }
 
-void vappend_to_output(
-    server_t *srv, client_state_t *client, const char *fmt, ...
-)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+static int compute_formatted_size(const char *fmt, va_list args)
 {
-    va_list args;
-    char *buffer;
+    va_list args_copy;
+    int len;
 
-    va_start(args, fmt);
-    vasprintf(&buffer, fmt, args);
-    va_end(args);
-    if (buffer == nullptr) {
-        perror("vasprintf failed");
+    va_copy(args_copy, args);
+    len = vsnprintf(nullptr, 0, fmt, args_copy);
+    va_end(args_copy);
+    return len;
+}
+
+static void fill_and_append(
+    struct network_data_s *data, size_t size, const char *fmt, va_list args)
+{
+    char buffer[size + 1];
+
+    vsnprintf(buffer, size + 1, fmt, args);
+    buffer[size] = '\0';
+    append_to_output(data->srv, data->client, buffer);
+}
+#pragma clang diagnostic pop
+
+void vappend_to_output(server_t *srv,
+    client_state_t *client, const char *fmt, ...)
+{
+        va_list args;
+        int size;
+        struct network_data_s data = {srv, client};
+
+        va_start(args, fmt);
+        size = compute_formatted_size(fmt, args);
+    if (size < 0) {
+        perror("vsnprintf failed to compute size");
+        va_end(args);
         return;
     }
-    append_to_output(srv, client, buffer);
-    free(buffer);
+    fill_and_append(&data, (size_t)size, fmt, args);
+    va_end(args);
 }
