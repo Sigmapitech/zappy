@@ -125,28 +125,17 @@ bool command_split(char *buff, char *argv[static COMMAND_WORD_COUNT],
 }
 
 static
-unsigned int compute_client_available_slots(egg_array_t *eggs, uint8_t team_id)
-{
-    int count = 0;
-
-    DEBUG("egg count: %zu\n", eggs->nmemb);
-    for (size_t i = 0; i < eggs->nmemb; i++)
-        count += eggs->buff[i].team_id == team_id;
-    DEBUG("available slots: %zu (team id: %hhu)\n", count, team_id);
-    return count;
-}
-
-static
 bool send_ai_team_assignment_respone(
     server_t *srv, client_state_t *client,
     size_t team_id)
 {
-    unsigned int count;
+    unsigned int count = 0;
 
     client->team_id = team_id;
     DEBUG("Client %d assigned to team '%s' with id %zu",
         client->fd, srv->team_names[team_id], team_id);
-    count = compute_client_available_slots(&srv->eggs, client->team_id);
+    for (size_t i = 0; i < srv->eggs.nmemb; i++)
+        count += srv->eggs.buff[i].team_id == team_id;
     if (count == 0)
         return vappend_to_output(srv, client, "ko\n"), false;
     vappend_to_output(srv, client, "%u\n%hhu %hhu\n",
