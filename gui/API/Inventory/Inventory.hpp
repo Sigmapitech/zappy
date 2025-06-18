@@ -90,4 +90,12 @@ public:
    * @param quantity
    */
   void SetInventory(Item item, size_t quantity);
+
+  /**
+   * @brief Add the quantity to one item
+   *
+   * @param item
+   * @param quantity
+   */
+  void AddToInventory(Item item, size_t quantity);
 };

@@ -1,20 +1,64 @@
 #include "API.hpp"
+#include "API/Trantor/Trantor.hpp"
 #include "Utils/Utils.hpp"
 
+#include <cstdlib>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
+#include <vector>
+
+// INCANTATION
+Incantation::Incantation(int level, int x, int y) : _level(level)
+{
+  _position.first = x;
+  _position.second = y;
+}
+
+void Incantation::AddMember(int id)
+{
+  _member.push_back(id);
+}
+
+std::pair<int, int> Incantation::GetPosition()
+{
+  return _position;
+}
+
+void Incantation::SetState(std::string &state)
+{
+  _state = state;
+}
+
+// API
+
+void API::AddEgg(int id, int x, int y)
+{
+  _eggList[id].first = x;
+  _eggList[id].second = y;
+}
+
+void API::DeleteEgg(int id)
+{
+  _eggList.erase(id);
+}
 
 void API::AskMapSize()
 {
   std::string tmp_command = "msz\n";
+
+  std::lock_guard<std::mutex> lock(_commandListLocker);
   _command.emplace_back(tmp_command);
 }
 
 void API::AskAllTileContent()
 {
   std::string tmp_command = "mct\n";
+
+  std::lock_guard<std::mutex> lock(_commandListLocker);
   _command.emplace_back(tmp_command);
 }
 
@@ -22,18 +66,24 @@ void API::AskTileContent(int x, int y)
 {
   std::string tmp_command = "bct " + std::to_string(x) + " "
     + std::to_string(y) + "\n";
+
+  std::lock_guard<std::mutex> lock(_commandListLocker);
   _command.emplace_back(tmp_command);
 }
 
 void API::AskAllTeamName()
 {
   std::string tmp_command = "tna\n";
+
+  std::lock_guard<std::mutex> lock(_commandListLocker);
   _command.emplace_back(tmp_command);
 }
 
 void API::AskAllPlayerPos()
 {
   std::string tmp_command;
+
+  std::lock_guard<std::mutex> lock(_commandListLocker);
   for (const auto &teamName: _allTeamName) {
     const auto &teamPlayers = _teams[teamName];
     for (const Trantor &trantor: teamPlayers) {
@@ -46,12 +96,16 @@ void API::AskAllPlayerPos()
 void API::AskPlayerPos(int id)
 {
   std::string tmp_command = "ppo " + std::to_string(id) + "\n";
+
+  std::lock_guard<std::mutex> lock(_commandListLocker);
   _command.emplace_back(tmp_command);
 }
 
 void API::AskAllPlayerLevel()
 {
   std::string tmp_command;
+
+  std::lock_guard<std::mutex> lock(_commandListLocker);
   for (const auto &teamName: _allTeamName) {
     const auto &teamPlayers = _teams[teamName];
     for (const Trantor &trantor: teamPlayers) {
@@ -64,12 +118,16 @@ void API::AskAllPlayerLevel()
 void API::AskPlayerLevel(int id)
 {
   std::string tmp_command = "plv " + std::to_string(id) + "\n";
+
+  std::lock_guard<std::mutex> lock(_commandListLocker);
   _command.emplace_back(tmp_command);
 }
 
 void API::AskAllPlayerInventory()
 {
   std::string tmp_command;
+
+  std::lock_guard<std::mutex> lock(_commandListLocker);
   for (const auto &teamName: _allTeamName) {
     const auto &teamPlayers = _teams[teamName];
     for (const Trantor &trantor: teamPlayers) {
@@ -82,13 +140,14 @@ void API::AskAllPlayerInventory()
 void API::AskPlayerInventory(int id)
 {
   std::string tmp_command = "pin " + std::to_string(id) + "\n";
+
+  std::lock_guard<std::mutex> lock(_commandListLocker);
   _command.emplace_back(tmp_command);
 }
 
 void API::ParseManageCommande(std::string &command)
 {
   std::string word;
-
   if (command.empty())
     return;
 
@@ -102,82 +161,81 @@ void API::ParseManageCommande(std::string &command)
       case hash("WELCOME"):
         break;
       case hash("msz"):
-        std::cout << "map size\n";
+        HandleMSZ(lineParsed);
         break;
       case hash("bct"):
-        std::cout << "content of a tile\n";
+        HandleBCT(lineParsed);
         break;
       case hash("mct"):
-        std::cout << "content of the map (all the tiles)\n";
+        API::HandleMCT();
         break;
       case hash("tna"):
-        std::cout << "name of all the teams\n";
+        HandleTNA(lineParsed);
         break;
       case hash("pnw"):
-        std::cout << "connection of a new player\n";
+        HandlePNW(lineParsed);
         break;
       case hash("ppo"):
-        std::cout << "player's position\n";
+        HandlePPO(lineParsed);
         break;
       case hash("plv"):
-        std::cout << "player's level\n";
+        HandlePLV(lineParsed);
         break;
       case hash("pin"):
-        std::cout << "player's inventory\n";
+        HandlePIN(lineParsed);
         break;
       case hash("pex"):
-        std::cout << "expulsion\n";
+        HandlePEX(lineParsed);
         break;
       case hash("pbc"):
-        std::cout << "broadcast\n";
+        HandlePBC(lineParsed);
         break;
       case hash("pic"):
-        std::cout << "start of an incantation\n";
+        HandlePIC(lineParsed);
         break;
       case hash("pie"):
-        std::cout << "end of an incantation\n";
+        HandlePIE(lineParsed);
         break;
       case hash("pfk"):
-        std::cout << "egg laying by the player\n";
+        HandlePFK(lineParsed);
         break;
       case hash("pdr"):
-        std::cout << "resource dropping\n";
+        HandlePDR(lineParsed);
         break;
       case hash("pgt"):
-        std::cout << "resource collecting\n";
+        HandlePGT(lineParsed);
         break;
       case hash("pdi"):
-        std::cout << "death of a player\n";
+        HandlePDI(lineParsed);
         break;
       case hash("enw"):
-        std::cout << "an egg was laid by a player\n";
+        HandleENW(lineParsed);
         break;
       case hash("ebo"):
-        std::cout << "player connection for an egg\n";
+        HandleEBO(lineParsed);
         break;
       case hash("edi"):
-        std::cout << "death of an egg\n";
+        HandleEDI(lineParsed);
         break;
       case hash("sgt"):
-        std::cout << "time unit request\n";
+        HandleSGT(lineParsed);
         break;
       case hash("sst"):
-        std::cout << "time unit modification\n";
+        HandleSST(lineParsed);
         break;
       case hash("seg"):
-        std::cout << "end of game\n";
+        HandleSEG(lineParsed);
         break;
       case hash("smg"):
-        std::cout << "message from the server\n";
+        HandleSMG(lineParsed);
         break;
       case hash("suc"):
-        std::cout << "unknown command\n";
+        API::HandleSUC();
         break;
       case hash("sbp"):
-        std::cout << "command parameter\n";
+        API::HandleSBP();
         break;
       default:
-        std::cout << "command =" << command << "\n";
         throw(std::runtime_error(
           "Error: unknown cmd, Function: "
           "ParseManageCommande, File: API.cpp"));
@@ -185,17 +243,427 @@ void API::ParseManageCommande(std::string &command)
   }
 }
 
-/*
- X Y L #n #n . . .                             start of an incantation (by the
-first player) pie X Y R                                         end of an
-incantation pfk #n                                            egg laying by the
-player pdr #n i                                          resource dropping pgt
-#n i                                          resource collecting pdi #n death
-of a player enw #e #n X Y                                     an egg was laid
-by a player ebo #e                                            player connection
-for an egg edi #e                                            death of an egg
-sgt T                                             time unit request
-sst T                                             time unit modification
-seg N                                             end of game
-smg M                                             message from the server
-*/
+void API::HandleMSZ(std::stringstream &ss)
+{
+  int x;
+  int y;
+
+  if (!(ss >> x >> y))
+    throw std::runtime_error(
+      "Error: invalid msz params, Function: HandleMSZ, File: API.cpp");
+  std::cout << "map size: x=" << x << " y=" << y << "\n";
+  _tilemap.SetSize(x, y);
+}
+
+void API::HandleBCT(std::stringstream &ss)
+{
+  int x;
+  int y;
+  int q0;
+  int q1;
+  int q2;
+  int q3;
+  int q4;
+  int q5;
+  int q6;
+
+  if (!(ss >> x >> y >> q0 >> q1 >> q2 >> q3 >> q4 >> q5 >> q6))
+    throw std::runtime_error(
+      "Error: invalid bct params, Function: HandleBCT, File: API.cpp");
+  std::cout
+    << "tile (" << x << "," << y << ") resources: " << q0 << "," << q1 << ","
+    << q2 << "," << q3 << "," << q4 << "," << q5 << "," << q6 << "\n";
+  _tilemap.SetTileInventory(x, y, q0, q1, q2, q3, q4, q5, q6);
+}
+
+void API::HandleMCT()
+{
+  std::cout << "map content (bct *): Handled line-by-line\n";
+}
+
+void API::HandleTNA(std::stringstream &ss)
+{
+  std::string N;
+  std::vector<Trantor> teamTmp;
+
+  if (!(ss >> N))
+    throw std::runtime_error(
+      "Error: invalid tna params, Function: HandleTNA, File: API.cpp");
+  std::cout << "team name: " << N << "\n";
+  _teams[N] = teamTmp;
+}
+
+void API::HandlePNW(std::stringstream &ss)
+{
+  std::string nTmp;
+  int X;
+  int Y;
+  int O;
+  int L;
+  std::string N;
+
+  if (!(ss >> nTmp >> X >> Y >> O >> L >> N))
+    throw std::runtime_error(
+      "Error: invalid pnw params, Function: HandlePNW, File: API.cpp");
+
+  if (nTmp[0] == '#')
+    nTmp.erase(0, 1);
+  std::cout
+    << "new player: #" << std::stoi(nTmp) << " (" << X << "," << Y
+    << ") facing " << O << " level " << L << " team " << N << "\n";
+  Trantor trantorTmp(std::stoi(nTmp), X, Y, O, L);
+  _teams[N].push_back(trantorTmp);
+}
+
+void API::HandlePPO(std::stringstream &ss)
+{
+  std::string nTmp;
+  int X;
+  int Y;
+  int O;
+
+  if (!(ss >> nTmp >> X >> Y >> O))
+    throw std::runtime_error(
+      "Error: invalid ppo params, Function: HandlePPO, File: API.cpp");
+
+  if (nTmp[0] == '#')
+    nTmp.erase(0, 1);
+  std::cout
+    << "player #" << std::stoi(nTmp) << " position: (" << X << "," << Y
+    << ") facing " << O << "\n";
+  for (std::string &teamNameTmp: _allTeamName)
+    for (Trantor trantorTmp: _teams[teamNameTmp])
+      if (trantorTmp.GetId() == std::stoi(nTmp))
+        trantorTmp.SetPosition(X, Y, O);
+}
+
+void API::HandlePLV(std::stringstream &ss)
+{
+  std::string nTmp;
+  int L;
+
+  if (!(ss >> nTmp >> L))
+    throw std::runtime_error(
+      "Error: invalid plv params, Function: HandlePLV, File: API.cpp");
+
+  if (nTmp[0] == '#')
+    nTmp.erase(0, 1);
+  std::cout << "player #" << std::stoi(nTmp) << " level: " << L << "\n";
+  for (std::string &teamNameTmp: _allTeamName)
+    for (Trantor trantorTmp: _teams[teamNameTmp])
+      if (trantorTmp.GetId() == std::stoi(nTmp))
+        trantorTmp.SetLevel(L);
+}
+
+void API::HandlePIN(std::stringstream &ss)
+{
+  std::string nTmp;
+  int x;
+  int y;
+  int q0;
+  int q1;
+  int q2;
+  int q3;
+  int q4;
+  int q5;
+  int q6;
+
+  if (!(ss >> nTmp >> x >> y >> q0 >> q1 >> q2 >> q3 >> q4 >> q5 >> q6))
+    throw std::runtime_error(
+      "Error: invalid pin params, Function: HandlePIN, File: API.cpp");
+
+  if (nTmp[0] == '#')
+    nTmp.erase(0, 1);
+  std::cout
+    << "player #" << std::stoi(nTmp) << " inventory at (" << x << "," << y
+    << "): " << q0 << "," << q1 << "," << q2 << "," << q3 << "," << q4 << ","
+    << q5 << "," << q6 << "\n";
+  for (std::string &teamNameTmp: _allTeamName)
+    for (Trantor trantorTmp: _teams[teamNameTmp])
+      if (trantorTmp.GetId() == std::stoi(nTmp)) {
+        trantorTmp.SetPosition(x, y);
+        trantorTmp.SetInventory(q0, q1, q2, q3, q4, q5, q6);
+      }
+}
+
+void API::HandlePEX(std::stringstream &ss)
+{
+  std::string nTmp;
+
+  if (!(ss >> nTmp))
+    throw std::runtime_error(
+      "Error: invalid pex params, Function: HandlePEX, File: API.cpp");
+
+  if (nTmp[0] == '#')
+    nTmp.erase(0, 1);
+  std::cout << "expulsion by player #" << std::stoi(nTmp) << "\n";
+  for (std::string &teamNameTmp: _allTeamName) {
+    auto &team = _teams[teamNameTmp];
+    for (auto it = team.begin(); it != team.end(); ++it) {
+      if (it->GetId() == std::stoi(nTmp)) {
+        team.erase(it);
+        return;
+      }
+    }
+  }
+}
+
+void API::HandlePBC(std::stringstream &ss)
+{
+  std::string nTmp;
+  std::string msg;
+
+  if (!(ss >> nTmp))
+    throw std::runtime_error(
+      "Error: invalid pbc params (missing id), Function: HandlePBC, File: "
+      "API.cpp");
+
+  std::getline(ss >> std::ws, msg);
+  if (msg.empty())
+    throw std::runtime_error(
+      "Error: missing message in pbc, Function: HandlePBC, File: API.cpp");
+
+  if (nTmp[0] == '#')
+    nTmp.erase(0, 1);
+  std::cout << "broadcast from #" << std::stoi(nTmp) << ": " << msg << "\n";
+  for (std::string &teamNameTmp: _allTeamName)
+    for (Trantor trantorTmp: _teams[teamNameTmp])
+      if (trantorTmp.GetId() == std::stoi(nTmp))
+        trantorTmp.SetBroadcast(msg);
+}
+
+void API::HandlePIC(std::stringstream &ss)
+{
+  int X;
+  int Y;
+  int L;
+
+  if (!(ss >> X >> Y >> L))
+    throw std::runtime_error(
+      "Error: invalid pic params, Function: HandlePIC, File: API.cpp");
+  std::cout
+    << "start incantation at (" << X << "," << Y << ") level " << L
+    << " by players:";
+
+  Incantation tmp(L, X, Y);
+  std::vector<std::string> nList;
+  for (int i = 0; ss >> nList[i]; i++) {
+    if (nList[i][0] == '#')
+      nList[i].erase(0, 1);
+    std::cout << " #" << nList[i];
+    tmp.AddMember(std::stoi(nList[i]));
+  }
+  _incantationList.push_back(tmp);
+  std::cout << "\n";
+}
+
+void API::HandlePIE(std::stringstream &ss)
+{
+  int X;
+  int Y;
+  std::string R;
+
+  if (!(ss >> X >> Y >> R))
+    throw std::runtime_error(
+      "Error: invalid pie params, Function: HandlePIE, File: API.cpp");
+  std::cout
+    << "end incantation at (" << X << "," << Y << "): result = " << R << "\n";
+  for (auto incant: _incantationList)
+    if (incant.GetPosition().first == X && incant.GetPosition().second == Y)
+      incant.SetState(R);
+}
+
+void API::HandlePFK(std::stringstream &ss)
+{
+  std::string nTmp;
+
+  if (!(ss >> nTmp))
+    throw std::runtime_error(
+      "Error: invalid pfk params, Function: HandlePFK, File: API.cpp");
+
+  if (nTmp[0] == '#')
+    nTmp.erase(0, 1);
+  std::cout << "egg laiying by player #" << std::stoi(nTmp) << "\n";
+  for (std::string &teamNameTmp: _allTeamName)
+    for (Trantor trantorTmp: _teams[teamNameTmp])
+      if (trantorTmp.GetId() == std::stoi(nTmp))
+        trantorTmp.IsTrantorLaying(true);
+}
+
+void API::HandlePDR(std::stringstream &ss)
+{
+  std::string nTmp;
+  int i;
+
+  if (!(ss >> nTmp >> i))
+    throw std::runtime_error(
+      "Error: invalid pdr params, Function: HandlePDR, File: API.cpp");
+
+  if (nTmp[0] == '#')
+    nTmp.erase(0, 1);
+  std::cout
+    << "player #" << std::stoi(nTmp) << " dropped resource " << i << "\n";
+  for (std::string &teamNameTmp: _allTeamName)
+    for (Trantor trantorTmp: _teams[teamNameTmp])
+      if (trantorTmp.GetId() == std::stoi(nTmp)) {
+        trantorTmp.AddToInventory(static_cast<Item>(i), -1);
+        _tilemap.AddToInventory(
+          trantorTmp.GetPosition().first,
+          trantorTmp.GetPosition().second,
+          static_cast<Item>(i),
+          1);
+      }
+}
+
+void API::HandlePGT(std::stringstream &ss)
+{
+  std::string nTmp;
+  int i;
+
+  if (!(ss >> nTmp >> i))
+    throw std::runtime_error(
+      "Error: invalid pgt params, Function: HandlePGT, File: API.cpp");
+
+  if (nTmp[0] == '#')
+    nTmp.erase(0, 1);
+  std::cout
+    << "player #" << std::stoi(nTmp) << " collected resource " << i << "\n";
+  for (std::string &teamNameTmp: _allTeamName)
+    for (Trantor trantorTmp: _teams[teamNameTmp])
+      if (trantorTmp.GetId() == std::stoi(nTmp)) {
+        trantorTmp.AddToInventory(static_cast<Item>(i), 1);
+        _tilemap.AddToInventory(
+          trantorTmp.GetPosition().first,
+          trantorTmp.GetPosition().second,
+          static_cast<Item>(i),
+          -1);
+      }
+}
+
+void API::HandlePDI(std::stringstream &ss)
+{
+  std::string nTmp;
+
+  if (!(ss >> nTmp))
+    throw std::runtime_error(
+      "Error: invalid pdi params, Function: HandlePDI, File: API.cpp");
+
+  if (nTmp[0] == '#')
+    nTmp.erase(0, 1);
+  std::cout << "player #" << std::stoi(nTmp) << " died\n";
+  for (std::string &teamNameTmp: _allTeamName)
+    for (size_t i = 0; i < _teams[teamNameTmp].size(); i++)
+      if (_teams[teamNameTmp][i].GetId() == std::stoi(nTmp))
+        _teams[teamNameTmp].erase(_teams[teamNameTmp].begin() + i);
+}
+
+void API::HandleENW(std::stringstream &ss)
+{
+  std::string eTmp;
+  std::string nTmp;
+  int X;
+  int Y;
+
+  if (!(ss >> eTmp >> nTmp >> X >> Y))
+    throw std::runtime_error(
+      "Error: invalid enw params, Function: HandleENW, File: API.cpp");
+
+  if (eTmp[0] == '#')
+    eTmp.erase(0, 1);
+  if (nTmp[0] == '#')
+    nTmp.erase(0, 1);
+  std::cout
+    << "egg #" << std::stoi(eTmp) << " laid by player #" << std::stoi(nTmp)
+    << " at (" << X << "," << Y << ")\n";
+  for (std::string &teamNameTmp: _allTeamName)
+    for (Trantor &trantorTmp: _teams[teamNameTmp])
+      if (trantorTmp.GetId() == std::stoi(nTmp)) {
+        AddEgg(
+          std::stoi(eTmp),
+          trantorTmp.GetPosition().first,
+          trantorTmp.GetPosition().second);
+      }
+}
+
+void API::HandleEBO(std::stringstream &ss)
+{
+  std::string eTmp;
+
+  if (!(ss >> eTmp))
+    throw std::runtime_error(
+      "Error: invalid ebo params, Function: HandleEBO, File: API.cpp");
+
+  if (eTmp[0] == '#')
+    eTmp.erase(0, 1);
+  std::cout << "egg #" << eTmp << " connection\n";
+  DeleteEgg(std::stoi(eTmp));
+}
+
+void API::HandleEDI(std::stringstream &ss)
+{
+  std::string eTmp;
+
+  if (!(ss >> eTmp))
+    throw std::runtime_error(
+      "Error: invalid edi params, Function: HandleEDI, File: API.cpp");
+
+  if (eTmp[0] == '#')
+    eTmp.erase(0, 1);
+  std::cout << "egg #" << eTmp << " died\n";
+  DeleteEgg(std::stoi(eTmp));
+}
+
+void API::HandleSGT(std::stringstream &ss)
+{
+  int T;
+
+  if (!(ss >> T))
+    throw std::runtime_error(
+      "Error: invalid sgt params, Function: HandleSGT, File: API.cpp");
+  std::cout << "server time unit: " << T << "\n";
+  _timeUnit = T;
+}
+
+void API::HandleSST(std::stringstream &ss)
+{
+  short T;
+
+  if (!(ss >> T))
+    throw std::runtime_error(
+      "Error: invalid sst params, Function: HandleSST, File: API.cpp");
+  std::cout << "server time unit changed to: " << T << "\n";
+  _timeUnit = T;
+}
+
+void API::HandleSEG(std::stringstream &ss)
+{
+  std::string N;
+
+  if (!(ss >> N))
+    throw std::runtime_error(
+      "Error: invalid seg params, Function: HandleSEG, File: API.cpp");
+  std::cout << "end of game, winning team: " << N << "\n";
+  _winner = N;
+}
+
+void API::HandleSMG(std::stringstream &ss)
+{
+  std::string msg;
+
+  std::getline(ss >> std::ws, msg);
+  if (msg.empty())
+    throw std::runtime_error(
+      "Error: missing message in smg, Function: HandleSMG, File: API.cpp");
+  std::cout << "server message: " << msg << "\n";
+  _serverMessage.push_back(msg);
+}
+
+void API::HandleSUC()
+{
+  std::cout << "unknown command\n";
+}
+
+void API::HandleSBP()
+{
+  std::cout << "bad command parameter\n";
+}
