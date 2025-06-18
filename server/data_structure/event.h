@@ -6,6 +6,8 @@
     #include <stdint.h>
 
 static constexpr const int COMMAND_WORD_COUNT = 5;
+bool command_split(char *buff, char *argv[static COMMAND_WORD_COUNT],
+    size_t command_len);
 
 typedef struct {
     uint64_t timestamp;
