@@ -127,6 +127,44 @@ bool command_split(char *buff, char *argv[static COMMAND_WORD_COUNT],
     return true;
 }
 
+static
+unsigned int compute_client_available_slots(egg_array_t *eggs, uint8_t team_id)
+{
+    int count = 0;
+
+    DEBUG("egg count: %zu\n", eggs->nmemb);
+    for (size_t i = 0; i < eggs->nmemb; i++)
+        count += eggs->buff[i].team_id == team_id;
+    DEBUG("available slots: %zu (team id: %hhu)\n", count, team_id);
+    return count;
+}
+
+static
+bool send_ai_team_assignment_respone(
+    server_t *srv, client_state_t *client,
+    size_t team_id)
+{
+    unsigned int count;
+
+    client->team_id = team_id;
+    DEBUG("Client %d assigned to team '%s' with id %zu",
+        client->fd, srv->team_names[team_id], team_id);
+    count = compute_client_available_slots(&srv->eggs, client->team_id);
+    if (count == 0)
+        return vappend_to_output(srv, client, "ko\n"), false;
+    vappend_to_output(srv, client, "%u\n%hhu %hhu\n",
+        count - 1, srv->map_width, srv->map_height);
+    for (size_t i = 0; i < srv->eggs.nmemb; i++)
+        if (srv->eggs.buff[i].team_id == team_id) {
+            client->x = srv->eggs.buff[i].x;
+            client->y = srv->eggs.buff[i].y;
+            srv->eggs.buff[i] = srv->eggs.buff[srv->eggs.nmemb - 1];
+            srv->eggs.nmemb--;
+            return true;
+        }
+    return false;
+}
+
 //TODO: send starting data to clients
 static
 bool handle_team(server_t *srv, client_state_t *client,
@@ -139,15 +177,9 @@ bool handle_team(server_t *srv, client_state_t *client,
         DEBUG("Client %d assigned to GRAPHIC team", client->fd);
         return true;
     }
-    for (size_t i = 0; srv->team_names[i] != nullptr; i++) {
-        DEBUG("Checking team '%s' against '%s'", srv->team_names[i], split[0]);
-        if (!strcmp(srv->team_names[i], split[0])) {
-            client->team_id = i;
-            DEBUG("Client %d assigned to team '%s' with id %zu",
-                client->fd, srv->team_names[i], i);
-            return true;
-        }
-    }
+    for (size_t i = 0; srv->team_names[i] != nullptr; i++)
+        if (!strcmp(srv->team_names[i], split[0]))
+            return send_ai_team_assignment_respone(srv, client, i);
     return false;
 }
 
