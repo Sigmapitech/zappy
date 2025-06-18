@@ -71,6 +71,7 @@ bool setup_teams(server_t *srv, params_t *p, uint64_t timestamp)
                 srv->eggs.buff[(t_idx * p->team_capacity) + t_egg_id].y);
         }
     }
+    srv->eggs.nmemb = t_counter * p->team_capacity;
     return true;
 }
 
