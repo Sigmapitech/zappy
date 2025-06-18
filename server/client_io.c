@@ -1,4 +1,7 @@
+#define _GNU_SOURCE
+
 #include <poll.h>
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -99,4 +102,22 @@ void append_to_output(server_t *srv, client_state_t *client, const char *msg)
             break;
         }
     }
+}
+
+void vappend_to_output(
+    server_t *srv, client_state_t *client, const char *fmt, ...
+)
+{
+    va_list args;
+    char *buffer;
+
+    va_start(args, fmt);
+    vasprintf(&buffer, fmt, args);
+    va_end(args);
+    if (buffer == nullptr) {
+        perror("vasprintf failed");
+        return;
+    }
+    append_to_output(srv, client, buffer);
+    free(buffer);
 }
