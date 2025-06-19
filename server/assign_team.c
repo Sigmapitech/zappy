@@ -4,7 +4,7 @@
 #include "client.h"
 #include "server.h"
 
-static constexpr const uint64_t INITIAL_STOMACH_FILL = 1260;
+static constexpr const uint64_t INITIAL_FOOD_INVENTORY = 10;
 static constexpr const uint8_t FOUR_MASK = 0b11;
 static const char *GRAPHIC_COMMAND = "GRAPHIC";
 
@@ -53,11 +53,8 @@ bool assign_ai_egg_data(server_t *srv, client_state_t *client, size_t team_id)
 static
 bool assign_ai_data(server_t *srv, client_state_t *client, size_t team_id)
 {
-    double interval_sec = (double)INITIAL_STOMACH_FILL / srv->frequency;
-    size_t new_sec = (size_t)interval_sec;
-    size_t new_usec = (size_t)((interval_sec - new_sec) * MICROSEC_IN_SEC);
-    event_t event = {add_time(get_timestamp(), new_sec, new_usec),
-        client - srv->cstates.buff, .command = {"player_death"}};
+    event_t event = {get_timestamp(), client - srv->cstates.buff,
+        .command = {"player_death"}};
 
     DEBUG("Player death incoming at %lu.%06lu sec since server start",
         (event.timestamp - srv->start_time) / MICROSEC_IN_SEC,
@@ -66,6 +63,7 @@ bool assign_ai_data(server_t *srv, client_state_t *client, size_t team_id)
     client->orientation = (rand() & FOUR_MASK) + 1;
     client->id = srv->ia_id_counter;
     srv->ia_id_counter++;
+    client->inv.food = INITIAL_FOOD_INVENTORY;
     if (!event_heap_push(&srv->events, &event)) {
         srv->is_running = false;
         return false;
