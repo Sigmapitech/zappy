@@ -1,6 +1,7 @@
 #include <memory>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <utility>
 
 #include "Mesh.hpp"
 
@@ -79,28 +80,9 @@ Mesh::~Mesh()
   glDeleteBuffers(1, &EBO);
 }
 
-void Mesh::LoadTexture(SDL2::Texture &t)
+void Mesh::SetTexture(std::shared_ptr<Texture> t)
 {
-  glGenTextures(1, &_texture);
-  glBindTexture(GL_TEXTURE_2D, _texture);
-
-  glTexImage2D(
-    GL_TEXTURE_2D,
-    0,
-    t.GetFormat(),
-    t.GetWidth(),
-    t.GetHeight(),
-    0,
-    t.GetFormat(),
-    GL_UNSIGNED_BYTE,
-    t.GetPixels());
-
-  glGenerateMipmap(GL_TEXTURE_2D);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(
-    GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  _texture.swap(t);
 }
 
 void Mesh::Draw(
@@ -112,7 +94,7 @@ void Mesh::Draw(
   glBindVertexArray(VAO);
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, _texture);
+  glBindTexture(GL_TEXTURE_2D, _texture->GetGL());
   glUniform1i(shader.GetUniformLocation("tex"), 0);
 
   // Set uniforms

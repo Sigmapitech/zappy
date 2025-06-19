@@ -25,17 +25,12 @@ namespace {
     // glDebugMessageCallback(myDebugCallback, nullptr);
 
     Object3D object(ASSET_DIR "/maxwell.obj");
-    std::shared_ptr<SDL2::Texture> texture = sdl.LoadTexture(
-      ASSET_DIR "/Dingus.png");
-    if (!texture)
-      throw std::runtime_error("Failed to load texture from texture.png");
-    std::shared_ptr<SDL2::Texture> texture2 = sdl.LoadTexture(
-      ASSET_DIR "/mikustache.png");
-    if (!texture)
-      throw std::runtime_error("Failed to load texture from mikustache.png");
-
-    object._meshArr[0]->LoadTexture(*texture);
-    object._meshArr[1]->LoadTexture(*texture2);
+    std::shared_ptr<Texture> t_body = std::
+      make_shared<Texture>(sdl, ASSET_DIR "/Dingus.png");
+    std::shared_ptr<Texture> t_moustache = std::
+      make_shared<Texture>(sdl, ASSET_DIR "/mikustache.png");
+    object._meshArr[0]->SetTexture(t_body);
+    object._meshArr[1]->SetTexture(t_moustache);
 
     std::unique_ptr<VertexShader> vertexShader = std::
       make_unique<VertexShader>(ASSET_DIR "/vertexShader.glsl");
