@@ -6,18 +6,37 @@
 #include "handler.h"
 #include "server.h"
 
-static bool death_rescedule(server_t *srv, const event_t *event, size_t food)
+static constexpr const size_t FOOD_SURVIVAL = 126;
+
+static
+char *serialize_inventory(inventory_t *inv)
 {
-    static constexpr const size_t FOOD_SURVIVAL = 126;
-    double interval_sec = ((double)food * FOOD_SURVIVAL) / srv->frequency;
+    static constexpr const uint8_t BUFFER_SIZE = 128;
+    static char buffer[BUFFER_SIZE];
+
+    snprintf(buffer, sizeof(buffer), "%u %u %u %u %u %u %u",
+        inv->food, inv->linemate, inv->deraumere, inv->sibur,
+        inv->mendiane, inv->phiras, inv->thystame);
+    return buffer;
+}
+
+static bool death_rescedule(server_t *srv, const event_t *event)
+{
+    double interval_sec = ((double)FOOD_SURVIVAL) / srv->frequency;
     size_t new_sec = (size_t)interval_sec;
     size_t new_usec = (size_t)((interval_sec - new_sec) * MICROSEC_IN_SEC);
-    event_t new = {
-        .client_id = event->client_id,
-        .command = { "player_death" },
-        .timestamp = add_time(event->timestamp, new_sec, new_usec),
-    };
+    client_state_t *client = &srv->cstates.buff[event->client_id];
+    event_t new = {add_time(get_timestamp(), new_sec, new_usec),
+        event->client_id, .command = { "player_death" },};
 
+    client->inv.food--;
+    for (size_t i = 0; i < srv->cstates.nmemb; i++) {
+        if (srv->cstates.buff[i].team_id != GRAPHIC_TEAM_ID)
+            continue;
+        vappend_to_output(srv, &srv->cstates.buff[i], "pni #%d %hhu %hhu %s\n",
+            client->id, client->x, client->y,
+            serialize_inventory(&client->inv));
+    }
     if (!event_heap_push(&srv->events, &new)) {
         perror("Failed to reschedule death event");
         return false;
@@ -28,13 +47,9 @@ static bool death_rescedule(server_t *srv, const event_t *event, size_t food)
 bool player_death_handler(server_t *srv, const event_t *event)
 {
     client_state_t *client = &srv->cstates.buff[event->client_id];
-    size_t food = client->inv.food;
 
-    if (food > 0) {
-        if (!death_rescedule(srv, event, food))
-            return false;
-        client->inv.food = 0;
-    }
+    if (client->inv.food > 0)
+        return death_rescedule(srv, event);
     append_to_output(srv, client, "dead\n");
     write_client(srv, event->client_id + 1);
     for (size_t i = 0; i < srv->cstates.nmemb; i++) {
