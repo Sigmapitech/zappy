@@ -2,6 +2,13 @@
 
 #include <glm/glm.hpp>
 
+/**
+ * @brief Represents a vertex in 3D space with position, texture coordinates,
+ * and normal vector.
+ *
+ * This structure is used to store the attributes of a vertex required for
+ * rendering in 3D graphics.
+ */
 struct Vertex {
   glm::vec3 position;
   glm::vec2 texCoord;
