@@ -22,12 +22,10 @@ char *serialize_inventory(inventory_t *inv)
 
 static bool death_rescedule(server_t *srv, const event_t *event)
 {
-    double interval_sec = ((double)FOOD_SURVIVAL) / srv->frequency;
-    size_t new_sec = (size_t)interval_sec;
-    size_t new_usec = (size_t)((interval_sec - new_sec) * MICROSEC_IN_SEC);
+    uint64_t interval = (FOOD_SURVIVAL * MICROSEC_IN_SEC) / srv->frequency;
     client_state_t *client = &srv->cstates.buff[event->client_id];
-    event_t new = {add_time(get_timestamp(), new_sec, new_usec),
-        event->client_id, .command = { "player_death" },};
+    event_t new = {get_timestamp() + interval,
+        event->client_id, .command = { "player_death" }};
 
     client->inv.food--;
     for (size_t i = 0; i < srv->cstates.nmemb; i++) {
