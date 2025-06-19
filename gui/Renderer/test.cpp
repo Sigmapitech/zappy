@@ -80,6 +80,8 @@ namespace {
 
 }  // namespace
 
+/*
+// test main function
 int main()
 {
   try {
@@ -91,3 +93,4 @@ int main()
   }
   return 0;
 }
+*/
