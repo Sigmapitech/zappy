@@ -49,7 +49,7 @@ void Object3D::HandleFace(std::istringstream &ss)
   std::vector<unsigned int> faceIndices;
 
   while (ss >> vertexStr) {
-    if (uniqueVertexMap.count(vertexStr) == 0) {
+    if (!uniqueVertexMap.contains(vertexStr)) {
       std::istringstream vss(vertexStr);
       std::string v;
       std::string t;
@@ -128,12 +128,10 @@ Object3D::Object3D(const std::string &path)
   }
 }
 
-void Object3D::
-  Draw(ShaderProgram &shader, const glm::mat4 &view, const glm::mat4 &proj)
-    const
+void Object3D::Draw(ShaderProgram &shader, const Camera &camera) const
 {
   for (const std::unique_ptr<Mesh> &mesh: _meshArr)
-    mesh->Draw(shader, modelMatrix, view, proj);
+    mesh->Draw(shader, modelMatrix, camera);
 }
 
 void Object3D::SetTexture(size_t meshID, std::shared_ptr<Texture> t)
