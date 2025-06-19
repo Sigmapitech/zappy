@@ -13,22 +13,26 @@
 
 void API::AddEgg(int id, int x, int y)
 {
+  std::lock_guard<std::mutex> locker(_eggListLocker);
   _eggList[id].first = x;
   _eggList[id].second = y;
 }
 
 void API::DeleteEgg(int id)
 {
+  std::lock_guard<std::mutex> locker(_eggListLocker);
   _eggList.erase(id);
 }
 
 std::vector<std::string> API::GetCommand()
 {
+  std::lock_guard<std::mutex> locker(_commandListLocker);
   return _command;
 }
 
 void API::ClearCommand()
 {
+  std::lock_guard<std::mutex> locker(_commandListLocker);
   _command.clear();
 }
 
@@ -69,10 +73,12 @@ void API::AskAllPlayerPos()
 {
   std::string tmp_command;
 
-  std::lock_guard<std::mutex> lock(_commandListLocker);
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   for (const auto &teamName: _allTeamName) {
+    std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
     const auto &teamPlayers = _teams[teamName];
     for (const Trantor &trantor: teamPlayers) {
+      std::lock_guard<std::mutex> lock(_commandListLocker);
       tmp_command = "ppo " + std::to_string(trantor.GetId()) + "\n";
       _command.emplace_back(tmp_command);
     }
@@ -92,7 +98,9 @@ void API::AskAllPlayerLevel()
   std::string tmp_command;
 
   std::lock_guard<std::mutex> lock(_commandListLocker);
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   for (const auto &teamName: _allTeamName) {
+    std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
     const auto &teamPlayers = _teams[teamName];
     for (const Trantor &trantor: teamPlayers) {
       tmp_command = "plv " + std::to_string(trantor.GetId()) + "\n";
@@ -113,8 +121,10 @@ void API::AskAllPlayerInventory()
 {
   std::string tmp_command;
 
-  std::lock_guard<std::mutex> lock(_commandListLocker);
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   for (const auto &teamName: _allTeamName) {
+    std::lock_guard<std::mutex> lock(_commandListLocker);
+    std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
     const auto &teamPlayers = _teams[teamName];
     for (const Trantor &trantor: teamPlayers) {
       tmp_command = "pin " + std::to_string(trantor.GetId()) + "\n";
@@ -205,6 +215,7 @@ void API::HandleMSZ(std::stringstream &ss)
     throw std::runtime_error(
       "Error: invalid msz params, Function: HandleMSZ, File: API.cpp");
   std::cout << "map size: x=" << x << " y=" << y << "\n";
+  std::lock_guard<std::mutex> locker(_tilemapLocker);
   _tilemap.SetSize(x, y);
 }
 
@@ -226,6 +237,7 @@ void API::HandleBCT(std::stringstream &ss)
   std::cout
     << "tile (" << x << "," << y << ") resources: " << q0 << "," << q1 << ","
     << q2 << "," << q3 << "," << q4 << "," << q5 << "," << q6 << "\n";
+  std::lock_guard<std::mutex> locker(_tilemapLocker);
   _tilemap.SetTileInventory(x, y, q0, q1, q2, q3, q4, q5, q6);
 }
 
@@ -243,7 +255,13 @@ void API::HandleTNA(std::stringstream &ss)
     throw std::runtime_error(
       "Error: invalid tna params, Function: HandleTNA, File: API.cpp");
   std::cout << "team name: " << N << "\n";
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   _teams[N] = teamTmp;
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
+  for (std::string &teamName: _allTeamName)
+    if (teamName == N)
+      return;
+  _allTeamName.push_back(N);
 }
 
 void API::HandlePNW(std::stringstream &ss)
@@ -265,6 +283,7 @@ void API::HandlePNW(std::stringstream &ss)
     << "new player: #" << std::stoi(nTmp) << " (" << X << "," << Y
     << ") facing " << O << " level " << L << " team " << N << "\n";
   Trantor trantorTmp(std::stoi(nTmp), X, Y, O, L);
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   _teams[N].push_back(trantorTmp);
 }
 
@@ -284,8 +303,10 @@ void API::HandlePPO(std::stringstream &ss)
   std::cout
     << "player #" << std::stoi(nTmp) << " position: (" << X << "," << Y
     << ") facing " << O << "\n";
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
-    for (Trantor trantorTmp: _teams[teamNameTmp])
+    for (Trantor &trantorTmp: _teams[teamNameTmp])
       if (trantorTmp.GetId() == std::stoi(nTmp))
         trantorTmp.SetPosition(X, Y, O);
 }
@@ -302,8 +323,10 @@ void API::HandlePLV(std::stringstream &ss)
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
   std::cout << "player #" << std::stoi(nTmp) << " level: " << L << "\n";
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
-    for (Trantor trantorTmp: _teams[teamNameTmp])
+    for (Trantor &trantorTmp: _teams[teamNameTmp])
       if (trantorTmp.GetId() == std::stoi(nTmp))
         trantorTmp.SetLevel(L);
 }
@@ -331,8 +354,10 @@ void API::HandlePIN(std::stringstream &ss)
     << "player #" << std::stoi(nTmp) << " inventory at (" << x << "," << y
     << "): " << q0 << "," << q1 << "," << q2 << "," << q3 << "," << q4 << ","
     << q5 << "," << q6 << "\n";
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
-    for (Trantor trantorTmp: _teams[teamNameTmp])
+    for (Trantor &trantorTmp: _teams[teamNameTmp])
       if (trantorTmp.GetId() == std::stoi(nTmp)) {
         trantorTmp.SetPosition(x, y);
         trantorTmp.SetInventory(q0, q1, q2, q3, q4, q5, q6);
@@ -350,6 +375,8 @@ void API::HandlePEX(std::stringstream &ss)
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
   std::cout << "expulsion by player #" << std::stoi(nTmp) << "\n";
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName) {
     auto &team = _teams[teamNameTmp];
     for (auto it = team.begin(); it != team.end(); ++it) {
@@ -379,8 +406,10 @@ void API::HandlePBC(std::stringstream &ss)
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
   std::cout << "broadcast from #" << std::stoi(nTmp) << ": " << msg << "\n";
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
-    for (Trantor trantorTmp: _teams[teamNameTmp])
+    for (Trantor &trantorTmp: _teams[teamNameTmp])
       if (trantorTmp.GetId() == std::stoi(nTmp))
         trantorTmp.SetBroadcast(msg);
 }
@@ -406,7 +435,10 @@ void API::HandlePIC(std::stringstream &ss)
     std::cout << " #" << nList[i];
     tmp.AddMember(std::stoi(nList[i]));
   }
-  _incantationList.push_back(tmp);
+  {
+    std::lock_guard<std::mutex> locker(_incantationListLocker);
+    _incantationList.push_back(tmp);
+  }
   std::cout << "\n";
 }
 
@@ -421,7 +453,8 @@ void API::HandlePIE(std::stringstream &ss)
       "Error: invalid pie params, Function: HandlePIE, File: API.cpp");
   std::cout
     << "end incantation at (" << X << "," << Y << "): result = " << R << "\n";
-  for (auto incant: _incantationList)
+  std::lock_guard<std::mutex> locker(_incantationListLocker);
+  for (auto &incant: _incantationList)
     if (incant.GetPosition().first == X && incant.GetPosition().second == Y)
       incant.SetState(R);
 }
@@ -437,8 +470,10 @@ void API::HandlePFK(std::stringstream &ss)
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
   std::cout << "egg laiying by player #" << std::stoi(nTmp) << "\n";
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
-    for (Trantor trantorTmp: _teams[teamNameTmp])
+    for (Trantor &trantorTmp: _teams[teamNameTmp])
       if (trantorTmp.GetId() == std::stoi(nTmp))
         trantorTmp.IsTrantorLaying(true);
 }
@@ -456,10 +491,13 @@ void API::HandlePDR(std::stringstream &ss)
     nTmp.erase(0, 1);
   std::cout
     << "player #" << std::stoi(nTmp) << " dropped resource " << i << "\n";
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
-    for (Trantor trantorTmp: _teams[teamNameTmp])
+    for (Trantor &trantorTmp: _teams[teamNameTmp])
       if (trantorTmp.GetId() == std::stoi(nTmp)) {
         trantorTmp.AddToInventory(static_cast<Item>(i), -1);
+        std::lock_guard<std::mutex> locker(_tilemapLocker);
         _tilemap.AddToInventory(
           trantorTmp.GetPosition().first,
           trantorTmp.GetPosition().second,
@@ -481,10 +519,13 @@ void API::HandlePGT(std::stringstream &ss)
     nTmp.erase(0, 1);
   std::cout
     << "player #" << std::stoi(nTmp) << " collected resource " << i << "\n";
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
-    for (Trantor trantorTmp: _teams[teamNameTmp])
+    for (Trantor &trantorTmp: _teams[teamNameTmp])
       if (trantorTmp.GetId() == std::stoi(nTmp)) {
         trantorTmp.AddToInventory(static_cast<Item>(i), 1);
+        std::lock_guard<std::mutex> locker(_tilemapLocker);
         _tilemap.AddToInventory(
           trantorTmp.GetPosition().first,
           trantorTmp.GetPosition().second,
@@ -504,6 +545,8 @@ void API::HandlePDI(std::stringstream &ss)
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
   std::cout << "player #" << std::stoi(nTmp) << " died\n";
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
     for (size_t i = 0; i < _teams[teamNameTmp].size(); i++)
       if (_teams[teamNameTmp][i].GetId() == std::stoi(nTmp))
@@ -528,6 +571,8 @@ void API::HandleENW(std::stringstream &ss)
   std::cout
     << "egg #" << std::stoi(eTmp) << " laid by player #" << std::stoi(nTmp)
     << " at (" << X << "," << Y << ")\n";
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
+  std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
     for (Trantor &trantorTmp: _teams[teamNameTmp])
       if (trantorTmp.GetId() == std::stoi(nTmp))
@@ -570,6 +615,7 @@ void API::HandleSGT(std::stringstream &ss)
     throw std::runtime_error(
       "Error: invalid sgt params, Function: HandleSGT, File: API.cpp");
   std::cout << "server time unit: " << T << "\n";
+  std::lock_guard<std::mutex> locker(_timeUnitLocker);
   _timeUnit = T;
 }
 
@@ -581,6 +627,7 @@ void API::HandleSST(std::stringstream &ss)
     throw std::runtime_error(
       "Error: invalid sst params, Function: HandleSST, File: API.cpp");
   std::cout << "server time unit changed to: " << T << "\n";
+  std::lock_guard<std::mutex> locker(_timeUnitLocker);
   _timeUnit = T;
 }
 
@@ -592,6 +639,7 @@ void API::HandleSEG(std::stringstream &ss)
     throw std::runtime_error(
       "Error: invalid seg params, Function: HandleSEG, File: API.cpp");
   std::cout << "end of game, winning team: " << N << "\n";
+  std::lock_guard<std::mutex> locker(_winnerLocker);
   _winner = N;
 }
 
@@ -604,6 +652,7 @@ void API::HandleSMG(std::stringstream &ss)
     throw std::runtime_error(
       "Error: missing message in smg, Function: HandleSMG, File: API.cpp");
   std::cout << "server message: " << msg << "\n";
+  std::lock_guard<std::mutex> locker(_serverMessageLocker);
   _serverMessage.push_back(msg);
 }
 
