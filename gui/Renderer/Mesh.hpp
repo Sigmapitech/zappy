@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "SDL2.hpp"
+#include "Shader.hpp"
 #include "Vertex.hpp"
 
 struct Mesh {
@@ -30,7 +31,7 @@ public:
 
   void LoadTexture(SDL2::Texture &t);
   void Draw(
-    GLuint shader,
+    ShaderProgram &shader,
     const glm::mat4 &modelMatrix,
     const glm::mat4 &view,
     const glm::mat4 &projection) const;
