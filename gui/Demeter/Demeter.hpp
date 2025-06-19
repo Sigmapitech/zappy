@@ -1,34 +1,44 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
+#include "Renderer/Object3D.hpp"
+
 #include "Entity.hpp"
-#include "Window.hpp"
 
 namespace Dem {
 
   struct Demeter {
   private:
-    std::vector<Entity> entity_arr;
-    event_t event;
-    sfTexture *tex_arr[TEX_ARR_SIZE];
-    sfSoundBuffer *snd_arr[SND_ARR_SIZE];
-    de_arr_t *scene_arr;
-    sfClock *main_clock;
-    sfClock *game_clock;
-    sfSprite *font_sprite;
-    Window window;
-    sfInt64 _prevFrameClock;
-    double _deltaTime;
-    bool is_running;
+    std::vector<std::shared_ptr<IEntity>> entityPool;
+    std::vector<std::shared_ptr<Texture>> texturePool;
+    std::vector<std::shared_ptr<Object3D>> objectPool;
+    std::unique_ptr<ShaderProgram> shader;
+    Camera camera;
+    std::unique_ptr<SDL2> sdl2;
+    Uint64 lastTime;
+    Uint64 currentTime;
+    double deltaTime;
+    bool isRunning;
+    bool glDebug;
+    static void DebugCallback(
+      GLenum source,
+      GLenum type,
+      GLuint id,
+      GLenum severity,
+      GLsizei length,
+      const GLchar *message,
+      const void *userParam);
+
+    void Update();
+    void Draw();
 
   public:
-    Demeter(const Window &win);
+    Demeter(std::unique_ptr<SDL2> renderer, bool debug = false);
     ~Demeter();
 
-    void unset();
-    int update();
-    void draw();
+    void Run();
   };
 
 }  // namespace Dem
