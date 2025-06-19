@@ -15,14 +15,31 @@ private:
   std::mutex _commandListLocker;
 
   Tilemap _tilemap;
+  std::mutex _tilemapLocker;
+
   std::vector<std::string> _allTeamName;
+  std::mutex _allTeamNameLocker;
+
   std::map<std::string, std::vector<Trantor>> _teams;
+  std::mutex _teamsLocker;
+
   std::vector<Incantation> _incantationList;
+  std::mutex _incantationListLocker;
+
   std::map<int, std::pair<int, int>> _eggList;
+  std::mutex _eggListLocker;
+
   short _timeUnit = 0;
+  std::mutex _timeUnitLocker;
+
   bool _isGameRunning = false;
+  std::mutex _isGameRunningLocker;
+
   std::string _winner;
+  std::mutex _winnerLocker;
+
   std::vector<std::string> _serverMessage;
+  std::mutex _serverMessageLocker;
 
 public:
   API() = default;
