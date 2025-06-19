@@ -64,4 +64,7 @@ void append_to_output(server_t *srv, client_state_t *client, const char *msg);
 void vappend_to_output(
     server_t *srv, client_state_t *client, const char *fmt, ...);
 
+
+bool handle_team(server_t *srv, client_state_t *client,
+    char *split[static COMMAND_WORD_COUNT]);
 #endif /* !CLIENT_H_ */

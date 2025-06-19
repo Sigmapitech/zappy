@@ -14,7 +14,7 @@ static const DEBUG_USED char *RES_NAMES[RES_COUNT] = {
 
 static constexpr const double METEOR_PERIODICITY_SEC = 20.0F;
 
-static DEBUG_USED
+[[gnu::unused]] static
 void log_map(server_t *srv)
 {
     DEBUG_USED size_t y = 0;
@@ -76,6 +76,5 @@ bool meteor_handler(server_t *srv, const event_t *event)
             srv->total_item_in_map.qnts[n]++;
         }
     }
-    DEBUG_CALL(log_map, srv);
     return meteor_rescedule(srv, event);
 }

@@ -13,6 +13,7 @@ struct command_handler_s {
 
 static const struct command_handler_s COMMAND_HANDLERS[] = {
     { "meteor", meteor_handler },
+    { "player_death", player_death_handler },
     // Add more command handlers here as needed
 };
 
@@ -32,7 +33,10 @@ bool (*find_handler(const char *command))(server_t *, const event_t *)
 static
 void default_handler(server_t *srv, const event_t *event)
 {
+    DEBUG("No handler found for command: %s", event->command[0]);
     if (event->client_id == EVENT_SERVER_ID)
+        return;
+    if (srv->cstates.buff[event->client_id].fd < 0)
         return;
     append_to_output(srv, &srv->cstates.buff[event->client_id], "ko\n");
 }
@@ -40,23 +44,23 @@ void default_handler(server_t *srv, const event_t *event)
 void server_process_events(server_t *srv)
 {
     bool (*handler)(server_t *, const event_t *);
+    const event_t *event = event_heap_peek(&srv->events);
 
-    if (event_heap_peek(&srv->events) == nullptr)
+    if (event == nullptr)
         return;
-    for (; event_heap_peek(&srv->events) != nullptr
-        && event_heap_peek(&srv->events)->timestamp < get_timestamp();) {
-        handler = find_handler(event_heap_peek(&srv->events)->command[0]);
+    for (; event != nullptr && event->timestamp < get_timestamp();) {
+        handler = find_handler(event->command[0]);
         if (handler == nullptr) {
-            DEBUG("No handler found for command: %s",
-                event_heap_peek(&srv->events)->command[0]);
-            default_handler(srv, event_heap_peek(&srv->events));
+            default_handler(srv, event);
             event_heap_pop(&srv->events);
             continue;
         }
-        if (!handler(srv, event_heap_peek(&srv->events)))
+        if (event->client_id != EVENT_SERVER_ID
+            && srv->cstates.buff[event->client_id].fd < 0)
+            continue;
+        if (!handler(srv, event))
             DEBUG("Event handler failed for command [%s] from client %d",
-                event_heap_peek(&srv->events)->command[0],
-                event_heap_peek(&srv->events)->client_id);
+                event->command[0], event->client_id);
         event_heap_pop(&srv->events);
     }
 }

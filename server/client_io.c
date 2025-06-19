@@ -98,7 +98,7 @@ void append_to_output(server_t *srv, client_state_t *client, const char *msg)
 
     if (!sized_struct_ensure_capacity(&client->output, len + 1,
         sizeof *client->output.buff)) {
-        error_helper(srv, "Output buffer resize failed", idx);
+        error_helper(srv, "Output buffer resize failed", idx + 1);
         return;
     }
     strncpy(client->output.buff + client->output.nmemb, msg, len + 1);
