@@ -14,6 +14,9 @@
 
     #define MAP_MAX_SIDE_SIZE 42
 
+    #define LIKELY(cond) (__builtin_expect(!!(cond), 1))
+    #define UNLIKELY(cond) (__builtin_expect(!!(cond), 0))
+
 enum {
     RES_FOOD,
     RES_LINEMATE,
@@ -216,9 +219,15 @@ static inline uint64_t add_time(
  */
 static inline int32_t compute_timeout(server_t *srv)
 {
-    uint64_t current_time = get_timestamp();
-    uint64_t next_event_time = event_heap_peek(&srv->events)->timestamp;
+    int64_t current_time = get_timestamp();
+    int64_t next_event_time = event_heap_peek(&srv->events)->timestamp;
+    int32_t diff = (next_event_time - current_time);
+    int32_t ms = diff / MILISEC_IN_SEC;
 
-    return (int32_t)((next_event_time - current_time) / MILISEC_IN_SEC);
+    if (ms > 0) {
+        DEBUG("Timeout for next event: %u ms; diff µs: %d",
+            ms, diff - (MILISEC_IN_SEC * ms));
+    }
+    return ms;
 }
 #endif

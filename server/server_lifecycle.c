@@ -147,18 +147,18 @@ bool server_run(params_t *p, uint64_t timestamp)
 
     if (!server_allocate(&srv, p, timestamp) || !server_boot(&srv, p))
         return server_destroy(&srv), false;
-    srv.is_running = true;
-    for (; srv.is_running;) {
+    for (srv.is_running = true; srv.is_running;) {
         server_process_events(&srv);
         to = compute_timeout(&srv);
-        if (to < 0) {
-            DEBUG("WANRING: Server can't keep up with the events, "
-                "timeout is negative (%u ms), skipping tick", to);
+        if (UNLIKELY(to > 0)) {
+            process_poll(&srv, to);
+            process_fds(&srv);
+            process_clients_buff(&srv);
             continue;
         }
-        process_poll(&srv, to);
-        process_fds(&srv);
-        process_clients_buff(&srv);
+        if (UNLIKELY(to < 0))
+            fprintf(stderr, "WANRING: Server can't keep up with the events, "
+                "timeout is negative (%u ms), skipping tick\n", to);
     }
     server_destroy(&srv);
     return true;
