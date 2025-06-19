@@ -20,14 +20,20 @@ struct network_data_s {
 };
 
 static
+void error_helper(server_t *srv, const char *msg, uint32_t idx)
+{
+    perror(msg);
+    remove_client(srv, idx);
+}
+
+static
 bool recv_wrapper(server_t *srv, uint32_t idx, char *buffer, ssize_t *res)
 {
     client_state_t *client = &srv->cstates.buff[idx - 1];
     ssize_t recv_res = recv(client->fd, buffer, BUFFER_SIZE - 1, 0);
 
     if (recv_res < 0) {
-        perror("recv failed");
-        remove_client(srv, idx);
+        error_helper(srv, "recv failed", idx);
         return false;
     }
     if (recv_res == 0) {
@@ -51,8 +57,7 @@ void read_client(server_t *srv, uint32_t idx)
             return;
         if (!sized_struct_ensure_capacity(
             &client->input, recv_res + 1, sizeof *client->input.buff)) {
-            perror("Input buffer resize failed");
-            remove_client(srv, idx);
+            error_helper(srv, "Input buffer resize failed", idx);
             return;
         }
         memcpy(client->input.buff + client->input.nmemb, buffer, recv_res);
@@ -64,24 +69,26 @@ void read_client(server_t *srv, uint32_t idx)
 
 void write_client(server_t *srv, uint32_t idx)
 {
-    client_state_t *cli = &srv->cstates.buff[idx - 1];
+    client_state_t *cl = &srv->cstates.buff[idx - 1];
     ssize_t sent;
+    size_t line_len;
 
-    if (!cli || cli->output.nmemb <= cli->out_buff_idx)
+    if (!cl || cl->output.nmemb <= cl->out_buff_idx)
         return;
-    sent = send(cli->fd, cli->output.buff + cli->out_buff_idx,
-        cli->output.nmemb - cli->out_buff_idx, 0);
+    line_len = strcspn(cl->output.buff + cl->out_buff_idx, "\n");
+    if ((cl->output.buff + cl->out_buff_idx)[line_len] != '\n')
+        return;
+    sent = send(cl->fd, cl->output.buff + cl->out_buff_idx, line_len + 1, 0);
     if (sent < 0) {
-        perror("send failed");
-        remove_client(srv, idx);
+        error_helper(srv, "send failed", idx - 1);
         return;
     }
-    cli->out_buff_idx += sent;
-    if (cli->out_buff_idx != cli->output.nmemb)
+    cl->out_buff_idx += sent;
+    if (cl->out_buff_idx != cl->output.nmemb)
         return;
-    cli->output.nmemb = 0;
-    cli->out_buff_idx = 0;
-    srv->pfds.buff[idx + 1].events &= ~POLLOUT;
+    cl->output.nmemb = 0;
+    cl->out_buff_idx = 0;
+    srv->pfds.buff[idx].events &= ~POLLOUT;
 }
 
 void append_to_output(server_t *srv, client_state_t *client, const char *msg)
@@ -91,20 +98,14 @@ void append_to_output(server_t *srv, client_state_t *client, const char *msg)
 
     if (!sized_struct_ensure_capacity(&client->output, len + 1,
         sizeof *client->output.buff)) {
-        perror("Output buffer resize failed");
-        remove_client(srv, idx);
+        error_helper(srv, "Output buffer resize failed", idx);
         return;
     }
     strncpy(client->output.buff + client->output.nmemb, msg, len + 1);
     client->output.nmemb += len;
     if (!strchr(msg, '\n'))
         return;
-    for (size_t i = 0; i < srv->pfds.nmemb; i++) {
-        if (srv->pfds.buff[i].fd == client->fd) {
-            srv->pfds.buff[i].events |= POLLOUT;
-            break;
-        }
-    }
+    srv->pfds.buff[idx + 1].events |= POLLOUT;
 }
 
 #pragma clang diagnostic push
