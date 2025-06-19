@@ -13,5 +13,7 @@ public:
   std::vector<std::unique_ptr<Mesh>> _meshArr;
 
   Object3D(const std::string &path);
-  void Draw(GLuint shader, const glm::mat4 &view, const glm::mat4 &proj) const;
+  void
+  Draw(ShaderProgram &shader, const glm::mat4 &view, const glm::mat4 &proj)
+    const;
 };

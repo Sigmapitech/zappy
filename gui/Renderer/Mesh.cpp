@@ -104,7 +104,7 @@ void Mesh::LoadTexture(SDL2::Texture &t)
 }
 
 void Mesh::Draw(
-  GLuint shader,
+  ShaderProgram &shader,
   const glm::mat4 &model,
   const glm::mat4 &view,
   const glm::mat4 &projection) const
@@ -113,12 +113,12 @@ void Mesh::Draw(
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, _texture);
-  glUniform1i(glGetUniformLocation(shader, "tex"), 0);
+  glUniform1i(shader.GetUniformLocation("tex"), 0);
 
   // Set uniforms
-  GLint modelLoc = glGetUniformLocation(shader, "model");
-  GLint viewLoc = glGetUniformLocation(shader, "view");
-  GLint projLoc = glGetUniformLocation(shader, "projection");
+  GLint modelLoc = shader.GetUniformLocation("model");
+  GLint viewLoc = shader.GetUniformLocation("view");
+  GLint projLoc = shader.GetUniformLocation("projection");
   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
   glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
   glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
