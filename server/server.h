@@ -57,6 +57,7 @@ typedef struct {
     uint8_t x;
     uint8_t y;
     uint8_t tier;
+    uint8_t orientation;
     int fd;
     size_t in_buff_idx;
     size_t out_buff_idx;
