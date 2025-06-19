@@ -5,7 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "asset_dir.h"
+#include "asset_dir.hpp"
 
 #include "Object3D.hpp"
 
