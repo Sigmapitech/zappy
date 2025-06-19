@@ -6,12 +6,13 @@
     #include <stdint.h>
 
 static constexpr const int COMMAND_WORD_COUNT = 5;
+static constexpr const int EVENT_SERVER_ID = -1;
 bool command_split(char *buff, char *argv[static COMMAND_WORD_COUNT],
     size_t command_len);
 
 typedef struct {
     uint64_t timestamp;
-    int trigger_fd;
+    int client_id;
     union {
         char *command[COMMAND_WORD_COUNT];
         char *action[COMMAND_WORD_COUNT];

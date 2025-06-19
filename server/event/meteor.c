@@ -45,7 +45,7 @@ static bool meteor_rescedule(server_t *srv, const event_t *event)
     size_t new_sec = (size_t)interval_sec;
     size_t new_usec = (size_t)((interval_sec - new_sec) * MICROSEC_IN_SEC);
     event_t new = {
-        .trigger_fd = event->trigger_fd,
+        .client_id = event->client_id,
         .command = { "meteor" },
         .timestamp = add_time(event->timestamp, new_sec, new_usec),
     };

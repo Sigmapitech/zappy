@@ -152,9 +152,10 @@ static
 uint64_t get_late_event(server_t *srv, client_state_t *client)
 {
     uint64_t late_event = 0;
+    int idx = client - srv->cstates.buff;
 
     for (size_t i = 0; i < srv->events.nmemb; i++) {
-        if (srv->events.buff[i].trigger_fd == client->fd
+        if (srv->events.buff[i].client_id == idx
             && srv->events.buff[i].timestamp > late_event) {
             late_event = srv->events.buff[i].timestamp;
         }
@@ -169,7 +170,8 @@ void event_create(server_t *srv, client_state_t *client,
     double interval_sec = (double)time_needed / srv->frequency;
     size_t new_sec = (size_t)interval_sec;
     size_t new_usec = (size_t)((interval_sec - new_sec) * MICROSEC_IN_SEC);
-    event_t event = {.trigger_fd = client->fd};
+    int idx = client - srv->cstates.buff;
+    event_t event = {.client_id = idx};
 
     memcpy(event.command, split, sizeof(event.command));
     if (client->team_id != GRAPHIC_TEAM_ID)
@@ -187,7 +189,8 @@ static
 void unknown_command(server_t *srv, client_state_t *client,
     const char *command)
 {
-    event_t event = {.trigger_fd = client->fd, .command =
+    size_t idx = client - srv->cstates.buff;
+    event_t event = {.client_id = idx, .command =
         {client->team_id == GRAPHIC_TEAM_ID ? "suc" : "ko"}};
 
     if (client->team_id != GRAPHIC_TEAM_ID)

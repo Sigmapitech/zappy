@@ -82,7 +82,7 @@ bool server_boot(server_t *srv, params_t *p)
     struct sockaddr_in default_sa = {
         .sin_family = AF_INET, .sin_port = htons(p->port),
         .sin_addr.s_addr = INADDR_ANY};
-    event_t meteor = {.timestamp = srv->start_time, .trigger_fd = 0,
+    event_t meteor = {.timestamp = srv->start_time, .client_id = 0,
         .command = {"meteor"}};
 
     srv->self_fd = socket_open(&default_sa);
@@ -96,7 +96,7 @@ bool server_boot(server_t *srv, params_t *p)
         .fd = srv->self_fd, .events = POLLIN, .revents = 0};
     srv->pfds.nmemb++;
     meteor.timestamp = srv->start_time;
-    meteor.trigger_fd = srv->self_fd;
+    meteor.client_id = EVENT_SERVER_ID;
     return event_heap_push(&srv->events, &meteor);
 }
 

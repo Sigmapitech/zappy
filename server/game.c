@@ -30,25 +30,11 @@ bool (*find_handler(const char *command))(server_t *, const event_t *)
 }
 
 static
-client_state_t *find_client_by_fd(server_t *srv, int fd)
-{
-    for (size_t i = 0; i < srv->cstates.nmemb; i++) {
-        if (srv->cstates.buff[i].fd == fd)
-            return &srv->cstates.buff[i];
-    }
-    DEBUG("Client with fd %d not found", fd);
-    return nullptr;
-}
-
-static
 void default_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *client;
-
-    if (event->trigger_fd == srv->self_fd)
+    if (event->client_id == EVENT_SERVER_ID)
         return;
-    client = find_client_by_fd(srv, event->trigger_fd);
-    append_to_output(srv, client, "ko\n");
+    append_to_output(srv, &srv->cstates.buff[event->client_id], "ko\n");
 }
 
 void server_process_events(server_t *srv)
@@ -70,7 +56,7 @@ void server_process_events(server_t *srv)
         if (!handler(srv, event_heap_peek(&srv->events)))
             DEBUG("Event handler failed for command [%s] from client %d",
                 event_heap_peek(&srv->events)->command[0],
-                event_heap_peek(&srv->events)->trigger_fd);
+                event_heap_peek(&srv->events)->client_id);
         event_heap_pop(&srv->events);
     }
 }
