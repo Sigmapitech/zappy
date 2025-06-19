@@ -83,21 +83,21 @@ void Object3D::HandleFace(std::istringstream &ss)
 
 void Object3D::ParseLine(const std::string &prefix, std::istringstream &ss)
 {
-  switch (hash(prefix.c_str())) {
-    case hash("o"):
-    case hash("g"):
+  switch (Hash(prefix.c_str())) {
+    case Hash("o"):
+    case Hash("g"):
       HandleSubObject(ss);
       break;
-    case hash("v"):
+    case Hash("v"):
       HandleVertex(ss);
       break;
-    case hash("vt"):
+    case Hash("vt"):
       HandleVertexTexture(ss);
       break;
-    case hash("vn"):
+    case Hash("vn"):
       HandleVertexNormal(ss);
       break;
-    case hash("f"):
+    case Hash("f"):
       HandleFace(ss);
       break;
     default:
@@ -134,5 +134,4 @@ void Object3D::
 {
   for (const std::unique_ptr<Mesh> &mesh: _meshArr)
     mesh->Draw(shader, modelMatrix, view, proj);
-  //_meshArr[0].Draw(shader, modelMatrix, view, proj);
 }
