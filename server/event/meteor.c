@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "event/names.h"
 #include "handler.h"
 
 static constexpr const float DENSITIES[RES_COUNT] = {
@@ -45,7 +46,7 @@ static bool meteor_rescedule(server_t *srv, const event_t *event)
         (METEOR_PERIODICITY_SEC * MICROSEC_IN_SEC) / srv->frequency;
     event_t new = {
         .client_id = event->client_id,
-        .command = { "meteor" },
+        .command = { METEOR },
         .timestamp = event->timestamp + interval_sec,
     };
 

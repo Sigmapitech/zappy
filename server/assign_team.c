@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "client.h"
+#include "event/names.h"
 #include "server.h"
 
 static constexpr const uint64_t INITIAL_FOOD_INVENTORY = 10;
@@ -54,7 +55,7 @@ static
 bool assign_ai_data(server_t *srv, client_state_t *client, size_t team_id)
 {
     event_t event = {get_timestamp(), client - srv->cstates.buff,
-        .command = {"player_death"}};
+        .command = {PLAYER_DEATH}};
 
     DEBUG("Player death incoming at %lu.%06lu sec since server start",
         (event.timestamp - srv->start_time) / MICROSEC_IN_SEC,

@@ -5,6 +5,7 @@
 #include "client.h"
 #include "data_structure/event.h"
 #include "event/handler.h"
+#include "event/names.h"
 
 struct command_handler_s {
     const char *name;
@@ -12,8 +13,8 @@ struct command_handler_s {
 };
 
 static const struct command_handler_s COMMAND_HANDLERS[] = {
-    { "meteor", meteor_handler },
-    { "player_death", player_death_handler },
+    { METEOR, meteor_handler },
+    { PLAYER_DEATH, player_death_handler },
     // Add more command handlers here as needed
 };
 
