@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "client.h"
+#include "event/names.h"
 #include "handler.h"
 #include "server.h"
 
@@ -25,7 +26,7 @@ static bool death_rescedule(server_t *srv, const event_t *event)
     uint64_t interval = (FOOD_SURVIVAL * MICROSEC_IN_SEC) / srv->frequency;
     client_state_t *client = &srv->cstates.buff[event->client_id];
     event_t new = {get_timestamp() + interval,
-        event->client_id, .command = { "player_death" }};
+        event->client_id, .command = { PLAYER_DEATH }};
 
     client->inv.food--;
     for (size_t i = 0; i < srv->cstates.nmemb; i++) {

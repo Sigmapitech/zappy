@@ -16,6 +16,7 @@
 #include "data_structure/event.h"
 #include "data_structure/resizable_array.h"
 #include "debug.h"
+#include "event/names.h"
 #include "server.h"
 
 static
@@ -83,7 +84,7 @@ bool server_boot(server_t *srv, params_t *p)
         .sin_family = AF_INET, .sin_port = htons(p->port),
         .sin_addr.s_addr = INADDR_ANY};
     event_t meteor = {.timestamp = srv->start_time, .client_id = 0,
-        .command = {"meteor"}};
+        .command = { METEOR }};
 
     srv->self_fd = socket_open(&default_sa);
     if (srv->self_fd < 0 || listen(srv->self_fd, BACKLOG) < 0)
