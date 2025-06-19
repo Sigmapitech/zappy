@@ -28,10 +28,9 @@ void Network::RunNetwork()
   serverAddr.sin_port = htons(_port);
   socklen_t sockLen = sizeof(serverAddr);
 
-  if (inet_pton(AF_INET, _hostname.c_str(), &serverAddr.sin_addr) != 1) {
+  if (inet_pton(AF_INET, _hostname.c_str(), &serverAddr.sin_addr) != 1)
     throw std::runtime_error(
       "Error: inet_pton failed. Function: RunNetwork, File: Network.cpp");
-  }
 
   if (
     connect(
@@ -69,7 +68,9 @@ void Network::RunNetwork()
       api.ParseManageCommande(message);
     }
     if (pollFd[0].revents & POLLOUT) {
-      // Send Message
+      for (std::string command: api.GetCommand())
+        SendMessage(command);
+      api.ClearCommand();
     }
   }
 }

@@ -22,6 +22,16 @@ void API::DeleteEgg(int id)
   _eggList.erase(id);
 }
 
+std::vector<std::string> API::GetCommand()
+{
+  return _command;
+}
+
+void API::ClearCommand()
+{
+  _command.clear();
+}
+
 void API::AskMapSize()
 {
   std::string tmp_command = "msz\n";
