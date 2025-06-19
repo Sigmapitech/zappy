@@ -1,30 +1,17 @@
-#include <cstddef>
-#include <cstdint>
-#include <string>
+#pragma once
+
+#include <memory>
 
 namespace Dem {
 
-  class Demeter;
+  struct Demeter;
 
-  enum Priority : uint8_t {
-    ENT_PRIORITY_LOW,
-    ENT_PRIORITY_MEDIUM,
-    ENT_PRIORITY_HIGH
-  };
-
-  class IEntity {
-  protected:
-    const std::string _name;
-    void *_data;
-    size_t _id;
-    size_t _scene;
-    Priority _priority;
-
+  class IEntity : public std::enable_shared_from_this<IEntity> {
   public:
     virtual ~IEntity() = default;
 
-    virtual bool Update(Demeter &d, size_t id) = 0;
-    virtual bool Draw(Demeter &d, size_t id) = 0;
+    virtual bool Update(Demeter &d) = 0;
+    virtual bool Draw(Demeter &d) = 0;
   };
 
 }  // namespace Dem
