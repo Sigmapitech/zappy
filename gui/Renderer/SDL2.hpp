@@ -1,3 +1,4 @@
+#include <SDL2/SDL_surface.h>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -14,18 +15,7 @@ private:
   SDL_GLContext _context = nullptr;
   SDL_Event _event;
 
-  static std::string GetError()
-  {
-    return SDL_GetError();
-  }
-
-  static std::string GetIMGError()
-  {
-    return IMG_GetError();
-  }
-
-  void SetAttribute(SDL_GLattr attr, int value) const  // NOLINT musn't be
-                                                       // static
+  void SetAttribute(SDL_GLattr attr, int value) const  // NOLINT
   {
     if (SDL_GL_SetAttribute(attr, value) < 0)
       throw std::
@@ -33,46 +23,18 @@ private:
   }
 
 public:
-  struct Texture {
-  private:
-    std::unique_ptr<SDL_Surface> surface;
-    GLenum format;
-
-  public:
-    Texture(std::unique_ptr<SDL_Surface> surf, GLenum fmt)
-      : surface(std::move(surf)), format(fmt)
-    {
-    }
-
-    ~Texture()
-    {
-      if (surface)
-        SDL_FreeSurface(surface.release());
-    }
-
-    [[nodiscard]] GLsizei GetWidth() const
-    {
-      return surface->w;
-    }
-
-    [[nodiscard]] GLsizei GetHeight() const
-    {
-      return surface->h;
-    }
-
-    [[nodiscard]] const void *GetPixels() const
-    {
-      return surface->pixels;
-    }
-
-    [[nodiscard]] GLenum GetFormat() const
-    {
-      return format;
-    }
-  };
-
   SDL2();
   ~SDL2();
+
+  std::string GetError() const  // NOLINT
+  {
+    return SDL_GetError();
+  }
+
+  std::string GetIMGError() const  // NOLINT
+  {
+    return IMG_GetError();
+  }
 
   void SwapWindow() const
   {
@@ -89,6 +51,9 @@ public:
     return _event;
   }
 
-  [[nodiscard]] std::shared_ptr<SDL2::Texture>
-  LoadTexture(const std::string &path) const;
+  [[nodiscard]] std::unique_ptr<SDL_Surface>
+  IMGLoad(const std::string &s) const  // NOLINT
+  {
+    return std::unique_ptr<SDL_Surface>(IMG_Load(s.c_str()));
+  }
 };
