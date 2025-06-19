@@ -101,7 +101,8 @@ Object3D::Object3D(const std::string &path)
 }
 
 void Object3D::
-  Draw(GLuint shader, const glm::mat4 &view, const glm::mat4 &proj) const
+  Draw(ShaderProgram &shader, const glm::mat4 &view, const glm::mat4 &proj)
+    const
 {
   for (const std::unique_ptr<Mesh> &mesh: _meshArr)
     mesh->Draw(shader, modelMatrix, view, proj);
