@@ -1,4 +1,3 @@
-#include <memory>
 #include <unordered_map>
 
 #include "Mesh.hpp"

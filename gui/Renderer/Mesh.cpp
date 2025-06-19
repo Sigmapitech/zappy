@@ -1,7 +1,4 @@
-#include <memory>
-
 #include <glm/gtc/type_ptr.hpp>
-#include <utility>
 
 #include "Mesh.hpp"
 
