@@ -29,8 +29,8 @@ namespace {
       make_shared<Texture>(sdl, ASSET_DIR "/Dingus.png");
     std::shared_ptr<Texture> t_moustache = std::
       make_shared<Texture>(sdl, ASSET_DIR "/mikustache.png");
-    object._meshArr[0]->SetTexture(t_body);
-    object._meshArr[1]->SetTexture(t_moustache);
+    object.SetTexture(0, t_body);
+    object.SetTexture(1, t_moustache);
 
     std::unique_ptr<VertexShader> vertexShader = std::
       make_unique<VertexShader>(ASSET_DIR "/vertexShader.glsl");
