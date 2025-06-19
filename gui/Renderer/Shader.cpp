@@ -6,7 +6,7 @@
 
 #include "Shader.hpp"
 
-AShader::AShader(GLenum type, const std::string &path)
+Shader::Shader(GLenum type, const std::string &path)
 {
   std::ifstream file(path);
   if (!file)
@@ -29,7 +29,7 @@ AShader::AShader(GLenum type, const std::string &path)
   }
 }
 
-AShader::~AShader()
+Shader::~Shader()
 {
   glDeleteShader(shader);
 }
