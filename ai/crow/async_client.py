@@ -55,6 +55,7 @@ class AsyncSocketClient:
                 await self.close()
                 raise ConnectionError("Client died.")
 
+            logger.debug("<- %s", msg)
             return msg
 
     async def _wait_for_exact(self, expected: str):
