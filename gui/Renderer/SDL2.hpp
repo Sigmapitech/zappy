@@ -1,10 +1,9 @@
-#include <SDL2/SDL_surface.h>
 #include <memory>
 #include <stdexcept>
-#include <string>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_surface.h>
 
 #include <GL/glew.h>
 
