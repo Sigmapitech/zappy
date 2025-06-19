@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @brief Computes a hash value for a given C-style string using the DJB2
  * algorithm.
