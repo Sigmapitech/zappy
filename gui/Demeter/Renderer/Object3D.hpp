@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "Camera.hpp"
 #include "Mesh.hpp"
 
 /**
@@ -146,9 +147,7 @@ public:
    * @param proj The projection matrix defining the camera's lens. (screen
    * space)
    */
-  void
-  Draw(ShaderProgram &shader, const glm::mat4 &view, const glm::mat4 &proj)
-    const;
+  void Draw(ShaderProgram &shader, const Camera &camera) const;
 
   /**
    * @brief Sets the texture for a specific mesh in the object.

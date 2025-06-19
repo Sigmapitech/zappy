@@ -8,7 +8,7 @@
 #include "asset_dir.hpp"
 
 #include "Object3D.hpp"
-
+/*
 namespace {
 
   // // OpenGL debug callback function
@@ -79,3 +79,4 @@ namespace {
   }
 
 }  // namespace
+*/

@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "Camera.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "Vertex.hpp"
@@ -88,8 +89,7 @@ public:
   void Draw(
     ShaderProgram &shader,
     const glm::mat4 &modelMatrix,
-    const glm::mat4 &view,
-    const glm::mat4 &projection) const;
+    const Camera &camera) const;
 
   /**
    * @brief Overloads the stream insertion operator to output the contents of a
