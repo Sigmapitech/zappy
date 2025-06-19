@@ -41,13 +41,12 @@ void log_map(server_t *srv)
 
 static bool meteor_rescedule(server_t *srv, const event_t *event)
 {
-    double interval_sec = METEOR_PERIODICITY_SEC / srv->frequency;
-    size_t new_sec = (size_t)interval_sec;
-    size_t new_usec = (size_t)((interval_sec - new_sec) * MICROSEC_IN_SEC);
+    uint64_t interval_sec =
+        (METEOR_PERIODICITY_SEC * MICROSEC_IN_SEC) / srv->frequency;
     event_t new = {
         .client_id = event->client_id,
         .command = { "meteor" },
-        .timestamp = add_time(event->timestamp, new_sec, new_usec),
+        .timestamp = event->timestamp + interval_sec,
     };
 
     if (!event_heap_push(&srv->events, &new)) {

@@ -197,21 +197,6 @@ static inline uint64_t get_timestamp(void)
 }
 
 /**
- * @brief Adds a time interval to a timestamp.
- *
- * @param timestamp
- * @param sec
- * @param usec
- * @return uint64_t
- */
-static inline uint64_t add_time(
-    uint64_t timestamp, uint64_t sec, uint64_t usec
-)
-{
-    return timestamp + (sec * MICROSEC_IN_SEC) + usec;
-}
-
-/**
  * @brief Computes the timeout for the next event in the server.
  *
  * @param srv

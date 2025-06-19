@@ -75,16 +75,13 @@ static
 void event_create(server_t *srv, client_state_t *client,
     char *split[static COMMAND_WORD_COUNT], uint64_t time_needed)
 {
-    double interval_sec = (double)time_needed / srv->frequency;
-    size_t new_sec = (size_t)interval_sec;
-    size_t new_usec = (size_t)((interval_sec - new_sec) * MICROSEC_IN_SEC);
+    uint64_t interval = (time_needed * MICROSEC_IN_SEC) / srv->frequency;
     int idx = client - srv->cstates.buff;
     event_t event = {.client_id = idx};
 
     memcpy(event.command, split, sizeof(event.command));
     if (client->team_id != GRAPHIC_TEAM_ID)
-        event.timestamp = add_time(
-            get_late_event(srv, client), new_sec, new_usec);
+        event.timestamp = get_late_event(srv, client) + interval;
     else
         event.timestamp = get_timestamp();
     DEBUG("Creating event for client %d: '%s' at %lu",
