@@ -1,8 +1,8 @@
 #include <memory>
 #include <vector>
 
-#include "SDL2.hpp"
 #include "Shader.hpp"
+#include "Texture.hpp"
 #include "Vertex.hpp"
 
 struct Mesh {
@@ -11,7 +11,7 @@ private:
   std::string _name;
   std::unique_ptr<std::vector<Vertex>> _vertices;
   std::unique_ptr<std::vector<unsigned int>> _indices;
-  GLuint _texture = 0;
+  std::shared_ptr<Texture> _texture = nullptr;
 
   void GenMesh();
 
@@ -29,7 +29,7 @@ public:
     return _name;
   }
 
-  void LoadTexture(SDL2::Texture &t);
+  void SetTexture(std::shared_ptr<Texture> t);
   void Draw(
     ShaderProgram &shader,
     const glm::mat4 &modelMatrix,
