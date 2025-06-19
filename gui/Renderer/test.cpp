@@ -79,18 +79,3 @@ namespace {
   }
 
 }  // namespace
-
-/*
-// test main function
-int main()
-{
-  try {
-    SDL2 sdl;
-    run(sdl);
-  } catch (const std::runtime_error &e) {
-    std::cerr << e.what() << '\n';
-    return 84;
-  }
-  return 0;
-}
-*/
