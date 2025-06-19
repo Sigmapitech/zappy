@@ -27,9 +27,9 @@ extern const char SERVER_USAGE[];   // Usage message for the server
 /**
  * @brief Parses command line arguments and fills the params structure.
  *
- * @param params pointer to the params_t structure to fill
- * @param argc size of argv
- * @param argv command line arguments
+ * @param params
+ * @param argc
+ * @param argv
  * @return true if all arguments are valid and parsed successfully
  * @return false if there are invalid arguments or if malloc fails
  */

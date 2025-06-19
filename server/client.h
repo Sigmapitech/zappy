@@ -3,15 +3,63 @@
 
     #include "server.h"
 
+/**
+ * @brief Invalid team ID.
+ *
+ */
 static constexpr const uint8_t INVALID_TEAM_ID = 255;
+/**
+ * @brief Team ID for the graphic client.
+ *
+ * This is used to identify the graphic client in the server.
+ */
 static constexpr const uint8_t GRAPHIC_TEAM_ID = 254;
 
+/**
+ * @brief Adds a new client to the server.
+ *
+ * @param srv
+ */
 void add_client(server_t *srv);
+/**
+ * @brief Removes a client from the server.
+ *
+ * @param srv
+ * @param idx Index of the client to remove.
+ */
 void remove_client(server_t *srv, uint32_t idx);
+/**
+ * @brief Handles a client command.
+ *
+ * @param srv
+ * @param idx Index of the client.
+ * @param command Command to handle.
+ */
 void write_client(server_t *srv, uint32_t idx);
+/**
+ * @brief Reads a client command.
+ *
+ * @param srv
+ * @param idx Index of the client.
+ */
 void read_client(server_t *srv, uint32_t idx);
 
+/**
+ * @brief Appends a message to the client's output buffer.
+ *
+ * @param srv
+ * @param client
+ * @param msg
+ */
 void append_to_output(server_t *srv, client_state_t *client, const char *msg);
+/**
+ * @brief Appends a formatted message to the client's output buffer.
+ *
+ * @param srv
+ * @param client
+ * @param fmt
+ * @param ...
+ */
 [[gnu::format(printf, 3, 4)]]
 void vappend_to_output(
     server_t *srv, client_state_t *client, const char *fmt, ...);

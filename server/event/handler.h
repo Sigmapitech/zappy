@@ -3,6 +3,14 @@
 
     #include "server.h"
 
+/**
+ * @brief Handles the "meteor" event.
+ *
+ * @param srv
+ * @param event
+ * @return true
+ * @return false
+ */
 bool meteor_handler(server_t *srv, const event_t *event);
 
 #endif /* !HANDLER_H_ */
