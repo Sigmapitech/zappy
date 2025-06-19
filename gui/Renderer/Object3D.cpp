@@ -135,3 +135,11 @@ void Object3D::
   for (const std::unique_ptr<Mesh> &mesh: _meshArr)
     mesh->Draw(shader, modelMatrix, view, proj);
 }
+
+void Object3D::SetTexture(size_t meshID, std::shared_ptr<Texture> t)
+{
+  if (_meshArr.size() <= meshID)
+    throw std::
+      out_of_range("Mesh ID out of bounds: " + std::to_string(meshID));
+  _meshArr[meshID]->SetTexture(std::move(t));
+}
