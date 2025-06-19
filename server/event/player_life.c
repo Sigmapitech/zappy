@@ -41,7 +41,7 @@ bool player_death_handler(server_t *srv, const event_t *event)
         if (srv->cstates.buff[i].team_id != GRAPHIC_TEAM_ID)
             continue;
         vappend_to_output(srv, &srv->cstates.buff[i], "pdi #%d\n",
-            srv->cstates.buff[event->client_id].fd);
+            srv->cstates.buff[event->client_id].id);
     }
     remove_client(srv, event->client_id + 1);
     return true;

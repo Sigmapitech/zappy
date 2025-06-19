@@ -58,6 +58,7 @@ typedef struct {
     uint8_t y;
     uint8_t tier;
     uint8_t orientation;
+    uint16_t id;
     int fd;
     size_t in_buff_idx;
     size_t out_buff_idx;
@@ -130,6 +131,7 @@ typedef struct {
     event_heap_t events;
     uint64_t start_time;
     uint16_t frequency; // reciprocal of time unit
+    uint16_t ia_id_counter; // Counter for AI clients
 } server_t;
 
 /**

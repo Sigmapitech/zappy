@@ -28,9 +28,9 @@ void send_guis_player_data(server_t *srv, client_state_t *client, size_t egg)
             continue;
         vappend_to_output(srv, &srv->cstates.buff[i],
             "pnw #%d %hhu %hhu %hhu %hhu %s\npin #%d %hhu %hhu %s\nebo #%zu\n",
-            client->fd, client->x, client->y, client->orientation,
+            client->id, client->x, client->y, client->orientation,
             client->tier, srv->team_names[client->team_id],
-            client->fd, client->x, client->y,
+            client->id, client->x, client->y,
             serialize_inventory(&client->inv), egg + 1);
     }
 }
@@ -64,6 +64,8 @@ bool assign_ai_data(server_t *srv, client_state_t *client, size_t team_id)
         (event.timestamp - srv->start_time) % MICROSEC_IN_SEC);
     client->team_id = team_id;
     client->orientation = (rand() & FOUR_MASK) + 1;
+    client->id = srv->ia_id_counter;
+    srv->ia_id_counter++;
     if (!event_heap_push(&srv->events, &event)) {
         srv->is_running = false;
         return false;
@@ -96,14 +98,15 @@ void send_players_info(server_t *srv, client_state_t *client)
         if (srv->cstates.buff[i].team_id == GRAPHIC_TEAM_ID
             || srv->cstates.buff[i].team_id == INVALID_TEAM_ID)
             continue;
-        vappend_to_output(srv, client, "pnw #%zu %hhu %hhu %hu %s\n",
-            i, srv->cstates.buff[i].x, srv->cstates.buff[i].y,
-            srv->cstates.buff[i].tier,
+        vappend_to_output(srv, client, "pnw #%hu %hhu %hhu %hu %s\n",
+            srv->cstates.buff[i].id, srv->cstates.buff[i].x,
+            srv->cstates.buff[i].y, srv->cstates.buff[i].tier,
             srv->team_names[srv->cstates.buff[i].team_id]);
-        vappend_to_output(srv, client, "pin #%zu %s\n", i, serialize_inventory(
-            &srv->cstates.buff[i].inv));
-        vappend_to_output(srv, client, "plv #%zu %hhu\n", i,
-            srv->cstates.buff[i].tier);
+        vappend_to_output(srv, client, "pin #%hu %s\n",
+            srv->cstates.buff[i].id, serialize_inventory(
+                &srv->cstates.buff[i].inv));
+        vappend_to_output(srv, client, "plv #%hu %hhu\n",
+            srv->cstates.buff[i].id, srv->cstates.buff[i].tier);
     }
 }
 
