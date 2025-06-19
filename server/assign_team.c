@@ -5,7 +5,35 @@
 #include "server.h"
 
 static constexpr const uint64_t INITIAL_STOMACH_FILL = 1260;
+static constexpr const uint8_t FOUR_MASK = 0b11;
 static const char *GRAPHIC_COMMAND = "GRAPHIC";
+
+static
+char *serialize_inventory(inventory_t *inv)
+{
+    static constexpr const uint8_t BUFFER_SIZE = 128;
+    static char buffer[BUFFER_SIZE];
+
+    snprintf(buffer, sizeof(buffer), "%u %u %u %u %u %u %u",
+        inv->food, inv->linemate, inv->deraumere, inv->sibur,
+        inv->mendiane, inv->phiras, inv->thystame);
+    return buffer;
+}
+
+static
+void send_guis_player_data(server_t *srv, client_state_t *client, size_t egg)
+{
+    for (size_t i = 0; i < srv->cstates.nmemb; i++) {
+        if (srv->cstates.buff[i].team_id != GRAPHIC_TEAM_ID)
+            continue;
+        vappend_to_output(srv, &srv->cstates.buff[i],
+            "pnw #%d %hhu %hhu %hhu %hhu %s\npin #%d %hhu %hhu %s\nebo #%zu\n",
+            client->fd, client->x, client->y, client->orientation,
+            client->tier, srv->team_names[client->team_id],
+            client->fd, client->x, client->y,
+            serialize_inventory(&client->inv), egg + 1);
+    }
+}
 
 static
 bool assign_ai_egg_data(server_t *srv, client_state_t *client, size_t team_id)
@@ -16,6 +44,7 @@ bool assign_ai_egg_data(server_t *srv, client_state_t *client, size_t team_id)
             client->y = srv->eggs.buff[i].y;
             srv->eggs.buff[i] = srv->eggs.buff[srv->eggs.nmemb - 1];
             srv->eggs.nmemb--;
+            send_guis_player_data(srv, client, i);
             return true;
         }
     __builtin_unreachable();
@@ -34,6 +63,7 @@ bool assign_ai_data(server_t *srv, client_state_t *client, size_t team_id)
         (event.timestamp - srv->start_time) / MICROSEC_IN_SEC,
         (event.timestamp - srv->start_time) % MICROSEC_IN_SEC);
     client->team_id = team_id;
+    client->orientation = (rand() & FOUR_MASK) + 1;
     if (!event_heap_push(&srv->events, &event)) {
         srv->is_running = false;
         return false;
@@ -57,18 +87,6 @@ bool send_ai_team_assignment_respone(
     vappend_to_output(srv, client, "%u\n%hhu %hhu\n",
         count - 1, srv->map_width, srv->map_height);
     return assign_ai_data(srv, client, team_id);
-}
-
-static
-char *serialize_inventory(inventory_t *inv)
-{
-    static constexpr const uint8_t BUFFER_SIZE = 128;
-    static char buffer[BUFFER_SIZE];
-
-    snprintf(buffer, sizeof(buffer), "%u %u %u %u %u %u %u",
-        inv->food, inv->linemate, inv->deraumere, inv->sibur,
-        inv->mendiane, inv->phiras, inv->thystame);
-    return buffer;
 }
 
 static
