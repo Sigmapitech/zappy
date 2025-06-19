@@ -44,6 +44,18 @@ public:
    */
   void DeleteEgg(int id);
 
+  /**
+   * @brief Get the command list
+   *
+   * @return std::vector<std::string>
+   */
+  std::vector<std::string> GetCommand();
+
+  /**
+   * @brief Clear the command list
+   */
+  void ClearCommand();
+
   // FROM GIU
 
   /**
