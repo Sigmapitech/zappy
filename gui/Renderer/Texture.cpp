@@ -1,4 +1,3 @@
-#include <memory>
 #include <stdexcept>
 
 #include "Texture.hpp"
@@ -27,8 +26,8 @@ Texture::Texture(SDL2 &sdl, const std::string &path)
 
 Texture::~Texture()
 {
-  if (surface)
-    SDL_FreeSurface(surface.release());
+  SDL_FreeSurface(surface.release());
+  glDeleteTextures(1, &texture);
 }
 
 void Texture::GenGLTexture()
