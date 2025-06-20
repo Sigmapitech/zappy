@@ -15,6 +15,7 @@ struct command_handler_s {
 static const struct command_handler_s COMMAND_HANDLERS[] = {
     { METEOR, meteor_handler },
     { PLAYER_DEATH, player_death_handler },
+    { PLAYER_INVENTORY, player_inventory_handler },
     // Add more command handlers here as needed
 };
 

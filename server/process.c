@@ -28,7 +28,7 @@ static const struct ai_lut_entry AI_LUT[] = {
     {"Fork", 42},
     {"Forward", 7},
     {"Incantation", 300},
-    {"Inventroy", 1},
+    {"Inventory", 1},
     {"Left", 7},
     {"Look", 7},
     {"Right", 7},
