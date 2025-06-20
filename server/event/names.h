@@ -11,4 +11,6 @@
     #define PLAYER_RIGHT "Right"
     #define PLAYER_FORWARD "Forward"
 
+    #define STAT_AVAILABLE_SLOTS "Connect_nbr"
+
 #endif
