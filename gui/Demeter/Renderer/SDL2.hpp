@@ -86,6 +86,23 @@ public:
   }
 
   /**
+   * @brief Clears the color and depth buffers with the specified color.
+   *
+   * Sets the clear color using the provided RGBA values and clears both the
+   * color and depth buffers.
+   *
+   * @param r Red component of the clear color (range: 0.0f to 1.0f).
+   * @param g Green component of the clear color (range: 0.0f to 1.0f).
+   * @param b Blue component of the clear color (range: 0.0f to 1.0f).
+   * @param a Alpha component of the clear color (range: 0.0f to 1.0f).
+   */
+  void Clear(GLclampf r, GLclampf g, GLclampf b, GLclampf a) const  // NOLINT
+  {
+    glClearColor(r, g, b, a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  }
+
+  /**
    * @brief Polls for currently pending events.
    *
    * This function checks the event queue for pending events and updates the
