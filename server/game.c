@@ -51,12 +51,18 @@ bool (*find_handler(const char *command))(server_t *, const event_t *)
 static
 void default_handler(server_t *srv, const event_t *event)
 {
+    client_state_t *client;
+
     DEBUG("No handler found for command: %s", event->command[0]);
     if (event->client_id == EVENT_SERVER_ID)
         return;
-    if (srv->cstates.buff[event->client_id].fd < 0)
+    client = &srv->cstates.buff[event->client_id];
+    if (client->fd < 0)
         return;
-    append_to_output(srv, &srv->cstates.buff[event->client_id], "ko\n");
+    if (client->team_id == GRAPHIC_TEAM_ID)
+        append_to_output(srv, client, "suc\n");
+    else
+        append_to_output(srv, client, "ko\n");
 }
 
 void server_process_events(server_t *srv)
