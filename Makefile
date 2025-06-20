@@ -27,7 +27,7 @@ CXXFLAGS_cov := --coverage -g3
 CFLAGS_tests := --coverage -g3
 CXXFLAGS_tests := --coverage -g3
 
-LDLIBS :=
+LDLIBS := -lm
 LDFLAGS :=
 
 MAKEFLAGS += --no-builtin-rules
