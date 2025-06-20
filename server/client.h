@@ -86,4 +86,6 @@ client_state_t *client_from_id(server_t *srv, uint16_t id)
     return nullptr;
 }
 
+char *serialize_inventory(inventory_t *inv);
+
 #endif /* !CLIENT_H_ */

@@ -10,18 +10,6 @@ static constexpr const uint8_t FOUR_MASK = 0b11;
 static const char *GRAPHIC_COMMAND = "GRAPHIC";
 
 static
-char *serialize_inventory(inventory_t *inv)
-{
-    static constexpr const uint8_t BUFFER_SIZE = 128;
-    static char buffer[BUFFER_SIZE];
-
-    snprintf(buffer, sizeof(buffer), "%u %u %u %u %u %u %u",
-        inv->food, inv->linemate, inv->deraumere, inv->sibur,
-        inv->mendiane, inv->phiras, inv->thystame);
-    return buffer;
-}
-
-static
 void send_guis_player_data(server_t *srv, client_state_t *client, size_t egg)
 {
     for (size_t i = 0; i < srv->cstates.nmemb; i++) {
