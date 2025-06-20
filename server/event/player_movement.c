@@ -14,8 +14,7 @@ bool player_move_forward_handler(server_t *srv, const event_t *event)
     if (cs->orientation == OR_WEST)
         cs->x = (cs->x + srv->map_width - 1) % srv->map_width;
     append_to_output(srv, cs, "ok\n");
-    send_to_guis(srv, "ppo #%d %hhd %hhd %hhu\n",
-        cs->id, cs->x, cs->y, cs->orientation + 1);
+    gui_player_get_position_handler(srv, event);
     return true;
 }
 
@@ -26,8 +25,7 @@ bool player_turn_left_handler(server_t *srv, const event_t *event)
     cs->orientation--;
     cs->orientation &= 0x3;
     append_to_output(srv, cs, "ok\n");
-    send_to_guis(srv, "ppo #%d %hhd %hhd %hhu\n",
-        cs->id, cs->x, cs->y, cs->orientation + 1);
+    gui_player_get_position_handler(srv, event);
     return true;
 }
 
@@ -38,7 +36,6 @@ bool player_turn_right_handler(server_t *srv, const event_t *event)
     cs->orientation++;
     cs->orientation &= 0x3;
     append_to_output(srv, cs, "ok\n");
-    send_to_guis(srv, "ppo #%d %hhd %hhd %hhu\n",
-        cs->id, cs->x, cs->y, cs->orientation + 1);
+    gui_player_get_position_handler(srv, event);
     return true;
 }

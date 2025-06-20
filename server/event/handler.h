@@ -24,4 +24,8 @@ bool player_turn_right_handler(server_t *srv, const event_t *event);
 
 bool stat_available_slot_handler(server_t *srv, const event_t *event);
 
+bool gui_player_get_position_handler(server_t *srv, const event_t *event);
+bool gui_player_get_level_handler(server_t *srv, const event_t *event);
+bool gui_player_get_inventory_handler(server_t *srv, const event_t *event);
+
 #endif /* !HANDLER_H_ */

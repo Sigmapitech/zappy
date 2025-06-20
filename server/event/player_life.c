@@ -9,18 +9,6 @@
 
 static constexpr const size_t FOOD_SURVIVAL = 126;
 
-static
-char *serialize_inventory(inventory_t *inv)
-{
-    static constexpr const uint8_t BUFFER_SIZE = 128;
-    static char buffer[BUFFER_SIZE];
-
-    snprintf(buffer, sizeof(buffer), "%u %u %u %u %u %u %u",
-        inv->food, inv->linemate, inv->deraumere, inv->sibur,
-        inv->mendiane, inv->phiras, inv->thystame);
-    return buffer;
-}
-
 static bool death_rescedule(server_t *srv, const event_t *event)
 {
     uint64_t interval = (FOOD_SURVIVAL * MICROSEC_IN_SEC) / srv->frequency;
@@ -29,9 +17,7 @@ static bool death_rescedule(server_t *srv, const event_t *event)
         event->client_id, .command = { PLAYER_DEATH }};
 
     client->inv.food--;
-    send_to_guis(srv, "pni #%hd %hhu %hhu %s\n",
-        srv->cstates.buff[event->client_id].id,
-        client->x, client->y, serialize_inventory(&client->inv));
+    gui_player_get_inventory_handler(srv, event);
     if (!event_heap_push(&srv->events, &new)) {
         perror("Failed to reschedule death event");
         return false;

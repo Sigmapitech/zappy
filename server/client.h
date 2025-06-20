@@ -76,4 +76,14 @@ void send_to_guis(server_t *srv, const char *fmt, ...);
 
 bool handle_team(server_t *srv, client_state_t *client,
     char *split[static COMMAND_WORD_COUNT]);
+
+static inline
+client_state_t *client_from_id(server_t *srv, uint16_t id)
+{
+    for (size_t i = 0; i < srv->cstates.nmemb; i++)
+        if (srv->cstates.buff[i].id == id)
+            return &srv->cstates.buff[i];
+    return nullptr;
+}
+
 #endif /* !CLIENT_H_ */

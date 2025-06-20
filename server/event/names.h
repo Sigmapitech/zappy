@@ -13,4 +13,9 @@
 
     #define STAT_AVAILABLE_SLOTS "Connect_nbr"
 
+    #define GUI_PLAYER_POS "ppo"
+    #define GUI_PLAYER_INV "pin"
+    #define GUI_PLAYER_LVL "plv"
+
+
 #endif
