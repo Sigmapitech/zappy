@@ -2,14 +2,25 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <memory>
 
 #include "Renderer/asset_dir.hpp"
 
 #include "Demeter.hpp"
 
+Dem::Demeter::Time::Time(const SDL2 &sdl2Instance)
+  : last(sdl2Instance.GetTicks64()), current(last)
+{
+}
+
+void Dem::Demeter::Time::Update(const SDL2 &sdl2Instance)
+{
+  last = current;
+  current = sdl2Instance.GetTicks64();
+  delta = (current - last) * 1000.0 / sdl2Instance.GetTicks64();
+}
+
 Dem::Demeter::Demeter(std::unique_ptr<SDL2> renderer, bool debug)
-  : sdl2(std::move(renderer)), glDebug(debug)
+  : sdl2(std::move(renderer)), time(*sdl2), glDebug(debug)
 {
   std::unique_ptr<VertexShader> vertexShader = std::
     make_unique<VertexShader>(ASSET_DIR "/vertexShader.glsl");
@@ -49,11 +60,7 @@ void Dem::Demeter::DebugCallback(
 
 void Dem::Demeter::Update()
 {
-
-  lastTime = currentTime;
-  currentTime = SDL_GetPerformanceCounter();
-  deltaTime =
-    ((currentTime - lastTime) * 1000 / (double)SDL_GetPerformanceFrequency());
+  time.Update(*sdl2);
 
   for (std::shared_ptr<Dem::IEntity> &entity: entityPool)
     entity->Update(*this);
