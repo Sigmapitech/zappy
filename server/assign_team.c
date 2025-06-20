@@ -29,7 +29,7 @@ void send_guis_player_data(server_t *srv, client_state_t *client, size_t egg)
             continue;
         vappend_to_output(srv, &srv->cstates.buff[i],
             "pnw #%d %hhu %hhu %hhu %hhu %s\npin #%d %hhu %hhu %s\nebo #%zu\n",
-            client->id, client->x, client->y, client->orientation,
+            client->id, client->x, client->y, client->orientation + 1,
             client->tier, srv->team_names[client->team_id],
             client->id, client->x, client->y,
             serialize_inventory(&client->inv), egg + 1);
@@ -61,7 +61,7 @@ bool assign_ai_data(server_t *srv, client_state_t *client, size_t team_id)
         (event.timestamp - srv->start_time) / MICROSEC_IN_SEC,
         (event.timestamp - srv->start_time) % MICROSEC_IN_SEC);
     client->team_id = team_id;
-    client->orientation = (rand() & FOUR_MASK) + 1;
+    client->orientation = (rand() & FOUR_MASK);
     client->id = srv->ia_id_counter;
     srv->ia_id_counter++;
     client->inv.food = INITIAL_FOOD_INVENTORY;

@@ -57,8 +57,8 @@ typedef struct {
     resizable_array_t output;
     inventory_t inv;
     uint8_t team_id;
-    uint8_t x;
-    uint8_t y;
+    int8_t x;
+    int8_t y;
     uint8_t tier;
     uint8_t orientation;
     uint16_t id;
@@ -74,8 +74,8 @@ typedef struct {
 typedef struct {
     uint32_t hatch;
     uint8_t team_id;
-    uint8_t x;
-    uint8_t y;
+    int8_t x;
+    int8_t y;
 } egg_t;
 
 // For the next 3 structures, we use a resizable array pattern
