@@ -77,9 +77,11 @@ void event_create(server_t *srv, client_state_t *client,
 {
     uint64_t interval = (time_needed * MICROSEC_IN_SEC) / srv->frequency;
     int idx = client - srv->cstates.buff;
-    event_t event = {.client_id = idx};
+    event_t event = {.client_id = idx, .arg_count = 0 };
 
     memcpy(event.command, split, sizeof(event.command));
+    for (; event.arg_count < COMMAND_WORD_COUNT
+        && event.command[event.arg_count] != nullptr; event.arg_count++);
     if (client->team_id != GRAPHIC_TEAM_ID)
         event.timestamp = get_late_event(srv, client) + interval;
     else

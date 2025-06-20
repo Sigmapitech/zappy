@@ -1,10 +1,7 @@
-#include <stdio.h>
-
 #include "client.h"
 #include "event/handler.h"
 
 #include "event/names.h"
-#include "macro_utils.h"
 
 static
 client_state_t *gui_handler_get_player(server_t *srv, const event_t *event)
@@ -34,9 +31,11 @@ bool gui_player_get_position_handler(server_t *srv, const event_t *event)
             cs->id, cs->x, cs->y, cs->orientation + 1);
         return true;
     }
+    if (event->arg_count != 2)
+        return append_to_output(srv, cs, "sbp\n"), true;
     player = gui_handler_get_player(srv, event);
     if (player == nullptr) {
-        append_to_output(srv, cs, "spb\n");
+        append_to_output(srv, cs, "sbp\n");
         return true;
     }
     vappend_to_output(srv, cs, GUI_PLAYER_POS " #%hu %hhd %hhd %hhu\n",
@@ -53,9 +52,11 @@ bool gui_player_get_level_handler(server_t *srv, const event_t *event)
         send_to_guis(srv, GUI_PLAYER_LVL " #%hu %hhu\n", cs->id, cs->tier);
         return true;
     }
+    if (event->arg_count != 2)
+        return append_to_output(srv, cs, "sbp\n"), true;
     player = gui_handler_get_player(srv, event);
     if (player == nullptr) {
-        append_to_output(srv, cs, "spb\n");
+        append_to_output(srv, cs, "sbp\n");
         return true;
     }
     vappend_to_output(srv, cs,
@@ -74,9 +75,11 @@ bool gui_player_get_inventory_handler(server_t *srv, const event_t *event)
             cs->x, cs->y, serialize_inventory(&cs->inv));
         return true;
     }
+    if (event->arg_count != 2)
+        return append_to_output(srv, cs, "sbp\n"), true;
     player = gui_handler_get_player(srv, event);
     if (player == nullptr) {
-        append_to_output(srv, cs, "spb\n");
+        append_to_output(srv, cs, "sbp\n");
         return true;
     }
     vappend_to_output(srv, cs, GUI_PLAYER_INV " #%hd %hhu %hhu %s\n",

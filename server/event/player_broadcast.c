@@ -29,6 +29,8 @@ bool player_broadcast_handler(server_t *srv, const event_t *event)
 {
     client_state_t *author = srv->cstates.buff + event->client_id;
 
+    if (event->arg_count != 2)
+        return append_to_output(srv, author, "ko\n"), true;
     for (size_t i = 0; i < srv->cstates.nmemb; i++) {
         if (author->id == srv->cstates.buff[i].id)
             continue;
