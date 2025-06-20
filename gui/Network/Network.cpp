@@ -6,6 +6,7 @@
 #include <array>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 
 Network::Network(int port, std::string hostname, std::shared_ptr<API> &data)
@@ -33,12 +34,13 @@ Network::Network(int port, std::string hostname, std::shared_ptr<API> &data)
       "Error: connect failed. Function: RunNetwork, File: Network.cpp");
 
   // Initialize poll structures
-  _pollInFd[0].fd = _fdServer;
-  _pollInFd[0].events = POLLIN;
-  _pollInFd[0].revents = 0;
-  _pollInFd[1].fd = _pipeFdExit[0];
-  _pollInFd[1].events = POLLIN;
-  _pollInFd[1].revents = 0;
+  _pollInFd[0].fd = _pipeFdExit[0];
+  _pollInFd[1].fd = _fdServer;
+  _pollInFd[2].fd = _api->GetInFd();
+  for (pollfd &pollFd: _pollInFd) {
+    pollFd.events = POLLIN;
+    pollFd.revents = 0;
+  }
 
   // Create pipe for thread exit
   if (pipe(_pipeFdExit.data()) == -1)
@@ -61,12 +63,7 @@ Network::~Network()
   close(_pipeFdExit[1]);
 }
 
-void Network::RunNetwork()
-{
-  _networkThread = std::jthread(&Network::RunNetworkInternal, this);
-}
-
-void Network::RunNetworkInternal()
+void Network::ServerHandshake()
 {
   if (poll(_pollInFd.data(), _pollInFd.size(), -1) == -1)
     throw std::runtime_error(
@@ -76,6 +73,16 @@ void Network::RunNetworkInternal()
     Log::info << "Message received: " << Log::cleanString(ReceiveMessage());
 
   SendMessage("GRAPHIC\n");
+}
+
+void Network::RunNetwork()
+{
+  _networkThread = std::jthread(&Network::RunNetworkInternal, this);
+}
+
+void Network::RunNetworkInternal()
+{
+  ServerHandshake();
 
   int i = 0;
   bool isRunning = false;
@@ -84,9 +91,10 @@ void Network::RunNetworkInternal()
       throw std::runtime_error(
         "Error: poll failed. Function: RunNetwork, File: Network.cpp");
 
-    std::cerr << "Polling..." + std::to_string(i++) + "\n";
+    std::cerr << "Poll nb " << i++ << "\n";
 
-    if (_pollInFd[1].revents & POLLIN) {
+    // exit event
+    if (_pollInFd[0].revents & POLLIN) {
       std::array<char, 1> buffer;
       if (read(_pipeFdExit[0], buffer.data(), buffer.size()) == -1)
         throw std::runtime_error(
@@ -95,9 +103,37 @@ void Network::RunNetworkInternal()
       Log::info << "End of network thread requested.";
     }
 
-    if (_pollInFd[0].revents & POLLIN) {
+    // server message
+    if (_pollInFd[1].revents & POLLIN) {
       std::string message = ReceiveMessage();
       _api->ParseManageCommande(message);
+    }
+
+    // network pipe message
+    if (_pollInFd[2].revents & POLLIN) {
+      static std::string leftover;
+      std::string message;
+      std::array<char, 1024> buffer;
+
+      ssize_t bytesRead = read(
+        _api->GetInFd(), buffer.data(), buffer.size() - 1);
+      if (bytesRead < 0)
+        throw std::runtime_error(
+          "Error: read failed. Function: RunNetwork, File: Network.cpp");
+      // all messages are separated by '\n'
+      buffer[bytesRead] = '\0';
+      std::stringstream ss(leftover + std::string(buffer.data(), bytesRead));
+      while (std::getline(ss, message, '\n'))
+        if (!message.empty()) {
+          Log::info
+            << "Message received from pipe: " << Log::cleanString(message);
+          SendMessage(message + "\n");
+        }
+      // if there is still data in the stream, save it for the next iteration
+      // (e.g., if the last message did not end with '\n')
+      leftover.clear();
+      if (!ss.eof())
+        leftover = ss.str().substr(ss.tellg());
     }
   }
 }

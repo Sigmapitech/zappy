@@ -2,14 +2,33 @@
 #include "API/Trantor/Trantor.hpp"
 #include "Utils/Utils.hpp"
 
-#include <cstdlib>
+#include <sys/poll.h>
+#include <unistd.h>
+
 #include <functional>
 #include <iostream>
-#include <mutex>
 #include <sstream>
-#include <stdexcept>
-#include <string>
-#include <vector>
+
+API::API()
+{
+  if (pipe(_pipeFdNetwork.data()) == -1)
+    throw std::runtime_error(
+      "Error: pipe failed, Function: API constructor, File: API.cpp");
+  _pollOutFd[0].fd = _pipeFdNetwork[1];
+  _pollOutFd[0].events = POLLOUT;
+  _pollOutFd[0].revents = 0;
+}
+
+void API::WriteMessage(const std::string &msg)
+{
+  if (poll(_pollOutFd.data(), _pollOutFd.size(), -1) == -1)
+    throw std::runtime_error(
+      "Error: poll failed, Function: WriteMessage, File: API.cpp");
+  // No need to check for POLLOUT here, there is only one fd in _pollOutFd
+  if (write(_pipeFdNetwork[1], msg.c_str(), msg.size()) == -1)
+    throw std::runtime_error(
+      "Error: write failed, Function: WriteMessage, File: API.cpp");
+}
 
 void API::AddEgg(int id, int x, int y)
 {
@@ -24,24 +43,12 @@ void API::DeleteEgg(int id)
   _eggList.erase(id);
 }
 
-std::vector<std::string> API::GetCommand()
-{
-  std::lock_guard<std::mutex> locker(_commandListLocker);
-  return _command;
-}
-
-void API::ClearCommand()
-{
-  std::lock_guard<std::mutex> locker(_commandListLocker);
-  _command.clear();
-}
-
 void API::AskMapSize()
 {
   std::string tmp_command = "msz\n";
 
   std::lock_guard<std::mutex> lock(_commandListLocker);
-  _command.emplace_back(tmp_command);
+  WriteMessage(tmp_command);
 }
 
 void API::AskAllTileContent()
@@ -49,7 +56,7 @@ void API::AskAllTileContent()
   std::string tmp_command = "mct\n";
 
   std::lock_guard<std::mutex> lock(_commandListLocker);
-  _command.emplace_back(tmp_command);
+  WriteMessage(tmp_command);
 }
 
 void API::AskTileContent(int x, int y)
@@ -58,7 +65,7 @@ void API::AskTileContent(int x, int y)
     + std::to_string(y) + "\n";
 
   std::lock_guard<std::mutex> lock(_commandListLocker);
-  _command.emplace_back(tmp_command);
+  WriteMessage(tmp_command);
 }
 
 void API::AskAllTeamName()
@@ -66,7 +73,7 @@ void API::AskAllTeamName()
   std::string tmp_command = "tna\n";
 
   std::lock_guard<std::mutex> lock(_commandListLocker);
-  _command.emplace_back(tmp_command);
+  WriteMessage(tmp_command);
 }
 
 void API::AskAllPlayerPos()
@@ -80,7 +87,7 @@ void API::AskAllPlayerPos()
     for (const Trantor &trantor: teamPlayers) {
       std::lock_guard<std::mutex> lock(_commandListLocker);
       tmp_command = "ppo " + std::to_string(trantor.GetId()) + "\n";
-      _command.emplace_back(tmp_command);
+      WriteMessage(tmp_command);
     }
   }
 }
@@ -90,7 +97,7 @@ void API::AskPlayerPos(int id)
   std::string tmp_command = "ppo " + std::to_string(id) + "\n";
 
   std::lock_guard<std::mutex> lock(_commandListLocker);
-  _command.emplace_back(tmp_command);
+  WriteMessage(tmp_command);
 }
 
 void API::AskAllPlayerLevel()
@@ -104,7 +111,7 @@ void API::AskAllPlayerLevel()
     const auto &teamPlayers = _teams[teamName];
     for (const Trantor &trantor: teamPlayers) {
       tmp_command = "plv " + std::to_string(trantor.GetId()) + "\n";
-      _command.emplace_back(tmp_command);
+      WriteMessage(tmp_command);
     }
   }
 }
@@ -114,7 +121,7 @@ void API::AskPlayerLevel(int id)
   std::string tmp_command = "plv " + std::to_string(id) + "\n";
 
   std::lock_guard<std::mutex> lock(_commandListLocker);
-  _command.emplace_back(tmp_command);
+  WriteMessage(tmp_command);
 }
 
 void API::AskAllPlayerInventory()
@@ -128,7 +135,7 @@ void API::AskAllPlayerInventory()
     const auto &teamPlayers = _teams[teamName];
     for (const Trantor &trantor: teamPlayers) {
       tmp_command = "pin " + std::to_string(trantor.GetId()) + "\n";
-      _command.emplace_back(tmp_command);
+      WriteMessage(tmp_command);
     }
   }
 }
@@ -138,7 +145,7 @@ void API::AskPlayerInventory(int id)
   std::string tmp_command = "pin " + std::to_string(id) + "\n";
 
   std::lock_guard<std::mutex> lock(_commandListLocker);
-  _command.emplace_back(tmp_command);
+  WriteMessage(tmp_command);
 }
 
 void API::ParseManageCommande(std::string &command)

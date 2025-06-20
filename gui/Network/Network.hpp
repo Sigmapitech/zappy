@@ -28,6 +28,11 @@ private:
    */
   void RunNetworkInternal();
 
+  /**
+   * @brief Perform the client handshake with the server.
+   */
+  void ServerHandshake();
+
 public:
   /**
    * @brief Construct a new Network object.
