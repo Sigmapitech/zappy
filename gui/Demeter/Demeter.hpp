@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -62,6 +63,36 @@ namespace Dem {
   public:
     Demeter(std::unique_ptr<SDL2> renderer, bool debug = false);
     ~Demeter();
+
+    void AddEntity(std::shared_ptr<IEntity> entity)
+    {
+      entityPool.push_back(std::move(entity));
+    }
+
+    void DeleteEntity(const std::shared_ptr<IEntity> &entity)
+    {
+      std::ranges::remove(entityPool, entity);
+    }
+
+    void AddTexture(std::shared_ptr<Texture> texture)
+    {
+      texturePool.push_back(std::move(texture));
+    }
+
+    void DeleteTexture(const std::shared_ptr<Texture> &texture)
+    {
+      std::ranges::remove(texturePool, texture);
+    }
+
+    void AddObject3D(std::shared_ptr<Object3D> object)
+    {
+      objectPool.push_back(std::move(object));
+    }
+
+    void DeleteObject3D(const std::shared_ptr<Object3D> &object)
+    {
+      std::ranges::remove(objectPool, object);
+    }
 
     void Run();
   };
