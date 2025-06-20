@@ -1,10 +1,9 @@
 #include <cstdlib>
+#include <exception>
 #include <iostream>
-#include <stdexcept>
-#include <thread>
 
 #include "ArgsParser.hpp"
-#include "Network/Network.hpp"
+#include "Zappy.hpp"
 #include "logging/Logger.hpp"
 
 const std::string GUI_USAGE = {
@@ -28,6 +27,14 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
   }
   std::cout << params;
+
+  Zappy zappy;
+  try {
+    zappy.Run();
+  } catch (const std::exception &e) {
+    Log::warn << "Runtime warn: " << e.what();
+    return EXIT_TEK_FAILURE;
+  }
 
   /*
   Network networkClass(params.GetPort(), params.GetHost());
