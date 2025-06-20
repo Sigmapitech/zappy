@@ -4,14 +4,15 @@
 #include "API/TileMap/Tilemap.hpp"
 #include "API/Trantor/Trantor.hpp"
 
-#include <map>
+#include <sys/poll.h>
+
+#include <array>
 #include <mutex>
-#include <string>
-#include <vector>
 
 class API {
 private:
-  std::vector<std::string> _command;
+  std::array<int, 2> _pipeFdNetwork;
+  std::array<struct pollfd, 1> _pollOutFd;
   std::mutex _commandListLocker;
 
   Tilemap _tilemap;
@@ -42,8 +43,26 @@ private:
   std::mutex _serverMessageLocker;
 
 public:
-  API() = default;
+  API();
   ~API() = default;
+
+  /**
+   * @brief Write a message to the network pipe
+   *
+   * @param msg Contain the message to send
+   */
+  void WriteMessage(const std::string &msg);
+
+  /**
+   * @brief Retrieves the input file descriptor for the network pipe
+   *
+   * @return The file descriptor associated with the input end of the network
+   * pipe
+   */
+  [[nodiscard]] int GetInFd() const
+  {
+    return _pipeFdNetwork[0];
+  }
 
   /**
    * @brief Create an egg to store it into _eggList
@@ -60,13 +79,6 @@ public:
    * @param id Contain the id of the deleted egg
    */
   void DeleteEgg(int id);
-
-  /**
-   * @brief Get the command list
-   *
-   * @return std::vector<std::string>
-   */
-  std::vector<std::string> GetCommand();
 
   /**
    * @brief Clear the command list
