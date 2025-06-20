@@ -37,5 +37,7 @@ bool player_broadcast_handler(server_t *srv, const event_t *event)
             get_relative_sound_direction(srv, author, &srv->cstates.buff[i]),
             event->command[1]);
     }
+    send_to_guis(srv, "pbc #%hd %s\n",
+        srv->cstates.buff[event->client_id].id, event->command[1]);
     return true;
 }
