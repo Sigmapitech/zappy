@@ -24,11 +24,12 @@ int main(int argc, char *argv[])
   if (!params.Parse(argc, argv))
     return EXIT_TEK_FAILURE;
   if (params.GetHelp()) {
-    std::cerr << GUI_USAGE;
+    std::cout << GUI_USAGE;
     return EXIT_SUCCESS;
   }
   std::cout << params;
 
+  /*
   Network networkClass(params.GetPort(), params.GetHost());
   Log::info << "Network started.";
   try {
@@ -37,6 +38,6 @@ int main(int argc, char *argv[])
     Log::warn << "Runtime warn: " << e.what();
     return EXIT_FAILURE;
   }
-  // std::jthread ui_thread(Display::run_display);
+  */
   return EXIT_SUCCESS;
 }
