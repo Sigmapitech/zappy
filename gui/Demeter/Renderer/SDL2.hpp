@@ -3,11 +3,12 @@
 #include <memory>
 #include <stdexcept>
 
+#include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_surface.h>
 
-#include <GL/glew.h>
+#include "SDL_timer.h"
 
 /**
  * @brief SDL2 wrapper class for managing SDL2 window, OpenGL context, and
@@ -100,6 +101,22 @@ public:
   {
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  }
+
+  /**
+   * @brief Retrieves the number of milliseconds since the SDL library
+   * initialization.
+   *
+   * This function returns the number of milliseconds, as a 64-bit unsigned
+   * integer, that have elapsed since the SDL library was initialized. It is a
+   * wrapper around SDL_GetTicks64(), providing higher precision and avoiding
+   * overflow issues present in the 32-bit version.
+   *
+   * @return The number of milliseconds since SDL initialization as a Uint64.
+   */
+  [[nodiscard]] Uint64 GetTicks64() const  // NOLINT
+  {
+    return SDL_GetTicks64();
   }
 
   /**
