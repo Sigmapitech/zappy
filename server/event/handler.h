@@ -22,4 +22,6 @@ bool player_move_forward_handler(server_t *srv, const event_t *event);
 bool player_turn_left_handler(server_t *srv, const event_t *event);
 bool player_turn_right_handler(server_t *srv, const event_t *event);
 
+bool stat_available_slot_handler(server_t *srv, const event_t *event);
+
 #endif /* !HANDLER_H_ */

@@ -20,6 +20,7 @@ static const struct command_handler_s COMMAND_HANDLERS[] = {
     { PLAYER_FORWARD, player_move_forward_handler },
     { PLAYER_LEFT, player_turn_left_handler },
     { PLAYER_RIGHT, player_turn_right_handler },
+    { STAT_AVAILABLE_SLOTS, stat_available_slot_handler },
     // Add more command handlers here as needed
 };
 
