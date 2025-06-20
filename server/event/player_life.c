@@ -29,13 +29,9 @@ static bool death_rescedule(server_t *srv, const event_t *event)
         event->client_id, .command = { PLAYER_DEATH }};
 
     client->inv.food--;
-    for (size_t i = 0; i < srv->cstates.nmemb; i++) {
-        if (srv->cstates.buff[i].team_id != GRAPHIC_TEAM_ID)
-            continue;
-        vappend_to_output(srv, &srv->cstates.buff[i], "pni #%d %hhu %hhu %s\n",
-            client->id, client->x, client->y,
-            serialize_inventory(&client->inv));
-    }
+    send_to_guis(srv, "pni #%hd %hhu %hhu %s\n",
+        srv->cstates.buff[event->client_id].id,
+        client->x, client->y, serialize_inventory(&client->inv));
     if (!event_heap_push(&srv->events, &new)) {
         perror("Failed to reschedule death event");
         return false;
@@ -51,12 +47,7 @@ bool player_death_handler(server_t *srv, const event_t *event)
         return death_rescedule(srv, event);
     append_to_output(srv, client, "dead\n");
     write_client(srv, event->client_id + 1);
-    for (size_t i = 0; i < srv->cstates.nmemb; i++) {
-        if (srv->cstates.buff[i].team_id != GRAPHIC_TEAM_ID)
-            continue;
-        vappend_to_output(srv, &srv->cstates.buff[i], "pdi #%d\n",
-            srv->cstates.buff[event->client_id].id);
-    }
+    send_to_guis(srv, "pdi #%hd\n", srv->cstates.buff[event->client_id].id);
     remove_client(srv, event->client_id + 1);
     return true;
 }

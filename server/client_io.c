@@ -130,17 +130,16 @@ static void fill_and_append(
     buffer[size] = '\0';
     append_to_output(data->srv, data->client, buffer);
 }
-#pragma clang diagnostic pop
 
 void vappend_to_output(server_t *srv,
     client_state_t *client, const char *fmt, ...)
 {
-        va_list args;
-        int size;
-        struct network_data_s data = {srv, client};
+    va_list args;
+    int size;
+    struct network_data_s data = {srv, client};
 
-        va_start(args, fmt);
-        size = compute_formatted_size(fmt, args);
+    va_start(args, fmt);
+    size = compute_formatted_size(fmt, args);
     if (size < 0) {
         perror("vsnprintf failed to compute size");
         va_end(args);
@@ -149,3 +148,19 @@ void vappend_to_output(server_t *srv,
     fill_and_append(&data, (size_t)size, fmt, args);
     va_end(args);
 }
+
+// TODO: Improve this function by splitting GUI team into its own v-array
+void send_to_guis(server_t *srv, const char *fmt, ...)
+{
+    va_list args;
+    int size;
+    static char buff[BUFFER_SIZE] = {};
+
+    va_start(args, fmt);
+    size = compute_formatted_size(fmt, args);
+    vsnprintf(buff, size + 1, fmt, args);
+    for (size_t i = 0; i < srv->cstates.nmemb; i++)
+        if (srv->cstates.buff[i].team_id == GRAPHIC_TEAM_ID)
+            append_to_output(srv, &srv->cstates.buff[i], buff);
+}
+#pragma clang diagnostic pop
