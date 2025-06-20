@@ -1,27 +1,27 @@
 #pragma once
 
-#include "API/API.hpp"
-
 #include <arpa/inet.h>
-#include <array>
-#include <cstring>
-#include <memory>
-#include <netinet/in.h>
-#include <poll.h>
-#include <string>
 #include <sys/poll.h>
 #include <sys/socket.h>
+
+#include "API/API.hpp"
+
+#include <array>
+#include <memory>
+#include <string>
 #include <thread>
-#include <unistd.h>
 
 class Network {
 private:
   int _port;
   const std::string _hostname;
+  sockaddr_in serverAddr;
   int _fdServer;
   std::shared_ptr<API> _api = nullptr;
   std::jthread _networkThread;
-  std::array<int, 2> pipefd;
+  std::array<int, 2> _pipeFdExit;
+  std::array<pollfd, 3> _pollInFd;
+  std::array<pollfd, 1> _pollOutFd;
 
   /**
    * @brief Run the network of the client.
@@ -48,7 +48,7 @@ public:
    *
    * @param msg Contain the message to send.
    */
-  void SendMessage(std::string &msg) const;
+  void SendMessage(const std::string &msg);
 
   /**
    * @brief Receive a message from the server.
