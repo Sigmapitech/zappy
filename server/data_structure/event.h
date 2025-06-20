@@ -34,6 +34,7 @@ bool command_split(char *buff, char *argv[static COMMAND_WORD_COUNT],
 typedef struct {
     uint64_t timestamp; // Timestamp of the event in milliseconds
     int client_id; // ID of the client that triggered the event
+    uint8_t arg_count;
     union {
         char *command[COMMAND_WORD_COUNT]; // Command words for the event
         char *action[COMMAND_WORD_COUNT]; // Action words for the event

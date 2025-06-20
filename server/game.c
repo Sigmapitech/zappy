@@ -41,8 +41,10 @@ static
 bool (*find_handler(const char *command))(server_t *, const event_t *)
 {
     for (size_t i = 0; i < COMMAND_HANDLERS_COUNT; i++)
-        if (!strcmp(COMMAND_HANDLERS[i].name, command))
+        if (!strcmp(COMMAND_HANDLERS[i].name, command)) {
+            DEBUG("=> %s", COMMAND_HANDLERS[i].name);
             return COMMAND_HANDLERS[i].handler;
+        }
     return nullptr;
 }
 
