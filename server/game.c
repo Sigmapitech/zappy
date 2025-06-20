@@ -50,19 +50,18 @@ void server_process_events(server_t *srv)
 
     if (event == nullptr)
         return;
-    for (; event != nullptr && event->timestamp < get_timestamp();) {
-        handler = find_handler(event->command[0]);
-        if (handler == nullptr) {
-            default_handler(srv, event);
-            event_heap_pop(&srv->events);
-            continue;
-        }
+    for (; event != nullptr && event->timestamp < get_timestamp();
+            event_heap_pop(&srv->events)) {
         if (event->client_id != EVENT_SERVER_ID
             && srv->cstates.buff[event->client_id].fd < 0)
             continue;
+        handler = find_handler(event->command[0]);
+        if (handler == nullptr) {
+            default_handler(srv, event);
+            continue;
+        }
         if (!handler(srv, event))
             DEBUG("Event handler failed for command [%s] from client %d",
                 event->command[0], event->client_id);
-        event_heap_pop(&srv->events);
     }
 }
