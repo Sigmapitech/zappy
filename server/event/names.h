@@ -3,5 +3,6 @@
 
     #define METEOR "M"
     #define PLAYER_DEATH "PD"
+    #define PLAYER_INVENTORY "Inventory"
 
 #endif
