@@ -28,4 +28,7 @@ bool gui_player_get_position_handler(server_t *srv, const event_t *event);
 bool gui_player_get_level_handler(server_t *srv, const event_t *event);
 bool gui_player_get_inventory_handler(server_t *srv, const event_t *event);
 
+bool gui_time_get_handler(server_t *srv, const event_t *event);
+bool gui_time_set_handler(server_t *srv, const event_t *event);
+
 #endif /* !HANDLER_H_ */

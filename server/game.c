@@ -24,6 +24,8 @@ static const struct command_handler_s COMMAND_HANDLERS[] = {
     { GUI_PLAYER_INV, gui_player_get_inventory_handler },
     { GUI_PLAYER_LVL, gui_player_get_level_handler },
     { GUI_PLAYER_POS, gui_player_get_position_handler },
+    { GUI_TIME_SET, gui_time_set_handler, },
+    { GUI_TIME_GET, gui_time_get_handler, },
     // Add more command handlers here as needed
 };
 

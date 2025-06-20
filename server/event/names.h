@@ -17,5 +17,7 @@
     #define GUI_PLAYER_INV "pin"
     #define GUI_PLAYER_LVL "plv"
 
+    #define GUI_TIME_GET "sgt"
+    #define GUI_TIME_SET "sst"
 
 #endif
