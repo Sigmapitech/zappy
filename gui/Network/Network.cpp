@@ -3,17 +3,26 @@
 
 #include <arpa/inet.h>
 #include <array>
+#include <memory>
 #include <netinet/in.h>
 #include <poll.h>
 #include <stdexcept>
+#include <string>
 #include <sys/poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <vector>
 
-Network::Network(int port, const std::string &hostname)
-  : _port(port), _hostname(hostname)
+#include <iostream>
+
+Network::Network(int port, std::string hostname, std::shared_ptr<API> &data)
+  : _port(port), _hostname(std::move(hostname))
 {
+  pipe(pipefd.data());
+
+  if (!data)
+    throw std::
+      runtime_error("Error: api, Function: Network, File: Network.cpp");
+  _api = data;
   _fdServer = socket(AF_INET, SOCK_STREAM, 0);
   if (_fdServer < 0) {
     throw std::
@@ -21,7 +30,18 @@ Network::Network(int port, const std::string &hostname)
   }
 }
 
+Network::~Network()
+{
+  close(pipefd[0]);
+  close(pipefd[1]);
+}
+
 void Network::RunNetwork()
+{
+  _networkThread = std::jthread(&Network::RunNetworkInternal, this);
+}
+
+void Network::RunNetworkInternal()
 {
   sockaddr_in serverAddr{};
   serverAddr.sin_family = AF_INET;
@@ -41,10 +61,13 @@ void Network::RunNetwork()
   }
 
   bool end = false;
-  std::array<struct pollfd, 1> pollFd;
+  std::array<struct pollfd, 2> pollFd;
   pollFd[0].fd = _fdServer;
   pollFd[0].events = POLLIN | POLLOUT;
   pollFd[0].revents = 0;
+  pollFd[1].fd = pipefd[0];
+  pollFd[1].events = POLLIN;
+  pollFd[1].revents = 0;
 
   if (poll(pollFd.data(), 1, -1) == -1)
     throw std::runtime_error(
@@ -58,21 +81,37 @@ void Network::RunNetwork()
     SendMessage(msg);
   }
 
+  int i = 0;
   while (!end) {
     if (poll(pollFd.data(), 1, -1) == -1)
       throw std::runtime_error(
         "Error: poll failed. Function: RunNetwork, File: Network.cpp");
 
+    std::cerr << "Polling..." + std::to_string(i++) + "\n";
+
+    if (pollFd[1].revents & POLLIN) {
+      std::array<char, 1> buffer;
+      if (read(pipefd[0], buffer.data(), buffer.size()) == -1)
+        throw std::runtime_error(
+          "Error: read failed. Function: RunNetwork, File: Network.cpp");
+      end = true;
+      Log::info << "End of network thread requested.";
+    }
+
     if (pollFd[0].revents & POLLIN) {
       std::string message = ReceiveMessage();
-      api.ParseManageCommande(message);
+      _api->ParseManageCommande(message);
     }
     if (pollFd[0].revents & POLLOUT) {
-      for (std::string command: api.GetCommand())
+      for (std::string command: _api->GetCommand())
         SendMessage(command);
-      api.ClearCommand();
+      _api->ClearCommand();
     }
+
+    for (auto &fd: pollFd)
+      fd.revents = 0;  // Reset revents for the next poll
   }
+  close(_fdServer);
 }
 
 void Network::SendMessage(std::string &msg) const
@@ -105,4 +144,11 @@ std::string Network::ReceiveMessage() const
   }
 
   return std::string(buffer.begin(), buffer.end());
+}
+
+void Network::RequestStop()
+{
+  std::cerr << "Requesting stop of network thread.\n";
+  _networkThread.request_stop();
+  write(pipefd[1], "x", 1);
 }
