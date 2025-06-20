@@ -21,6 +21,9 @@ static const struct command_handler_s COMMAND_HANDLERS[] = {
     { PLAYER_LEFT, player_turn_left_handler },
     { PLAYER_RIGHT, player_turn_right_handler },
     { STAT_AVAILABLE_SLOTS, stat_available_slot_handler },
+    { GUI_PLAYER_INV, gui_player_get_inventory_handler },
+    { GUI_PLAYER_LVL, gui_player_get_level_handler },
+    { GUI_PLAYER_POS, gui_player_get_position_handler },
     // Add more command handlers here as needed
 };
 
