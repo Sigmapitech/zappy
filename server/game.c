@@ -16,7 +16,10 @@ static const struct command_handler_s COMMAND_HANDLERS[] = {
     { METEOR, meteor_handler },
     { PLAYER_DEATH, player_death_handler },
     { PLAYER_INVENTORY, player_inventory_handler },
-    { PLAYER_BROADCAST, player_broadcast_handler }
+    { PLAYER_BROADCAST, player_broadcast_handler },
+    { PLAYER_FORWARD, player_move_forward_handler },
+    { PLAYER_LEFT, player_turn_left_handler },
+    { PLAYER_RIGHT, player_turn_right_handler },
     // Add more command handlers here as needed
 };
 

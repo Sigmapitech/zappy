@@ -18,4 +18,8 @@ bool player_death_handler(server_t *srv, const event_t *event);
 bool player_inventory_handler(server_t *srv, const event_t *event);
 bool player_broadcast_handler(server_t *srv, const event_t *event);
 
+bool player_move_forward_handler(server_t *srv, const event_t *event);
+bool player_turn_left_handler(server_t *srv, const event_t *event);
+bool player_turn_right_handler(server_t *srv, const event_t *event);
+
 #endif /* !HANDLER_H_ */

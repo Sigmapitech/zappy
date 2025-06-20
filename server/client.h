@@ -3,6 +3,13 @@
 
     #include "server.h"
 
+typedef enum {
+    OR_NORTH = 0,
+    OR_EAST = 1,
+    OR_SOUTH = 2,
+    OR_WEST = 3,
+} orientation_t;
+
 /**
  * @brief Invalid team ID.
  *

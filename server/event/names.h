@@ -7,4 +7,8 @@
     #define PLAYER_INVENTORY "Inventory"
     #define PLAYER_BROADCAST "Broadcast"
 
+    #define PLAYER_LEFT "Left"
+    #define PLAYER_RIGHT "Right"
+    #define PLAYER_FORWARD "Forward"
+
 #endif

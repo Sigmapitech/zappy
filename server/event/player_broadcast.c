@@ -20,7 +20,7 @@ int get_relative_sound_direction(
     if (dx == 0 && dy == 0)
         return 0;
     rel_angle = fmod(
-        (((double)receiver->orientation * M_PI_2)
+        (((double)(receiver->orientation + 1) * M_PI_2)
         - atan2(-dy, dx) + (2 * M_PI)), (2 * M_PI));
     return (int)fmod((rel_angle / M_PI_4), 8);
 }
