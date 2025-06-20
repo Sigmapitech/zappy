@@ -31,4 +31,8 @@ bool gui_player_get_inventory_handler(server_t *srv, const event_t *event);
 bool gui_time_get_handler(server_t *srv, const event_t *event);
 bool gui_time_set_handler(server_t *srv, const event_t *event);
 
+bool gui_map_size_handler(server_t *srv, const event_t *event);
+bool gui_map_content_handler(server_t *srv, const event_t *event);
+bool gui_team_names_handler(server_t *srv, const event_t *event);
+
 #endif /* !HANDLER_H_ */

@@ -20,4 +20,8 @@
     #define GUI_TIME_GET "sgt"
     #define GUI_TIME_SET "sst"
 
+    #define GUI_MAP_SIZE "msz"
+    #define GUI_MAP_CONTENT "mct"
+    #define GUI_TEAM_NAMES "tna"
+
 #endif

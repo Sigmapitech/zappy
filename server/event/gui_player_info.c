@@ -63,17 +63,6 @@ bool gui_player_get_level_handler(server_t *srv, const event_t *event)
     return true;
 }
 
-static
-char *serialize_inventory(inventory_t *inv)
-{
-    static char buffer[RES_COUNT * (SSTR_LEN(XCAT(INT_MAX)) + 1)];
-
-    snprintf(buffer, sizeof(buffer), "%u %u %u %u %u %u %u",
-        inv->food, inv->linemate, inv->deraumere, inv->sibur,
-        inv->mendiane, inv->phiras, inv->thystame);
-    return buffer;
-}
-
 bool gui_player_get_inventory_handler(server_t *srv, const event_t *event)
 {
     client_state_t *cs = &srv->cstates.buff[event->client_id];
