@@ -41,10 +41,8 @@ static
 bool (*find_handler(const char *command))(server_t *, const event_t *)
 {
     for (size_t i = 0; i < COMMAND_HANDLERS_COUNT; i++)
-        if (!strcmp(COMMAND_HANDLERS[i].name, command)) {
-            DEBUG("=> %s", COMMAND_HANDLERS[i].name);
+        if (!strcmp(COMMAND_HANDLERS[i].name, command))
             return COMMAND_HANDLERS[i].handler;
-        }
     return nullptr;
 }
 
@@ -68,14 +66,11 @@ void default_handler(server_t *srv, const event_t *event)
 void server_process_events(server_t *srv)
 {
     bool (*handler)(server_t *, const event_t *);
-    const event_t *event = event_heap_peek(&srv->events);
 
-    if (event == nullptr)
-        return;
-    for (; event != nullptr && event->timestamp < get_timestamp();
-            event_heap_pop(&srv->events)) {
-        if (event->client_id != EVENT_SERVER_ID
-            && srv->cstates.buff[event->client_id].fd < 0)
+    for (const event_t *event = event_heap_peek(&srv->events)
+        ; event != nullptr && event->timestamp < get_timestamp()
+        ; event_heap_pop(&srv->events)) {
+        if (event->client_id == CLIENT_DEAD)
             continue;
         handler = find_handler(event->command[0]);
         if (handler == nullptr) {

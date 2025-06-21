@@ -33,7 +33,6 @@ bool player_death_handler(server_t *srv, const event_t *event)
         return death_rescedule(srv, event);
     append_to_output(srv, client, "dead\n");
     write_client(srv, event->client_id + 1);
-    send_to_guis(srv, "pdi #%hd\n", srv->cstates.buff[event->client_id].id);
     remove_client(srv, event->client_id + 1);
     return true;
 }

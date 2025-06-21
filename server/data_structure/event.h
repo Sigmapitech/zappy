@@ -15,6 +15,9 @@ static constexpr const int COMMAND_WORD_COUNT = 5;
  *
  */
 static constexpr const int EVENT_SERVER_ID = -1;
+
+constexpr const int CLIENT_DEAD = -2;
+
 /**
  * @brief Splits a command string into words.
  *
