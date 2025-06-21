@@ -7,7 +7,7 @@ LD := $(CC)
 AR ?= ar
 RM ?= rm --force
 
-CFLAGS := -std=c2x
+CFLAGS := -std=c2x -iquote $/server
 
 CXXFLAGS := -std=c++20
 CXXFLAGS += -iquote $/libs -iquote $/include
@@ -27,7 +27,7 @@ CXXFLAGS_cov := --coverage -g3
 CFLAGS_tests := --coverage -g3
 CXXFLAGS_tests := --coverage -g3
 
-LDLIBS :=
+LDLIBS := -lm
 LDFLAGS :=
 
 MAKEFLAGS += --no-builtin-rules

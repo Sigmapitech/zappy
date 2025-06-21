@@ -76,6 +76,10 @@
 
           server = pypkgs.callPackage ./nix/zappy-server.nix {};
 
+          server-debug = pkgs'.server.override {debugServer = true;};
+
+          runner = pypkgs.callPackage ./nix/runner.nix {};
+
           default = pkgs.symlinkJoin {
             name = "zappy";
             paths = with pkgs'; [
