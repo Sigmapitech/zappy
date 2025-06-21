@@ -22,6 +22,7 @@
 
     #define GUI_MAP_SIZE "msz"
     #define GUI_MAP_CONTENT "mct"
+    #define GUI_TILE_CONTENT "bct"
     #define GUI_TEAM_NAMES "tna"
 
 #endif
