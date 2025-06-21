@@ -28,6 +28,7 @@ static const struct command_handler_s COMMAND_HANDLERS[] = {
     { GUI_TIME_GET, gui_time_get_handler, },
 
     { GUI_MAP_SIZE, gui_map_size_handler },
+    { GUI_TILE_CONTENT, gui_tile_content_handler },
     { GUI_MAP_CONTENT, gui_map_content_handler },
     { GUI_TEAM_NAMES, gui_team_names_handler },
     // Add more command handlers here as needed
