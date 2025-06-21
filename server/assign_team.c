@@ -53,6 +53,7 @@ bool assign_ai_data(server_t *srv, client_state_t *client, size_t team_id)
     client->id = srv->ia_id_counter;
     srv->ia_id_counter++;
     client->inv.food = INITIAL_FOOD_INVENTORY;
+    client->tier = 1;
     if (!event_heap_push(&srv->events, &event)) {
         srv->is_running = false;
         return false;
