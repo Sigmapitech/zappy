@@ -61,3 +61,14 @@ void Trantor::IsTrantorLaying(bool state)
 {
   _isLaying = state;
 }
+
+int Trantor::GetRotation() const
+{
+  return _orientation;
+}
+
+void Trantor::AddPosition(int x, int y)
+{
+  _position.first += x;
+  _position.second += y;
+}
