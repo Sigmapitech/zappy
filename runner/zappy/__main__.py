@@ -37,6 +37,7 @@ def parse_args() -> argparse.Namespace:
         .add_arg("--local-gui", action="store_true")
         .add_arg("--local-server", action="store_true")
         .add_arg("--server-debug", action="store_true")
+        .add_arg("--use-basic-team-names", action="store_true")
         .parse_args()
     )
 
