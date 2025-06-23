@@ -62,6 +62,8 @@ Network::Network(int port, std::string hostname, std::shared_ptr<API> &data)
 
 Network::~Network()
 {
+  _networkThread.join();  // wait for the network thread to finish
+
   shutdown(_fdServer, SHUT_RDWR);  // shut both end read and write
   read(_fdServer, nullptr, 0);     // clear buffer
   close(_fdServer);                // close socket
@@ -84,7 +86,7 @@ void Network::ServerHandshake()
 
 void Network::RunNetwork()
 {
-  _networkThread = std::jthread(&Network::RunNetworkInternal, this);
+  _networkThread = std::thread(&Network::RunNetworkInternal, this);
 }
 
 void Network::RunNetworkInternal()
@@ -94,7 +96,7 @@ void Network::RunNetworkInternal()
   int i = 0;
   bool isRunning = true;
   while (isRunning) {
-    if (poll(_pollInFd.data(), 1, -1) == -1)
+    if (poll(_pollInFd.data(), _pollInFd.size(), -1) == -1)
       throw std::runtime_error(
         "Error: poll failed. Function: RunNetwork, File: Network.cpp");
 
@@ -103,8 +105,8 @@ void Network::RunNetworkInternal()
     // exit event
     if (_pollInFd[FD_PIPE_EXIT].revents & POLLIN) {
       std::cerr << "Exit event received.\n";
-      std::array<char, 1> buffer;
-      if (read(_pipeFdExit[FD_EXIT_IN], buffer.data(), buffer.size()) == -1)
+      std::array<char, 10> buffer;
+      if (read(_pollInFd[FD_PIPE_EXIT].fd, buffer.data(), buffer.size()) == -1)
         throw std::runtime_error(
           "Error: read failed. Function: RunNetwork, File: Network.cpp");
       isRunning = false;
@@ -187,6 +189,5 @@ std::string Network::ReceiveMessage() const
 void Network::RequestStop()
 {
   std::cerr << "Requesting stop of network thread.\n";
-  _networkThread.request_stop();
   write(_pipeFdExit[FD_EXIT_OUT], "x", 1);
 }
