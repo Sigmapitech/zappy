@@ -140,7 +140,7 @@ namespace Dem {
     void Draw();
 
   public:
-    Demeter(std::unique_ptr<SDL2> renderer, bool debug = false);
+    Demeter(std::unique_ptr<SDL2> renderer, bool activateDebug = false);
     ~Demeter() = default;
 
     void AddEntity(std::shared_ptr<IEntity> entity)

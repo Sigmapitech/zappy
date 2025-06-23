@@ -19,8 +19,8 @@ void Dem::Demeter::Time::Update(const SDL2 &sdl2Instance)
   delta = (current - last) * 1000.0 / sdl2Instance.GetTicks64();
 }
 
-Dem::Demeter::Demeter(std::unique_ptr<SDL2> renderer, bool debug)
-  : sdl2(std::move(renderer)), time(*sdl2), glDebug(debug)
+Dem::Demeter::Demeter(std::unique_ptr<SDL2> renderer, bool activateDebug)
+  : sdl2(std::move(renderer)), time(*sdl2), glDebug(activateDebug)
 {
   std::unique_ptr<VertexShader> vertexShader = std::
     make_unique<VertexShader>(ASSET_DIR "/vertexShader.glsl");
