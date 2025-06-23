@@ -9,6 +9,13 @@
 #include <sstream>
 #include <stdexcept>
 
+constexpr int FD_PIPE_EXIT = 0;
+constexpr int FD_SERVER_IN = 1;
+constexpr int FD_PIPE_NETWORK = 2;
+constexpr int FD_EXIT_IN = 0;
+constexpr int FD_EXIT_OUT = 1;
+constexpr int FD_SERVER_OUT = 0;
+
 Network::Network(int port, std::string hostname, std::shared_ptr<API> &data)
   : _port(port), _hostname(std::move(hostname)), _api(data)
 {
@@ -33,24 +40,24 @@ Network::Network(int port, std::string hostname, std::shared_ptr<API> &data)
     throw std::runtime_error(
       "Error: connect failed. Function: RunNetwork, File: Network.cpp");
 
-  // Initialize poll structures
-  _pollInFd[0].fd = _pipeFdExit[0];
-  _pollInFd[1].fd = _fdServer;
-  _pollInFd[2].fd = _api->GetInFd();
-  for (pollfd &pollFd: _pollInFd) {
-    pollFd.events = POLLIN;
-    pollFd.revents = 0;
-  }
-
   // Create pipe for thread exit
   if (pipe(_pipeFdExit.data()) == -1)
     throw std::runtime_error(
       "Error: pipe failed. Function: Network, File: Network.cpp");
 
+  // Initialize poll structures
+  _pollInFd[FD_PIPE_EXIT].fd = _pipeFdExit[FD_EXIT_IN];
+  _pollInFd[FD_SERVER_IN].fd = _fdServer;
+  _pollInFd[FD_PIPE_NETWORK].fd = _api->GetInFd();
+  for (pollfd &pollFd: _pollInFd) {
+    pollFd.events = POLLIN;
+    pollFd.revents = 0;
+  }
+
   // Initialize pollOutFd for sending messages
-  _pollOutFd[0].events = POLLOUT;
-  _pollOutFd[0].fd = _fdServer;
-  _pollOutFd[0].revents = 0;
+  _pollOutFd[FD_SERVER_OUT].events = POLLOUT;
+  _pollOutFd[FD_SERVER_OUT].fd = _fdServer;
+  _pollOutFd[FD_SERVER_OUT].revents = 0;
 }
 
 Network::~Network()
@@ -59,8 +66,8 @@ Network::~Network()
   read(_fdServer, nullptr, 0);     // clear buffer
   close(_fdServer);                // close socket
 
-  close(_pipeFdExit[0]);
-  close(_pipeFdExit[1]);
+  close(_pipeFdExit[FD_EXIT_IN]);   // close the read end of the pipe
+  close(_pipeFdExit[FD_EXIT_OUT]);  // close the write end of the pipe
 }
 
 void Network::ServerHandshake()
@@ -69,7 +76,7 @@ void Network::ServerHandshake()
     throw std::runtime_error(
       "Error: poll failed. Function: RunNetwork, File: Network.cpp");
 
-  if (_pollInFd[0].revents & POLLIN)
+  if (_pollInFd[FD_SERVER_IN].revents & POLLIN)
     Log::info << "Message received: " << Log::cleanString(ReceiveMessage());
 
   SendMessage("GRAPHIC\n");
@@ -85,8 +92,8 @@ void Network::RunNetworkInternal()
   ServerHandshake();
 
   int i = 0;
-  bool isRunning = false;
-  while (!isRunning) {
+  bool isRunning = true;
+  while (isRunning) {
     if (poll(_pollInFd.data(), 1, -1) == -1)
       throw std::runtime_error(
         "Error: poll failed. Function: RunNetwork, File: Network.cpp");
@@ -94,23 +101,26 @@ void Network::RunNetworkInternal()
     std::cerr << "Poll nb " << i++ << "\n";
 
     // exit event
-    if (_pollInFd[0].revents & POLLIN) {
+    if (_pollInFd[FD_PIPE_EXIT].revents & POLLIN) {
+      std::cerr << "Exit event received.\n";
       std::array<char, 1> buffer;
-      if (read(_pipeFdExit[0], buffer.data(), buffer.size()) == -1)
+      if (read(_pipeFdExit[FD_EXIT_IN], buffer.data(), buffer.size()) == -1)
         throw std::runtime_error(
           "Error: read failed. Function: RunNetwork, File: Network.cpp");
-      isRunning = true;
+      isRunning = false;
       Log::info << "End of network thread requested.";
     }
 
     // server message
-    if (_pollInFd[1].revents & POLLIN) {
+    if (_pollInFd[FD_SERVER_IN].revents & POLLIN) {
+      std::cerr << "Server message received.\n";
       std::string message = ReceiveMessage();
       _api->ParseManageCommande(message);
     }
 
     // network pipe message
-    if (_pollInFd[2].revents & POLLIN) {
+    if (_pollInFd[FD_PIPE_NETWORK].revents & POLLIN) {
+      std::cerr << "Network pipe message received.\n";
       static std::string leftover;
       std::string message;
       std::array<char, 1024> buffer;
@@ -178,5 +188,5 @@ void Network::RequestStop()
 {
   std::cerr << "Requesting stop of network thread.\n";
   _networkThread.request_stop();
-  write(_pipeFdExit[1], "x", 1);
+  write(_pipeFdExit[FD_EXIT_OUT], "x", 1);
 }
