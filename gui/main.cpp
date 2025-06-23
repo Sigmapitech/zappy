@@ -1,11 +1,9 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <memory>
 #include <unistd.h>
 
 #include "ArgsParser.hpp"
-#include "Network/Network.hpp"
 #include "Zappy.hpp"
 #include "logging/Logger.hpp"
 
@@ -21,10 +19,8 @@ static constexpr const int EXIT_TEK_FAILURE = 84;
 [[gnu::weak]]
 int main(int argc, char *argv[])
 {
-  std::shared_ptr<API> data = std::make_shared<API>();
   Args params;
 
-  Log::info << "GUI started.";
   if (!params.Parse(argc, argv))
     return EXIT_TEK_FAILURE;
   if (params.GetHelp()) {
@@ -34,14 +30,10 @@ int main(int argc, char *argv[])
   std::cout << params;
 
   try {
-    Network networkClass(params.GetPort(), params.GetHost(), data);
-    Log::info << "Network started.";
-    networkClass.RunNetwork();
-    Zappy zappy(data);
+    Zappy zappy(params);
     zappy.Run();
-    networkClass.RequestStop();
   } catch (const std::exception &e) {
-    Log::warn << "Runtime warn: " << e.what();
+    Log::failed << "Runtime error: " << e.what();
     return EXIT_TEK_FAILURE;
   }
 
