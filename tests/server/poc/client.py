@@ -1,62 +1,64 @@
-import asyncio
-import codecs
+import socket
+import select
+import sys
+import signal
+import os
 
+HOST = "127.0.0.1"
+PORT = 4242
 
-async def client_input(ftp_ip, ftp_port):
-    writer = None
+def main():
+    def handle_sigint(signum, frame):
+        print("\nDisconnected from server.")
+        sock.close()
+        sys.exit(0)
 
+    signal.signal(signal.SIGINT, handle_sigint)
+
+    # Create non-blocking socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setblocking(False)
     try:
-        # Connection + initial response
-        reader, writer = await asyncio.open_connection(ftp_ip, ftp_port)
-        response = await reader.readline()
-        print(f"-> {response.decode()!r}")
+        sock.connect((HOST, PORT))
+    except BlockingIOError:
+        pass  # Expected for non-blocking connect
 
-        # Team name and first response (2 response in one)
-        team_name = input("<- ")
-        team_name = codecs.decode(team_name, "unicode_escape")
-        writer.write(team_name.encode())
-        await writer.drain()
-        response = await reader.readline()
-        print(f"-> {response.decode()!r}")
-        response = await reader.readline()
-        print(f"-> {response.decode()!r}")
+    # Set stdin to non-blocking
+    fd_stdin = sys.stdin.fileno()
+    os.set_blocking(fd_stdin, False)
 
-        # Main loop for commands
-        while True:
-            cmd = input("<- ")
-            cmd = codecs.decode(cmd, "unicode_escape")
-            writer.write(cmd.encode())
-            await writer.drain()
-            for _ in range(cmd.count("\n")):
-                response = await reader.readline()
-                print(f"-> {response.decode()!r}")
+    poller = select.poll()
+    poller.register(sock, select.POLLIN)
+    poller.register(fd_stdin, select.POLLIN)
 
-    except asyncio.CancelledError:
-        print("Cancelled")
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        if writer is None:
-            return
-        else:
-            writer.close()
-            await writer.wait_closed()
+    print(f"Connected to {HOST}:{PORT}. Press Ctrl+C to quit.")
+    print("> ", end="", flush=True)  # Initial prompt
 
+    while True:
+        events = poller.poll(100)
 
-async def multiple_clients(ftp_ip, ftp_port, n):
-    tasks = (
-        asyncio.create_task(client_input(ftp_ip, ftp_port)) for _ in range(n)
-    )
-    await asyncio.gather(*tasks)
+        for fd, event in events:
+            if fd == sock.fileno():
+                if event & select.POLLIN:
+                    try:
+                        data = sock.recv(4096)
+                        if not data:
+                            print("\nServer closed the connection.")
+                            return
+                        # Clear line and print received data
+                        print("\rReceived:\n", data.decode(), end="")
+                        print("\n> ", end="", flush=True)  # Reprint prompt
+                    except Exception as e:
+                        print("\nRead error:", e)
 
-
-async def main():
-    srv = "127.0.0.1", 4242
-
-    client = asyncio.create_task(client_input(*srv))
-    # await multiple_clients(*srv, 100)
-    await client
-
+            elif fd == fd_stdin:
+                try:
+                    user_input = os.read(fd_stdin, 4096)
+                    if user_input:
+                        sock.sendall(user_input)
+                        print("> ", end="", flush=True)  # Redraw prompt
+                except Exception as e:
+                    print("\nSend error:", e)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
