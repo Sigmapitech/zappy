@@ -12,6 +12,9 @@
     #define PLAYER_RIGHT "Right"
     #define PLAYER_FORWARD "Forward"
 
+    #define PLAYER_TAKE_OBJECT "Take"
+    #define PLAYER_SET_OBJECT "Set"
+
     #define STAT_AVAILABLE_SLOTS "Connect_nbr"
 
     #define GUI_PLAYER_POS "ppo"
