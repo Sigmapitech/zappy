@@ -20,10 +20,12 @@ public:
   ~Trantor() = default;
 
   [[nodiscard]] int GetId() const;
+  [[nodiscard]] int GetRotation() const;
 
   void SetPosition(int x, int y, int orientation);
   void SetPosition(int x, int y);
-  std::pair<int, int> GetPosition();
+  void AddPosition(int x, int y);
+  [[nodiscard]] std::pair<int, int> GetPosition();
 
   void SetLevel(int level);
   void SetInventory(
