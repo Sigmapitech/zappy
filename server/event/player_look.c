@@ -51,7 +51,7 @@ void fill_coords(
 }
 
 static
-uint16_t get_player_on_tile(
+uint16_t count_player_on_tile(
     server_t *srv, int8_t x, int8_t y)
 {
     uint16_t count = 0;
@@ -67,27 +67,48 @@ uint16_t get_player_on_tile(
 }
 
 static
-void serialiaze_tile(
-    server_t *srv, client_state_t *cs, uint8_t coords[][2], size_t idx)
+void serialize_item_on_tite(
+    server_t *srv, client_state_t *cs,
+    uint8_t coords[][2], size_t idx)
 {
     inventory_t *tile = &srv->map[coords[idx][1]][coords[idx][0]];
-    uint16_t players_on_tile =
-        get_player_on_tile(srv, coords[idx][0], coords[idx][1]);
+    bool has_previous = false;
 
-    for (size_t i = 0; i < players_on_tile; i++) {
-        if (i != 0)
-            append_to_output(srv, cs, " ");
-        append_to_output(srv, cs, "player");
-    }
     for (size_t i = 0; i < RES_COUNT; i++) {
         if (tile->qnts[i] == 0)
             continue;
         for (size_t j = 0; j < tile->qnts[i]; j++) {
-            append_to_output(srv, cs,
-                j != 0 || i != 0 || players_on_tile != 0 ? " " : "");
+            append_to_output(srv, cs, has_previous ? " " : "");
             vappend_to_output(srv, cs, "%s", RES_NAMES[i]);
+            has_previous = true;
         }
     }
+}
+
+static
+void serialiaze_tile(
+    server_t *srv, client_state_t *cs, uint8_t coords[][2], size_t idx)
+{
+    bool has_prev = false;
+    uint16_t players_on_tile =
+        count_player_on_tile(srv, coords[idx][0], coords[idx][1]);
+
+    for (size_t i = 0; i < players_on_tile; i++) {
+        if (has_prev)
+            append_to_output(srv, cs, " ");
+        append_to_output(srv, cs, "player");
+        has_prev = true;
+    }
+    for (size_t i = 0; i < srv->eggs.nmemb; i++) {
+        if (srv->eggs.buff[i].x != coords[idx][0]
+            || srv->eggs.buff[i].x != coords[idx][1])
+            continue;
+        if (has_prev)
+            append_to_output(srv, cs, " ");
+        append_to_output(srv, cs, "egg");
+        has_prev = true;
+    }
+    serialize_item_on_tite(srv, cs, coords, idx);
 }
 
 bool player_look_handler(server_t *srv, const event_t *event)
