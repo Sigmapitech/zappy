@@ -18,7 +18,7 @@ private:
   sockaddr_in serverAddr;
   int _fdServer;
   std::shared_ptr<API> _api = nullptr;
-  std::jthread _networkThread;
+  std::thread _networkThread;
   std::array<int, 2> _pipeFdExit;
   std::array<pollfd, 3> _pollInFd;
   std::array<pollfd, 1> _pollOutFd;
