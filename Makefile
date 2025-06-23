@@ -27,9 +27,9 @@ CXXFLAGS_cov := --coverage -g3
 CFLAGS_tests := --coverage -g3
 CXXFLAGS_tests := --coverage -g3
 
-LDFLAGS_gui != pkg-config --libs-only-L sdl2
-LDLIBS_gui != pkg-config --libs-only-l sdl2 SDL2_image glew gl glu
-CXXFLAGS_gui += $(shell pkg-config --cflags sdl2)
+LDFLAGS_gui != pkg-config --libs-only-L sdl2 freetype2
+LDLIBS_gui != pkg-config --libs-only-l sdl2 SDL2_image glew gl glu freetype2
+CXXFLAGS_gui += $(shell pkg-config --cflags sdl2 freetype2)
 
 
 # Used to simplify the nix build

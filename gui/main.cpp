@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "ArgsParser.hpp"
+#include "Demeter/Renderer/Font.hpp"
 #include "Network/Network.hpp"
 #include "Zappy.hpp"
 #include "logging/Logger.hpp"

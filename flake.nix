@@ -47,6 +47,7 @@
             (with pkgs; [
               clang-tools
               compiledb
+              freetype
               gcovr
               hl-log-viewer
               pkg-config
