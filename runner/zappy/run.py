@@ -26,23 +26,27 @@ def run_zappy(bins: ZappyPool, args: argparse.Namespace):
     else:
         teams = [f"team{i}" for i in range(1, args.team_count + 1)]
 
-    srv = subprocess.Popen(
-        (
-            bins.server,
-            "-p",
-            str(args.port),
-            "-x",
-            str(args.map_width),
-            "-y",
-            str(args.map_height),
-            "-n",
-            *teams,
-            "-c",
-            str(args.team_init_cap),
-            "-f",
-            str(args.freq),
+    processes = []
+
+    if not args.no_server:
+        srv = subprocess.Popen(
+            (
+                bins.server,
+                "-p",
+                str(args.port),
+                "-x",
+                str(args.map_width),
+                "-y",
+                str(args.map_height),
+                "-n",
+                *teams,
+                "-c",
+                str(args.team_init_cap),
+                "-f",
+                str(args.freq),
+            )
         )
-    )
+        processes.append(srv)
 
     time.sleep(1)
 
@@ -53,9 +57,10 @@ def run_zappy(bins: ZappyPool, args: argparse.Namespace):
         for _ in range(args.team_init_count)
         for team in teams
     ]
+    processes.extend(ais)
 
     gui = subprocess.Popen((bins.gui, "-h", "0.0.0.0", "-p", str(args.port)))
-    processes = [srv, gui] + ais
+    processes.append(gui)
 
     try:
         while True:
