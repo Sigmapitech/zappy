@@ -30,7 +30,7 @@ bool command_split(char *buff, char *argv[static COMMAND_WORD_COUNT],
 
     for (; *buff == ' '; buff++);
     argv[0] = buff;
-    for (; i < COMMAND_WORD_COUNT; i++) {
+    for (; i < COMMAND_WORD_COUNT - 1; i++) {
         if (*buff == '"' && !eat_quoted_argument(&buff, argv, i))
             return false;
         next = strcspn(buff, " ");
@@ -39,9 +39,9 @@ bool command_split(char *buff, char *argv[static COMMAND_WORD_COUNT],
         if ((size_t)(buff - ptr) == command_len)
             return true;
         for (buff++; *buff == ' '; buff++);
-        if (*buff == '\n')
+        if (*buff == '\0' || *buff == '\n')
             return true;
         argv[i] = buff;
     }
-    return true;
+    return false;
 }
