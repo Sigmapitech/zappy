@@ -84,7 +84,6 @@ namespace Dem {
     std::vector<std::shared_ptr<Texture>> texturePool;
     std::vector<std::shared_ptr<Object3D>> objectPool;
     std::unique_ptr<ShaderProgram> shader;
-    Camera camera;
     bool isRunning;
     bool glDebug;
 
@@ -140,8 +139,15 @@ namespace Dem {
     void Draw();
 
   public:
+    Camera camera;  // NOLINT
+
     Demeter(std::unique_ptr<SDL2> renderer, bool activateDebug = false);
     ~Demeter() = default;
+
+    [[nodiscard]] const std::unique_ptr<ShaderProgram> &GetShader() const
+    {
+      return shader;
+    }
 
     void AddEntity(std::shared_ptr<IEntity> entity)
     {
