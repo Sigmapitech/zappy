@@ -33,7 +33,7 @@ void rotate(int8_t delta[2], uint8_t direction)
 
 static
 void fill_coords(
-    uint8_t coords[][2], size_t size, server_t *srv, client_state_t *cs)
+    uint8_t coords[][2], size_t, server_t *srv, client_state_t *cs)
 {
     int8_t delta[2];
     size_t idx = 0;
@@ -46,8 +46,6 @@ void fill_coords(
             coords[idx][0] = (cs->x + delta[0]) % srv->map_width;
             coords[idx][1] = (cs->y + delta[1]) % srv->map_height;
             idx++;
-            if (idx >= size)
-                return;
         }
     }
 }
@@ -73,7 +71,8 @@ void serialiaze_tile(
     server_t *srv, client_state_t *cs, uint8_t coords[][2], size_t idx)
 {
     inventory_t *tile = &srv->map[coords[idx][1]][coords[idx][0]];
-    uint16_t players_on_tile = get_player_on_tile(srv, coords[idx][0], coords[idx][1]);
+    uint16_t players_on_tile =
+        get_player_on_tile(srv, coords[idx][0], coords[idx][1]);
 
     for (size_t i = 0; i < players_on_tile; i++) {
         if (i != 0)
@@ -84,8 +83,8 @@ void serialiaze_tile(
         if (tile->qnts[i] == 0)
             continue;
         for (size_t j = 0; j < tile->qnts[i]; j++) {
-            if (j != 0 || i != 0 || players_on_tile != 0)
-                append_to_output(srv, cs, " ");
+            append_to_output(srv, cs,
+                j != 0 || i != 0 || players_on_tile != 0 ? " " : "");
             vappend_to_output(srv, cs, "%s", RES_NAMES[i]);
         }
     }

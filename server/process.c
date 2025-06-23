@@ -55,15 +55,25 @@ static constexpr const size_t GUI_LUT_SIZE = (
     sizeof(GUI_LUT) / sizeof(GUI_LUT[0])
 );
 
+static
+bool is_in_ai_lut(const char *command)
+{
+    for (size_t i = 0; i < AI_LUT_SIZE; i++) {
+        if (strcmp(AI_LUT[i].command, command) == 0)
+            return true;
+    }
+    return false;
+}
 
 static
 uint64_t get_late_event(server_t *srv, client_state_t *client)
 {
-    uint64_t late_event = 0;
+    uint64_t late_event = get_timestamp();
     int idx = client - srv->cstates.buff;
 
     for (size_t i = 0; i < srv->events.nmemb; i++) {
         if (srv->events.buff[i].client_id == idx
+            && is_in_ai_lut(srv->events.buff[i].command[0])
             && srv->events.buff[i].timestamp > late_event) {
             late_event = srv->events.buff[i].timestamp;
         }

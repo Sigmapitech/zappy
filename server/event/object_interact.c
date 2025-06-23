@@ -1,5 +1,3 @@
-//  take and set object -> Pin and bct to all GUIS
-
 #include <stdint.h>
 #include <string.h>
 
@@ -24,7 +22,6 @@ uint8_t get_ressource_id(char *command)
     }
     return INVALID_OBJECT_ID;
 }
-
 
 bool player_take_object_handler(server_t *srv, const event_t *event)
 {
