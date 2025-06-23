@@ -10,6 +10,7 @@
 
 #include "client.h"
 #include "data_structure/event.h"
+#include "event/names.h"
 #include "server.h"
 
 struct ai_lut_entry {
@@ -103,6 +104,8 @@ void event_create(server_t *srv, client_state_t *client,
         (event.timestamp - srv->start_time) % MICROSEC_IN_SEC);
     if (!event_heap_push(&srv->events, &event))
         srv->is_running = false;
+    if (!strcmp(split[0], PLAYER_FORK))
+        send_to_guis(srv, "pfk #%hu\n", client->id);
 }
 
 static
