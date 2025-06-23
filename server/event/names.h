@@ -16,6 +16,8 @@
     #define PLAYER_TAKE_OBJECT "Take"
     #define PLAYER_SET_OBJECT "Set"
 
+    #define PLAYER_FORK "Fork"
+
     #define STAT_AVAILABLE_SLOTS "Connect_nbr"
 
     #define GUI_PLAYER_POS "ppo"
