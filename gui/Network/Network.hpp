@@ -46,7 +46,7 @@ public:
   /**
    * @brief Run the network of the client.
    */
-  void RunNetwork();
+  void Run();
 
   /**
    * @brief Send a message to the server.
