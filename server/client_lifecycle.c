@@ -29,7 +29,7 @@ void add_client_state(server_t *srv, int fd)
 void add_client(server_t *srv)
 {
     struct sockaddr_in addr;
-    socklen_t addr_len;
+    socklen_t addr_len = sizeof(addr);
     int new_fd = accept(srv->self_fd, (struct sockaddr *)&addr, &addr_len);
 
     if (new_fd < 0) {
