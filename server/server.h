@@ -74,6 +74,7 @@ typedef struct {
 typedef struct {
     uint32_t hatch;
     uint8_t team_id;
+    uint8_t id;
     int8_t x;
     int8_t y;
 } egg_t;
@@ -135,6 +136,7 @@ typedef struct {
     uint64_t start_time;
     uint16_t frequency; // reciprocal of time unit
     uint16_t ia_id_counter; // Counter for AI clients
+    uint8_t last_egg_id;
 } server_t;
 
 /**

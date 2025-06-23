@@ -64,12 +64,9 @@ bool setup_teams(server_t *srv, params_t *p, uint64_t timestamp)
         srv->team_names[t_idx] = p->teams[t_idx];
         for (size_t t_egg_id = 0; t_egg_id < p->team_capacity; t_egg_id++) {
             srv->eggs.buff[(t_idx * p->team_capacity) + t_egg_id] = (egg_t){
-                .hatch = timestamp, .team_id = t_idx,
+                .hatch = timestamp, .team_id = t_idx, .id = srv->last_egg_id,
                 .x = rand() % p->map_width, .y = rand() % p->map_height};
-            DEBUG("Egg %zu for team %s at (%u, %u)",
-                t_egg_id, srv->team_names[t_idx],
-                srv->eggs.buff[(t_idx * p->team_capacity) + t_egg_id].x,
-                srv->eggs.buff[(t_idx * p->team_capacity) + t_egg_id].y);
+            srv->last_egg_id++;
         }
     }
     srv->eggs.nmemb = t_counter * p->team_capacity;

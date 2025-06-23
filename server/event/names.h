@@ -11,6 +11,7 @@
     #define PLAYER_LEFT "Left"
     #define PLAYER_RIGHT "Right"
     #define PLAYER_FORWARD "Forward"
+    #define PLAYER_EJECT "Eject"
 
     #define PLAYER_TAKE_OBJECT "Take"
     #define PLAYER_SET_OBJECT "Set"
