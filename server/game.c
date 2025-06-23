@@ -21,6 +21,8 @@ static const struct command_handler_s COMMAND_HANDLERS[] = {
     { PLAYER_FORWARD, player_move_forward_handler },
     { PLAYER_LEFT, player_turn_left_handler },
     { PLAYER_RIGHT, player_turn_right_handler },
+    { PLAYER_TAKE_OBJECT, player_take_object_handler },
+    { PLAYER_SET_OBJECT, player_set_object_handler },
     { STAT_AVAILABLE_SLOTS, stat_available_slot_handler },
     { GUI_PLAYER_INV, gui_player_get_inventory_handler },
     { GUI_PLAYER_LVL, gui_player_get_level_handler },
