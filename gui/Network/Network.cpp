@@ -84,9 +84,10 @@ void Network::ServerHandshake()
   SendMessage("GRAPHIC\n");
 }
 
-void Network::RunNetwork()
+void Network::Run()
 {
-  _networkThread = std::thread(&Network::RunNetworkInternal, this);
+  if (!_networkThread.joinable())
+    _networkThread = std::thread(&Network::RunNetworkInternal, this);
 }
 
 void Network::RunNetworkInternal()
