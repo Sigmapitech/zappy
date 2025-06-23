@@ -159,7 +159,7 @@ bool server_run(params_t *p, uint64_t timestamp)
         }
         if (UNLIKELY(to < 0))
             fprintf(stderr, "WANRING: Server can't keep up with the events, "
-                "timeout is negative (%u ms), skipping tick\n", to);
+                "timeout is negative (%d ms), skipping tick\n", to);
     }
     server_destroy(&srv);
     return true;
