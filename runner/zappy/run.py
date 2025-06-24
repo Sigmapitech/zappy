@@ -35,6 +35,10 @@ def run_zappy(bins: ZappyPool, args: argparse.Namespace):
 
     def make_log(name: str):
         if args.split_logs:
+            if not os.path.exists("logs/.gitginore"):
+                with open("logs/.gitignore", "w+") as f:
+                    f.write("*")
+
             log_path = f"logs/{name}.log"
             f = open(log_path, "w")
             log_files.append(f)
