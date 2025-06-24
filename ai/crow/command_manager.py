@@ -1,3 +1,6 @@
+import os
+import sys
+
 from .async_client import AsyncSocketClient
 
 
