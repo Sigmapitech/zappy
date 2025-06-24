@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "debug.h"
 #include "event.h"
@@ -59,6 +60,12 @@ bool event_heap_init(event_heap_t *heap)
 
 void event_heap_free(event_heap_t *heap)
 {
+    for (size_t i = 0; i < heap->nmemb; i++) {
+        for (size_t j = 0; heap->buff[i].command[j] != nullptr; j++) {
+            free(heap->buff[i].command[j]);
+            heap->buff[i].command[j] = nullptr;
+        }
+    }
     free(heap->buff);
     heap->buff = nullptr;
     heap->nmemb = 0;
@@ -67,10 +74,22 @@ void event_heap_free(event_heap_t *heap)
 
 bool event_heap_push(event_heap_t *heap, const event_t *event)
 {
+    size_t i = 0;
+
     if (!sized_struct_ensure_capacity(
         (resizable_array_t *)heap, 1, sizeof(event_t)))
         return false;
-    heap->buff[heap->nmemb] = *event;
+    for (; event->command[i] != nullptr; i++) {
+        heap->buff[heap->nmemb].command[i] = strdup(event->command[i]);
+        if (heap->buff[heap->nmemb].command[i] == nullptr) {
+            DEBUG_MSG("Failed to allocate memory for command string");
+            return false;
+        }
+    }
+    heap->buff[heap->nmemb].command[i] = nullptr;
+    heap->buff[heap->nmemb].arg_count = i;
+    heap->buff[heap->nmemb].client_id = event->client_id;
+    heap->buff[heap->nmemb].timestamp = event->timestamp;
     heapify_up(heap, heap->nmemb);
     heap->nmemb++;
     return true;
@@ -85,10 +104,14 @@ event_t event_heap_pop(event_heap_t *heap)
     ret = heap->buff[0];
     heap->nmemb--;
     if (heap->nmemb > 0) {
+        for (size_t i = 0; heap->buff[0].command[i] != nullptr; i++) {
+            free(heap->buff[0].command[i]);
+            heap->buff[0].command[i] = nullptr;
+        }
         heap->buff[0] = heap->buff[heap->nmemb];
         heapify_down(heap, 0);
     }
-    return ret;
+    return heap->buff[0];
 }
 
 const event_t *event_heap_peek(const event_heap_t *heap)
