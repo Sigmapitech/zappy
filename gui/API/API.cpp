@@ -374,10 +374,10 @@ void API::HandlePIN(std::stringstream &ss)
 void API::HandlePEX(std::stringstream &ss)
 {
   std::string nTmp;
-  int posX;
-  int posY;
-  int rotation;
-  int id;
+  int posX = -1;
+  int posY = -1;
+  int rotation = -1;
+  int id = -1;
 
   if (!(ss >> nTmp))
     throw std::runtime_error(
@@ -403,26 +403,26 @@ void API::HandlePEX(std::stringstream &ss)
   }
   for (std::string &teamNameTmp: _allTeamName) {
     auto &team = _teams[teamNameTmp];
-    for (auto it = team.begin(); it != team.end(); ++it) {
-      if (it->GetPosition().first == posX && it->GetPosition().second == posY
-          && it->GetId() != id) {
+    for (auto &it: team) {
+      if (it.GetPosition().first == posX && it.GetPosition().second == posY
+          && it.GetId() != id) {
         switch (rotation) {
           case 0:
-            it->AddPosition(0, -1);
+            it.AddPosition(0, -1);
           case 1:
-            it->AddPosition(1, -1);
+            it.AddPosition(1, -1);
           case 2:
-            it->AddPosition(1, 0);
+            it.AddPosition(1, 0);
           case 3:
-            it->AddPosition(1, 1);
+            it.AddPosition(1, 1);
           case 4:
-            it->AddPosition(0, 1);
+            it.AddPosition(0, 1);
           case 5:
-            it->AddPosition(-1, 1);
+            it.AddPosition(-1, 1);
           case 6:
-            it->AddPosition(-1, 0);
+            it.AddPosition(-1, 0);
           case 7:
-            it->AddPosition(-1, -1);
+            it.AddPosition(-1, -1);
           default:
             return;
         }
