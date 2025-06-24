@@ -9,16 +9,6 @@
 
 #include "Demeter.hpp"
 
-namespace {
-  void setupImGUIFrame()
-  {
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
-  }
-}  // namespace
-
 Dem::Demeter::Time::Time(const SDL2 &sdl2Instance)
   : last(sdl2Instance.GetTicks64()), current(last)
 {
@@ -78,6 +68,14 @@ void Dem::Demeter::Update()
     entity->Update(*this);
 }
 
+void Dem::Demeter::SetupImGUIFrame()
+{
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplSDL2_NewFrame();
+  ImGui::NewFrame();
+  ImGui::ShowDemoWindow();
+}
+
 void Dem::Demeter::Draw()
 {
   sdl2->Clear(0.1, 0.12, 0.15, 1.0);
@@ -103,7 +101,7 @@ void Dem::Demeter::Run()
         isRunning = false;
     }
 
-    setupImGUIFrame();
+    SetupImGUIFrame();
     Update();
     Draw();
 
