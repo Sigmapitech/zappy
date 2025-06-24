@@ -19,9 +19,8 @@ private:
 public:
   E_Default(Dem::Demeter &d)
   {
-    obj = std::make_shared<Object3D>("assets/cube.obj");
+    obj = d.AddObject3D("assets/cube.obj");
     texture = d.AddTexture("assets/texture.png");
-    d.AddObject3D(obj);
   }
 
   bool Update(Dem::Demeter &d) override
