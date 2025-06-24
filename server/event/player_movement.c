@@ -91,15 +91,18 @@ bool player_eject_handler(server_t *srv, const event_t *event)
 
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "ko\n"), true;
+    append_to_output(srv, cs, "ok\n");
     for (size_t i = 0; i < srv->cstates.nmemb; i++) {
         pl = srv->cstates.buff + i;
-        if (pl->x == cs->x && pl->y == cs->y) {
-            player_move(srv, pl, cs->orientation);
-            vappend_to_output(srv, pl, "eject: %hhu\n",
-                relative_eject_direction(pl->orientation, cs->orientation));
-            send_to_guis(srv, "pex %hu\nppo %hu %hhu %hhu %hhu\n",
-                pl->id, pl->id, pl->x, pl->y, pl->orientation);
-        }
+        if (LIKELY(pl == cs || pl->x != cs->x || pl->y != cs->y
+            || pl->team_id == GRAPHIC_TEAM_ID
+            || pl->team_id == INVALID_TEAM_ID))
+            continue;
+        player_move(srv, pl, cs->orientation);
+        vappend_to_output(srv, pl, "eject: %hhu\n",
+            relative_eject_direction(pl->orientation, cs->orientation));
+        send_to_guis(srv, "pex %hu\nppo %hu %hhu %hhu %hhu\n",
+            pl->id, pl->id, pl->x, pl->y, pl->orientation);
     }
     destroy_ejected_eggs(srv, cs);
     return true;

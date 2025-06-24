@@ -25,7 +25,7 @@ struct gui_lut_entry {
 static const struct ai_lut_entry AI_LUT[] = {
     {"Broadcast", 7},
     {"Connect_nbr", 0},
-    {"Eject", 42},
+    {"Eject", 7},
     {"Fork", 42},
     {"Forward", 7},
     {"Incantation", 300},

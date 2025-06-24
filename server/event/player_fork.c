@@ -1,3 +1,4 @@
+#include <stdio.h>
 
 #include "data_structure/resizable_array.h"
 #include "client.h"

@@ -52,7 +52,7 @@ void fill_coords(
 
 static
 uint16_t count_player_on_tile(
-    server_t *srv, int8_t x, int8_t y)
+    server_t *srv, uint8_t x, uint8_t y)
 {
     uint16_t count = 0;
 
@@ -69,18 +69,17 @@ uint16_t count_player_on_tile(
 static
 void serialize_item_on_tite(
     server_t *srv, client_state_t *cs,
-    uint8_t coords[][2], size_t idx)
+    const uint8_t coords[2], bool prev)
 {
-    inventory_t *tile = &srv->map[coords[idx][1]][coords[idx][0]];
-    bool has_previous = false;
+    inventory_t *tile = &srv->map[coords[1]][coords[0]];
 
     for (size_t i = 0; i < RES_COUNT; i++) {
         if (tile->qnts[i] == 0)
             continue;
         for (size_t j = 0; j < tile->qnts[i]; j++) {
-            append_to_output(srv, cs, has_previous ? " " : "");
+            append_to_output(srv, cs, prev ? " " : "");
             vappend_to_output(srv, cs, "%s", RES_NAMES[i]);
-            has_previous = true;
+            prev = true;
         }
     }
 }
@@ -94,21 +93,17 @@ void serialiaze_tile(
         count_player_on_tile(srv, coords[idx][0], coords[idx][1]);
 
     for (size_t i = 0; i < players_on_tile; i++) {
-        if (has_prev)
-            append_to_output(srv, cs, " ");
-        append_to_output(srv, cs, "player");
+        vappend_to_output(srv, cs, "%splayer", has_prev ? " " : "");
         has_prev = true;
     }
     for (size_t i = 0; i < srv->eggs.nmemb; i++) {
         if (srv->eggs.buff[i].x != coords[idx][0]
-            || srv->eggs.buff[i].x != coords[idx][1])
+            || srv->eggs.buff[i].y != coords[idx][1])
             continue;
-        if (has_prev)
-            append_to_output(srv, cs, " ");
-        append_to_output(srv, cs, "egg");
+        vappend_to_output(srv, cs, "%segg", has_prev ? " " : "");
         has_prev = true;
     }
-    serialize_item_on_tite(srv, cs, coords, idx);
+    serialize_item_on_tite(srv, cs, coords[idx], has_prev);
 }
 
 bool player_look_handler(server_t *srv, const event_t *event)
@@ -118,12 +113,12 @@ bool player_look_handler(server_t *srv, const event_t *event)
     uint8_t coords[view][2];
 
     fill_coords(coords, view, srv, cs);
-    append_to_output(srv, cs, "[");
+    append_to_output(srv, cs, "[ ");
     for (size_t i = 0; i < view; i++) {
         if (i != 0)
-            append_to_output(srv, cs, ",");
+            append_to_output(srv, cs, ", ");
         serialiaze_tile(srv, cs, coords, i);
     }
-    append_to_output(srv, cs, "]\n");
+    append_to_output(srv, cs, " ]\n");
     return true;
 }
