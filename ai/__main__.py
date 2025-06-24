@@ -81,7 +81,13 @@ async def main():
     client = Player(args.host, args.port)
 
     await client.connect(team=args.name)
-    await client.run_until_death()
+    try:
+        await client.run_until_death()
+    except KeyboardInterrupt:
+        logging.info("Player interrupted by user.")
+    except ConnectionError:
+        while True:
+            pass
 
 
 if __name__ == "__main__":
