@@ -41,5 +41,6 @@ bool player_broadcast_handler(server_t *srv, const event_t *event)
     }
     send_to_guis(srv, "pbc #%hd %s\n",
         srv->cstates.buff[event->client_id].id, event->command[1]);
+    append_to_output(srv, author, "ok\n");
     return true;
 }
