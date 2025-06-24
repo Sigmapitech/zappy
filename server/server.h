@@ -37,13 +37,13 @@ typedef struct pollfd pollfd_t;
 
 typedef union {
     struct {
+        uint32_t food;
         uint32_t linemate;
         uint32_t deraumere;
         uint32_t sibur;
         uint32_t mendiane;
         uint32_t phiras;
         uint32_t thystame;
-        uint32_t food;
     };
     uint32_t qnts[RES_COUNT];
 } inventory_t;
