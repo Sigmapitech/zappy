@@ -85,15 +85,39 @@ class Player(SecretivePlayer):
             await asyncio.sleep(0.5)
 
     async def handle_tile_actions(self, tiles: List[List[str]]):
-        # Take everything on current tile (tiles[0])
-        await self.take_all_on_tile(tiles[0])
+        # Prioritize taking resources needed for next level
+        next_level = str(self.level + 1)
+        needed = set()
+        if next_level in self.elevation_requirements:
+            req = self.elevation_requirements[next_level]
+            needed = {
+                res
+                for res, amount in req.items()
+                if res != "players" and self.resources.get(res, 0) < amount
+            }
+
+        # Take needed resources first
+        for item in tiles[0]:
+            if item in needed:
+                await self.take(item)
+                self.resources[item] += 1
+                return  # Only take one per tick for realism
+
+        # Then take food if present
+        if "food" in tiles[0]:
+            await self.take("food")
+            self.food_stock += 1
+            return
+
+        # Then take any other resource
+        for item in tiles[0]:
+            if item in self.resources:
+                await self.take(item)
+                self.resources[item] += 1
+                return
+
         # If nothing to take, move randomly
-        if not any(
-            item in self.resources or item == "food" for item in tiles[0]
-        ):
-            await random.choice(
-                [self.move_up, self.turn_left, self.turn_right]
-            )()
+        await random.choice([self.move_up, self.turn_left, self.turn_right])()
 
     async def take_all_on_tile(self, tile_data: List[str]):
         for item in tile_data:
@@ -173,13 +197,18 @@ class Player(SecretivePlayer):
         await self.start_incantation()
 
     def handle_look_response(self, response: str) -> List[List[str]]:
-        # Parse look response: [player, food, ...]
+        """
+        Parses the response from the Look command.
+        Returns a list of lists: each sublist contains the objects on a tile.
+        Example input: '[player, player deraumere,,food]'
+        Output: [['player'], ['player', 'deraumere'], [], ['food']]
+        """
+        # Remove brackets and whitespace
         response = response.strip("[] \n")
-        tiles = [
-            tile.strip().split() if tile.strip() else []
-            for tile in response.split(",")
-        ]
-        return tiles
+        # Split by comma (with or without following space)
+        tiles = [tile.strip() for tile in response.split(",")]
+        # Split each tile by spaces to get objects
+        return [tile.split() if tile else [] for tile in tiles]
 
     async def run_until_death(self):  # type: ignore
         # Register broadcast handler
