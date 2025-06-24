@@ -65,7 +65,7 @@ class Player(SecretivePlayer):
 
     async def on_broadcast(self, direction, msg: DecodedMessage):
         # Only react if not evolving and message is for our level
-        if self.evolving:
+        if self.evolving or self.level < 2:
             return
         if f"Evolving to level {self.level + 1}" in msg.content:
             await self.move_towards(direction)
@@ -117,20 +117,20 @@ class Player(SecretivePlayer):
                 self.resources.get(res, 0) >= req.get(res, 0)
                 for res in self.resources
             ):
-                if req["players"] == 1:
-                    # Level 1->2: evolve immediately
+                if self.level == 1:
+                    # Level 1->2: evolve immediately, no broadcast
                     await self.drop_resources()
                     await self.incantation()
                     self.level += 1
                 else:
-                    # Higher levels: broadcast and wait for others
+                    # Level >=2: broadcast and wait for others
                     await self.prepare_evolution(req)
                     self.level += 1
 
     async def prepare_evolution(self, req):
         self.evolving = True
         await self.drop_resources()
-        # Broadcast until enough players are present
+        # Only broadcast if level >= 2 (i.e., after first ascension)
         while True:
             await self.broadcast(f"Evolving to level {self.level + 1}")
             look_response = await self.look()
