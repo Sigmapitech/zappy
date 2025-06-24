@@ -116,20 +116,30 @@ class Player(SecretivePlayer):
             if next_level not in self.elevation_requirements:
                 continue  # Already max level
             req = self.elevation_requirements[next_level]
-            # Check if we have enough food and resources for the next level
-            if self.food_stock >= 10 and all(
-                self.resources.get(res, 0) >= req.get(res, 0)
-                for res in self.resources
-            ):
+            # Only check for resources actually required for next level
+            has_all = all(
+                self.resources.get(res, 0) >= amount
+                for res, amount in req.items()
+                if res != "players"
+            )
+            if self.food_stock >= 10 and has_all:
+                print(
+                    f"[DEBUG] Ready to evolve to level {next_level} (current: {self.level})"
+                )
+                print(
+                    f"[DEBUG] Inventory: {self.resources}, Food: {self.food_stock}"
+                )
                 if req["players"] == 1:
                     # Level 1->2: evolve immediately, no broadcast
                     await self.drop_resources(req)
                     await self.incantation()
                     self.level += 1
+                    print(f"[DEBUG] Evolved to level {self.level}")
                 else:
                     # Level >=2: broadcast and wait for others
                     await self.prepare_evolution(req)
                     self.level += 1
+                    print(f"[DEBUG] Evolved to level {self.level}")
 
     async def prepare_evolution(self, req):
         self.evolving = True
