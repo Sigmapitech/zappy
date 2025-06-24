@@ -5,9 +5,12 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Demeter/Renderer/asset_dir.hpp"
 #include "Renderer/Object3D.hpp"
 
 #include "Entity.hpp"
+
+#include "logging/Logger.hpp"
 
 /**
  * @brief The Demeter struct encapsulates the main application logic for the
@@ -171,7 +174,15 @@ namespace Dem {
     {
       if (textureMap.contains(path))
         return texturePool[textureMap[path]];
-      std::shared_ptr<Texture> tex = std::make_shared<Texture>(*sdl2, path);
+      std::shared_ptr<Texture> tex;
+      try {
+        tex = std::make_shared<Texture>(*sdl2, path);
+      } catch (...) {
+        Log::failed
+          << "Failed to load texture from path: " << path
+          << ". Using default texture instead.";
+        tex = std::make_shared<Texture>(*sdl2, ASSET_DIR "/no-texture.png");
+      }
       texturePool.push_back(tex);
       textureMap[path] = texturePool.size() - 1;
       return tex;
