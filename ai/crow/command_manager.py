@@ -41,7 +41,7 @@ class CommandManager:
 
         pid = os.fork()
         if pid == 0:
-            os.execv(sys.executable, [sys.executable] + sys.argv)
+            os.execv(sys.argv[0], sys.argv)
 
         return res
 
