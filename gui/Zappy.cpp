@@ -2,6 +2,7 @@
 
 #include "Demeter/Renderer/SDL2.hpp"
 #include "Entities/E_Coms.hpp"
+#include "Entities/E_Default.hpp"
 #include "Entities/E_Light.hpp"
 #include "Zappy.hpp"
 
@@ -13,11 +14,12 @@ Zappy::Zappy(Args &params)
   // Register entities
   demeter->AddEntity(std::make_shared<E_Coms>(params));
   demeter->AddEntity(std::make_shared<E_Light>());
+  demeter->AddEntity(std::make_shared<E_Default>(*demeter));
 
   // camera
   demeter->camera.view = glm::mat4(1.0);
   demeter->camera.view = glm::
-    translate(demeter->camera.view, glm::vec3(0.0, 0.0, -5.0));
+    translate(demeter->camera.view, glm::vec3(0.0, -1.0, -200.0));
 }
 
 void Zappy::Run()
