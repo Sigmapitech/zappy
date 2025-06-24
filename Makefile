@@ -31,11 +31,18 @@ LDFLAGS_gui != pkg-config --libs-only-L sdl2
 LDLIBS_gui != pkg-config --libs-only-l sdl2 SDL2_image glew gl glu
 CXXFLAGS_gui += $(shell pkg-config --cflags sdl2)
 
+IMGUI_DIR ?= gui/imgui
+IMGUI_SRC := $(wildcard $(IMGUI_DIR)/*.cpp)
+IMGUI_SRC += $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
+IMGUI_SRC += $(IMGUI_DIR)/backends/imgui_impl_sdl2.cpp
+
+IMGUI_INC += $(IMGUI_DIR) $(IMGUI_DIR)/backends
 
 # Used to simplify the nix build
 GUI_ASSET_DIR ?= assets
 
 CXXFLAGS_gui += -DASSET_DIR='"$(GUI_ASSET_DIR)"'
+CXXFLAGS_gui += $(foreach d,$(IMGUI_INC),-iquote $d)
 
 MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --no-print-directory
@@ -57,8 +64,13 @@ NAME_gui_debug := debug_gui
 NAME_gui_tests := tests_gui
 
 EXTRA_SRC_gui_tests != find tests/gui -name "*.cpp"
-
 EXTRA_SRC_server_tests != find tests/server -type f -name "*.c"
+
+SRC_gui != find gui -type f -name "*.cpp" -not -path "gui/imgui/*"
+SRC_gui += $(IMGUI_SRC)
+
+SRC_server != find server -type f -name "*.c"
+
 
 # call mk-bin, bin-name, profile, lang
 # DOES THIS MAKE COFFEE NOW ??
@@ -76,8 +88,8 @@ $(BUILD)/$(strip $2)/%.o: %.$(GENERIC_SUFFIX_$(strip $3))
 		$$(C_PURPLE)$$(notdir $$@) $$(C_RESET)"
 
 out_$(strip $1)_$(strip $2) := $(NAME_$(strip $1)_$(strip $2))
-src_$(strip $1)_$(strip $2) !=                                                \
-    find $(strip $1) -type f -name "*.$(GENERIC_SUFFIX_$(strip $3))"
+
+src_$(strip $1)_$(strip $2) := $(SRC_$(strip $1))
 src_$(strip $1)_$(strip $2) += $(EXTRA_SRC_$(strip $1)_$(strip $2))
 
 objs_$(strip $1)_$(strip $2) :=                                               \
