@@ -390,7 +390,7 @@ void API::HandlePEX(std::stringstream &ss)
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName) {
     auto &team = _teams[teamNameTmp];
-    for (auto it = team.begin(); it != team.end(); ++it) {
+    for (auto it = team.begin(); it != team.end(); ++it)
       if (it->GetId() == std::stoi(nTmp)) {
         id = it->GetId();
         posX = it->GetPosition().first;
@@ -399,35 +399,40 @@ void API::HandlePEX(std::stringstream &ss)
         team.erase(it);
         break;
       }
-    }
   }
   for (std::string &teamNameTmp: _allTeamName) {
     auto &team = _teams[teamNameTmp];
-    for (auto &it: team) {
+    for (auto &it: team)
       if (it.GetPosition().first == posX && it.GetPosition().second == posY
-          && it.GetId() != id) {
+          && it.GetId() != id)
         switch (rotation) {
           case 0:
             it.AddPosition(0, -1);
+            break;
           case 1:
             it.AddPosition(1, -1);
+            break;
           case 2:
             it.AddPosition(1, 0);
+            break;
           case 3:
             it.AddPosition(1, 1);
+            break;
           case 4:
             it.AddPosition(0, 1);
+            break;
           case 5:
             it.AddPosition(-1, 1);
+            break;
           case 6:
             it.AddPosition(-1, 0);
+            break;
           case 7:
             it.AddPosition(-1, -1);
+            break;
           default:
             return;
         }
-      }
-    }
   }
 }
 
