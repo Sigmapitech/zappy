@@ -1,4 +1,5 @@
 import argparse
+import os
 import subprocess
 import sys
 import time
@@ -27,8 +28,21 @@ def run_zappy(bins: ZappyPool, args: argparse.Namespace):
         teams = [f"team{i}" for i in range(1, args.team_count + 1)]
 
     processes = []
+    log_files = []
+
+    if args.split_logs and not os.path.exists("logs"):
+        os.makedirs("logs")
+
+    def make_log(name: str):
+        if args.split_logs:
+            log_path = f"logs/{name}.log"
+            f = open(log_path, "w")
+            log_files.append(f)
+            return f
+        return None
 
     if not args.no_server:
+        srv_log = make_log("server")
         srv = subprocess.Popen(
             (
                 bins.server,
@@ -44,26 +58,37 @@ def run_zappy(bins: ZappyPool, args: argparse.Namespace):
                 str(args.team_init_cap),
                 "-f",
                 str(args.freq),
-            )
+            ),
+            stdout=srv_log,
+            stderr=subprocess.STDOUT,
         )
         processes.append(srv)
 
     time.sleep(1)
 
-    ais = [
-        subprocess.Popen(
-            (bins.ai, "-h", "0.0.0.0", "-p", str(args.port), "-n", team)
-        )
-        for _ in range(args.team_init_count)
-        for team in teams
-    ]
-    processes.extend(ais)
+    for i in range(args.team_init_count):
+        for _, team in enumerate(teams):
+            ai_log = make_log(f"ai_{i}_{team}")
+            ai = subprocess.Popen(
+                (bins.ai, "-h", "0.0.0.0", "-p", str(args.port), "-n", team),
+                stdout=ai_log,
+                stderr=subprocess.STDOUT,
+            )
+            processes.append(ai)
 
-    gui = subprocess.Popen((bins.gui, "-h", "0.0.0.0", "-p", str(args.port)))
+    gui_log = make_log("gui")
+    gui = subprocess.Popen(
+        (bins.gui, "-h", "0.0.0.0", "-p", str(args.port)),
+        stdout=gui_log,
+        stderr=subprocess.STDOUT,
+    )
     processes.append(gui)
 
     try:
         while True:
-            pass
+            time.sleep(1)
     except KeyboardInterrupt:
         shutdown(processes)
+    finally:
+        for f in log_files:
+            f.close()

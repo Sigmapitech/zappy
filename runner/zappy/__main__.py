@@ -39,6 +39,7 @@ def parse_args() -> argparse.Namespace:
         .add_arg("--server-debug", action="store_true")
         .add_arg("--use-basic-team-names", action="store_true")
         .add_arg("--no-server", action="store_true")
+        .add_arg("--split-logs", action="store_true")
         .parse_args()
     )
 

@@ -38,3 +38,7 @@ a.out
 docs/build
 docs/doxygen
 docs/source/api
+
+# Logs
+logs
+*.log
