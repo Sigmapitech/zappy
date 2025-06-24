@@ -152,7 +152,7 @@ venv/bin/zappy_ai: venv $(shell find ai -type f -name "*.py")
 	@ $(LOG_TIME) "DL $(C_YELLOW)$@ $(C_RESET)"
 
 zappy_ai: venv/bin/zappy_ai
-	@ ln -fs $(PYENV)/bin/zappy_ai .
+	@ ln -fs venv/bin/zappy_ai .
 	@ $(LOG_TIME) "LN $(C_GREEN)$@ $(C_RESET)"
 else
 
