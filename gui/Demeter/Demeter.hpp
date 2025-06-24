@@ -148,7 +148,7 @@ namespace Dem {
     Camera camera;  // NOLINT
 
     Demeter(std::unique_ptr<SDL2> renderer, bool activateDebug = false);
-    ~Demeter() = default;
+    ~Demeter();
 
     [[nodiscard]] const Time &GetTime() const
     {
