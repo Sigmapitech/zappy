@@ -118,7 +118,11 @@ void Network::RunNetworkInternal()
     if (_pollInFd[FD_SERVER_IN].revents & POLLIN) {
       std::cerr << "Server message received.\n";
       std::string message = ReceiveMessage();
-      _api->ParseManageCommande(message);
+      try {
+        _api->ParseManageCommande(message);
+      } catch (const std::exception &e) {
+        Log::failed << "Exception in ParseManageCommande: " << e.what();
+      }
     }
 
     // network pipe message
