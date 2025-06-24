@@ -9,6 +9,8 @@
   libGLU,
   glew,
   glm,
+  imgui,
+  libX11,
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "zappy-gui";
@@ -28,12 +30,16 @@ stdenv.mkDerivation (finalAttrs: {
     libGLU
     glew
     glm
+    libX11
   ];
 
   makeFlags = ["zappy_gui"];
   enableParallelBuilding = true;
 
-  env.GUI_ASSET_DIR = "${placeholder "out"}/share/gui/assets";
+  env = {
+    GUI_ASSET_DIR = "${placeholder "out"}/share/gui/assets";
+    IMGUI_DIR = "${imgui.src}";
+  };
 
   installPhase = ''
     runHook preInstall
