@@ -18,7 +18,7 @@ class CommandManager:
     async def set(self, obj: str) -> str:
         return await self._sock.send_command(f"Set {obj}")
 
-    async def move_up(self) -> str:
+    async def move_forward(self) -> str:
         return await self._sock.send_command("Forward")
 
     async def turn_right(self) -> str:

@@ -38,10 +38,13 @@ class SecretivePlayer(Client):
 
         return id_, map_size
 
-    async def broadcast(self, message: str) -> str:
+    async def broadcast(self, message: str, to_encrypt: bool) -> str:
         self.counter += 1
         self.counter %= 255
 
+        if not to_encrypt:
+            return await super().broadcast(message)
+        
         ciphered = encode(
             self.id_, self.counter, message.encode("ascii"), self.__secret
         )
@@ -181,7 +184,7 @@ class Player(SecretivePlayer):
             await self.turn_left()
         elif direction == "right":
             await self.turn_right()
-        await self.move_up()
+        await self.move_forward()
         new_tile = (await self.look())[0]
         await self.handle_tile_actions([new_tile])
         logger.debug(
@@ -193,8 +196,8 @@ class Player(SecretivePlayer):
             await self.turn_left()
         else:
             await self.turn_right()
-        await self.move_up()
-        logger.debug("No food found, turning randomly and moving up")
+        await self.move_forward()
+        logger.debug("No food found, turning randomly and moving forward")
 
     async def search_food(self):
         tiles = await self.look_for_food()
