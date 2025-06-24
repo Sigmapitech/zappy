@@ -26,18 +26,18 @@ def parse_args() -> argparse.Namespace:
         .add_arg("--team-init-cap", type=int, default=200)
         .add_arg("--freq", type=int, default=100)
         .add_arg("--port", type=int, default=4242)
-        .add_arg("--use-ref-gui", action="store_true")
-        .add_arg("--use-ref-server", action="store_true")
+        .add_arg("--ref-gui", action="store_true")
+        .add_arg("--ref-server", action="store_true")
         .add_arg("--nom", action="store_true")
-        .add_arg("--use-respective-branches", action="store_true")
-        .add_arg("--gui-branch", type=str)
-        .add_arg("--server-branch", type=str)
-        .add_arg("--ai-branch", type=str)
+        .add_arg("--respective-branches", action="store_true")
+        .add_arg("--branch-gui", type=str)
+        .add_arg("--branch-server", type=str)
+        .add_arg("--branch-ai", type=str)
         .add_arg("--local-ai", action="store_true")
         .add_arg("--local-gui", action="store_true")
         .add_arg("--local-server", action="store_true")
-        .add_arg("--server-debug", action="store_true")
-        .add_arg("--use-basic-team-names", action="store_true")
+        .add_arg("--debug-server", action="store_true")
+        .add_arg("--basic-team-names", action="store_true")
         .add_arg("--no-server", action="store_true")
         .add_arg("--split-logs", action="store_true")
         .parse_args()
@@ -50,19 +50,19 @@ def main():
     build_settings = 0
     for c, flag in enumerate(
         (
-            args.use_ref_gui,
-            args.use_ref_server,
+            args.ref_gui,
+            args.ref_server,
             args.nom,
-            args.use_respective_branches,
+            args.respective_branches,
             args.local_server,
             args.local_gui,
             args.local_ai,
-            args.server_debug,
+            args.debug_server,
         )
     ):
         build_settings |= int(flag) << c
 
-    branches = (args.server_branch, args.gui_branch, args.ai_branch)
+    branches = (args.branch_server, args.branch_gui, args.branch_ai)
     bins = create_bin_pool(Settings(build_settings), branches)
     run_zappy(bins, args)
 

@@ -22,7 +22,7 @@ def shutdown(processes):
 
 
 def run_zappy(bins: ZappyPool, args: argparse.Namespace):
-    if not args.use_basic_team_names:
+    if not args.basic_team_names:
         teams = [generate_name() for _ in range(args.team_count)]
     else:
         teams = [f"team{i}" for i in range(1, args.team_count + 1)]
