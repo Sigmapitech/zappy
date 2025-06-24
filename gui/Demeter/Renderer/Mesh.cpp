@@ -2,6 +2,8 @@
 
 #include "Mesh.hpp"
 
+#include "logging/Logger.hpp"
+
 Mesh::Mesh(
   std::string name,
   std::unique_ptr<std::vector<Vertex>> vv,
@@ -89,7 +91,13 @@ void Mesh::
   glBindVertexArray(VAO);
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, _texture->GetGL());
+  if (_texture)
+    glBindTexture(GL_TEXTURE_2D, _texture->GetGL());
+  else {
+    Log::warn
+      << "Mesh '" << _name << "' has no texture set, using default texture.";
+    glBindTexture(GL_TEXTURE_2D, 0);  // unbind texture if not set
+  }
   glUniform1i(shader.GetUniformLocation("tex"), 0);
 
   // Set uniforms
