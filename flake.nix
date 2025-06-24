@@ -34,6 +34,7 @@
           inherit (self.checks.${pkgs.system}.pre-commit-check) shellHook;
 
           env = {
+            IMGUI_DIR = pkgs.imgui.src;
             MAKEFLAGS = "-j";
             LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
               mesa
@@ -66,6 +67,7 @@
               pyenv
               valgrind
               libsForQt5.kcachegrind
+              xorg.libX11
             ])
             ++ (with self.packages.${pkgs.system}; [
               cpp-fmt
@@ -133,6 +135,7 @@
         // {
           cpp-fmt = pkgs.writeShellScriptBin "cpp-fmt" ''
             find . -type f -name "*.cpp" -or -name "*.hpp" \
+              | grep -v "gui/imgui" \
               | xargs clang-format -i --verbose
           '';
 
