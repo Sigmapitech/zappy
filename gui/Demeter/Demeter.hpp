@@ -175,6 +175,11 @@ namespace Dem {
       entityPool.push_back(std::move(entity));
     }
 
+    std::shared_ptr<IEntity> GetEntity(size_t index) const
+    {
+      return entityPool.at(index);
+    }
+
     void DeleteEntity(const std::shared_ptr<IEntity> &entity)
     {
       std::ranges::remove(entityPool, entity);
