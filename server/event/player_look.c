@@ -43,8 +43,10 @@ void fill_coords(
             delta[0] = i;
             delta[1] = l;
             rotate(delta, cs->orientation);
-            coords[idx][0] = (cs->x + delta[0]) % srv->map_width;
-            coords[idx][1] = (cs->y + delta[1]) % srv->map_height;
+            coords[idx][0] = cs->x + delta[0] + srv->map_width;
+            coords[idx][1] = cs->y + delta[1] + srv->map_height;
+            coords[idx][0] %= srv->map_width;
+            coords[idx][1] %= srv->map_height;
             idx++;
         }
     }
