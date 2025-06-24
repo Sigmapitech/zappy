@@ -180,6 +180,7 @@ mrproper: fclean
 	$(RM) -rf $(BUILD)
 	$(RM) -rf docs/source/api docs/doxygen
 	$(RM) -rf compile_commands.json
+	$(RM) -rf logs
 
 .NOTPARALLEL: re
 re: fclean all
