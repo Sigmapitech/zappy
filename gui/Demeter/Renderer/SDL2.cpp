@@ -1,3 +1,7 @@
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_sdl2.h"
+
 #include "SDL2.hpp"
 
 SDL2::SDL2()
@@ -42,6 +46,15 @@ SDL2::SDL2()
   if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
     throw std::
       runtime_error("SDL_image initialization failed: " + GetIMGError());
+
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+
+  ImGui_ImplSDL2_InitForOpenGL(_window, _context);
+  ImGui_ImplOpenGL3_Init();
 }
 
 SDL2::~SDL2()
