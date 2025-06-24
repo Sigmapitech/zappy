@@ -19,7 +19,7 @@ private:
 public:
   E_Default(Dem::Demeter &d)
   {
-    obj = d.AddObject3D("assets/cube.obj");
+    obj = d.AddObject3D("assets/cube.obj3D");
     texture = d.AddTexture("assets/texture.png");
   }
 
