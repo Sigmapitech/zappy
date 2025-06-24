@@ -3,9 +3,21 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Renderer/asset_dir.hpp"
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_sdl2.h"
 
 #include "Demeter.hpp"
+
+namespace {
+  void setupImGUIFrame()
+  {
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+    ImGui::ShowDemoWindow();
+  }
+}  // namespace
 
 Dem::Demeter::Time::Time(const SDL2 &sdl2Instance)
   : last(sdl2Instance.GetTicks64()), current(last)
@@ -75,6 +87,9 @@ void Dem::Demeter::Draw()
   for (std::shared_ptr<Dem::IEntity> &entity: entityPool)
     entity->Draw(*this);
 
+  ImGui::Render();
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
   sdl2->SwapWindow();
 }
 
@@ -82,10 +97,13 @@ void Dem::Demeter::Run()
 {
   isRunning = true;
   while (isRunning) {
-    while (sdl2->PollEvent())
+    while (sdl2->PollEvent()) {
+      ImGui_ImplSDL2_ProcessEvent(&sdl2->GetEvent());
       if (sdl2->GetEvent().type == SDL_QUIT)
         isRunning = false;
+    }
 
+    setupImGUIFrame();
     Update();
     Draw();
 
@@ -95,4 +113,11 @@ void Dem::Demeter::Run()
         std::cerr << "OpenGL Error: " << e << '\n';
     }
   }
+}
+
+Dem::Demeter::~Demeter()
+{
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplSDL2_Shutdown();
+  ImGui::DestroyContext();
 }
