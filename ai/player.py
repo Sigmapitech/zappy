@@ -106,20 +106,24 @@ class Player(SecretivePlayer):
 
     async def check_evolution(self):
         while True:
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.1)  # Try to evolve more often
             # Fork every 30 seconds if possible
             if asyncio.get_event_loop().time() - self.last_fork > 30:
                 await self.fork()
                 self.last_fork = asyncio.get_event_loop().time()
             # Check if ready to evolve
-            req = self.elevation_requirements[str(self.level)]
+            next_level = str(self.level + 1)
+            if next_level not in self.elevation_requirements:
+                continue  # Already max level
+            req = self.elevation_requirements[next_level]
+            # Check if we have enough food and resources for the next level
             if self.food_stock >= 10 and all(
                 self.resources.get(res, 0) >= req.get(res, 0)
                 for res in self.resources
             ):
-                if self.level == 1:
+                if req["players"] == 1:
                     # Level 1->2: evolve immediately, no broadcast
-                    await self.drop_resources()
+                    await self.drop_resources(req)
                     await self.incantation()
                     self.level += 1
                 else:
@@ -129,8 +133,7 @@ class Player(SecretivePlayer):
 
     async def prepare_evolution(self, req):
         self.evolving = True
-        await self.drop_resources()
-        # Only broadcast if level >= 2 (i.e., after first ascension)
+        await self.drop_resources(req)
         while True:
             await self.broadcast(f"Evolving to level {self.level + 1}")
             look_response = await self.look()
@@ -141,8 +144,7 @@ class Player(SecretivePlayer):
             await asyncio.sleep(1)
         self.evolving = False
 
-    async def drop_resources(self):
-        req = self.elevation_requirements[str(self.level)]
+    async def drop_resources(self, req):
         for resource, amount in req.items():
             if resource == "players":
                 continue
