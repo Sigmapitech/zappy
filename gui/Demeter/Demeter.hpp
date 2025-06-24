@@ -144,6 +144,11 @@ namespace Dem {
     Demeter(std::unique_ptr<SDL2> renderer, bool activateDebug = false);
     ~Demeter() = default;
 
+    [[nodiscard]] const Time &GetTime() const
+    {
+      return time;
+    }
+
     [[nodiscard]] const std::unique_ptr<ShaderProgram> &GetShader() const
     {
       return shader;
@@ -159,9 +164,11 @@ namespace Dem {
       std::ranges::remove(entityPool, entity);
     }
 
-    void AddTexture(std::shared_ptr<Texture> texture)
+    std::shared_ptr<Texture> AddTexture(std::string path)
     {
-      texturePool.push_back(std::move(texture));
+      std::shared_ptr<Texture> tex = std::make_shared<Texture>(*sdl2, path);
+      texturePool.push_back(tex);
+      return tex;
     }
 
     void DeleteTexture(const std::shared_ptr<Texture> &texture)
