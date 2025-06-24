@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "Renderer/Object3D.hpp"
@@ -82,7 +83,9 @@ namespace Dem {
 
     std::vector<std::shared_ptr<IEntity>> entityPool;
     std::vector<std::shared_ptr<Texture>> texturePool;
+    std::unordered_map<std::string, size_t> textureMap;
     std::vector<std::shared_ptr<Object3D>> objectPool;
+    std::unordered_map<std::string, size_t> objectMap;
     std::unique_ptr<ShaderProgram> shader;
     bool isRunning;
     bool glDebug;
@@ -164,26 +167,39 @@ namespace Dem {
       std::ranges::remove(entityPool, entity);
     }
 
-    std::shared_ptr<Texture> AddTexture(std::string path)
+    std::shared_ptr<Texture> AddTexture(const std::string &path)
     {
+      if (textureMap.contains(path))
+        return texturePool[textureMap[path]];
       std::shared_ptr<Texture> tex = std::make_shared<Texture>(*sdl2, path);
       texturePool.push_back(tex);
+      textureMap[path] = texturePool.size() - 1;
       return tex;
     }
 
-    void DeleteTexture(const std::shared_ptr<Texture> &texture)
+    void DeleteTexture(const std::string &path)
     {
-      std::ranges::remove(texturePool, texture);
+      size_t index = textureMap[path];
+      textureMap.erase(path);
+      texturePool.erase(texturePool.begin() + index);
     }
 
-    void AddObject3D(std::shared_ptr<Object3D> object)
+    [[nodiscard]] std::shared_ptr<Object3D>
+    AddObject3D(const std::string &path)
     {
-      objectPool.push_back(std::move(object));
+      if (objectMap.contains(path))
+        return objectPool[objectMap[path]];
+      std::shared_ptr<Object3D> object = std::make_shared<Object3D>(path);
+      objectPool.push_back(object);
+      objectMap[path] = objectPool.size() - 1;
+      return object;
     }
 
-    void DeleteObject3D(const std::shared_ptr<Object3D> &object)
+    void DeleteObject3D(const std::string &path)
     {
-      std::ranges::remove(objectPool, object);
+      size_t index = objectMap[path];
+      objectMap.erase(path);
+      objectPool.erase(objectPool.begin() + index);
     }
 
     /**
