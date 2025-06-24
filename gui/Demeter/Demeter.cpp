@@ -112,10 +112,3 @@ void Dem::Demeter::Run()
     }
   }
 }
-
-Dem::Demeter::~Demeter()
-{
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
-}

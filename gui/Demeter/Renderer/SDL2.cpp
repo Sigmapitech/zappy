@@ -59,6 +59,10 @@ SDL2::SDL2()
 
 SDL2::~SDL2()
 {
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplSDL2_Shutdown();
+  ImGui::DestroyContext();
+
   IMG_Quit();
   SDL_GL_DeleteContext(_context);
   SDL_DestroyWindow(_window);
