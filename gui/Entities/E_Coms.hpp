@@ -10,13 +10,12 @@
 
 class E_Coms : public Dem::IEntity {
 private:
-  std::shared_ptr<API> api;
   Network network;
 
 public:
-  E_Coms(Args &params)
-    : api(std::make_shared<API>()),
-      network(params.GetPort(), params.GetHost(), api)
+  std::shared_ptr<API> api = std::make_shared<API>();
+
+  E_Coms(Args &params) : network(params.GetPort(), params.GetHost(), api)
   {
     Log::info << "Network started.";
   }
