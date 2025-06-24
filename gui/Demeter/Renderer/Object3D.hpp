@@ -161,4 +161,57 @@ public:
    * @throws std::out_of_range if the meshID is invalid.
    */
   void SetTexture(size_t meshID, std::shared_ptr<Texture> t);
+
+  /**
+   * @brief Sets the position of the object in 3D space.
+   *
+   * Updates the model matrix by applying a translation transformation
+   * based on the given position vector.
+   *
+   * @param pos The new position as a glm::vec3.
+   */
+  void SetPosition(const glm::vec3 &pos)
+  {
+    modelMatrix = glm::translate(modelMatrix, pos);
+  }
+
+  /**
+   * @brief Translates the object by the given position vector.
+   *
+   * Applies a translation transformation to the object's model matrix using
+   * the specified position vector.
+   *
+   * @param pos The translation vector to apply to the object's position.
+   */
+  void Translate(const glm::vec3 &pos)
+  {
+    modelMatrix = glm::translate(modelMatrix, pos);
+  }
+
+  /**
+   * @brief Sets the rotation of the object around a specified axis.
+   *
+   * This function applies a rotation transformation to the object's model
+   * matrix, rotating it by the given angle (in degrees) around the provided
+   * axis.
+   *
+   * @param angle The angle of rotation in degrees.
+   * @param axis The axis to rotate around, represented as a glm::vec3.
+   */
+  void SetRotation(float angle, const glm::vec3 &axis)
+  {
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(angle), axis);
+  }
+
+  /**
+   * @brief Sets the scale of the object by applying a scaling transformation
+   * to the model matrix.
+   *
+   * @param scale A glm::vec3 representing the scaling factors along the x, y,
+   * and z axes.
+   */
+  void SetScale(const glm::vec3 &scale)
+  {
+    modelMatrix = glm::scale(modelMatrix, scale);
+  }
 };
