@@ -9,13 +9,16 @@
 #include "logging/Logger.hpp"
 
 class E_Coms : public Dem::IEntity {
+public:
+  std::shared_ptr<API> api = nullptr;  // NOLINT
+
 private:
   Network network;
 
 public:
-  std::shared_ptr<API> api = std::make_shared<API>();
-
-  E_Coms(Args &params) : network(params.GetPort(), params.GetHost(), api)
+  E_Coms(Args &params)
+    : api(std::make_shared<API>()),
+      network(params.GetPort(), params.GetHost(), api)
   {
     Log::info << "Network started.";
   }
