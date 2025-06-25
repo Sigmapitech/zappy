@@ -39,9 +39,7 @@ def fnv1a_16(data: bytes) -> bytes:
     return h.to_bytes(4, "big")[-2:]
 
 
-def build_header(
-    bot_id, counter, rotation, timestamp, checksum, length
-) -> bytes:
+def build_header(bot_id, counter, rotation, timestamp, checksum, length) -> bytes:
     return struct.pack(
         ">HBBI2sH", bot_id, counter, rotation, timestamp, checksum, length
     )

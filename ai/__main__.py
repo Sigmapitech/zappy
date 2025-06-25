@@ -1,10 +1,10 @@
 import argparse
 import asyncio
 import logging
-from functools import wraps
-from typing import Any, NoReturn, Sequence
 import os
 import time
+from functools import wraps
+from typing import Any, NoReturn, Sequence
 
 from .player import Player
 
@@ -31,16 +31,12 @@ CLI_ARGS: dict[Sequence[str], dict[str, Any]] = {
         default=argparse.SUPPRESS,
         help="Show this help message and exit",
     ),
-    "--version": dict(
-        action="version", version=f"{__package__}, v{__version__}"
-    ),
+    "--version": dict(action="version", version=f"{__package__}, v{__version__}"),
 }
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Player for the game", add_help=False
-    )
+    parser = argparse.ArgumentParser(description="Player for the game", add_help=False)
 
     for flags, settings in CLI_ARGS.items():
         if isinstance(flags, str):

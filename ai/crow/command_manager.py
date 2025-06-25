@@ -70,9 +70,7 @@ class CommandManager:
 
     async def drop_required_resources(self):
         # Logic to drop the required resources for evolution
-        for resource, amount in self.elevation_requirements[
-            self.level
-        ].items():
+        for resource, amount in self.elevation_requirements[self.level].items():
             if self.resources[resource] >= amount:
                 await self.set(resource)
                 self.resources[resource] -= amount

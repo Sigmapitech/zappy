@@ -44,9 +44,7 @@ def run_zappy(bins: ZappyPool, args: argparse.Namespace):
     time.sleep(1)
 
     ais = [
-        subprocess.Popen(
-            (bins.ai, "-h", "0.0.0.0", "-p", str(args.port), "-n", team)
-        )
+        subprocess.Popen((bins.ai, "-h", "0.0.0.0", "-p", str(args.port), "-n", team))
         for _ in range(args.team_init_count)
         for team in teams
     ]

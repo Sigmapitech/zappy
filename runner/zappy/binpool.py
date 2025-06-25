@@ -94,9 +94,7 @@ def make_deriv_paths(pool: set[Source], build: Settings) -> dict[str, str]:
     return deriv_paths
 
 
-def create_bin_pool(
-    build: Settings, branches: tuple[str, str, str]
-) -> ZappyPool:
+def create_bin_pool(build: Settings, branches: tuple[str, str, str]) -> ZappyPool:
     custom_branches = set()
 
     for branch, name in zip(branches, ("server", "gui", "ai")):
