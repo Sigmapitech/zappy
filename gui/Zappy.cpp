@@ -24,6 +24,6 @@ Zappy::Zappy(Args &params)
 
 void Zappy::Run()
 {
-  Log::info << "GUI started.";
+  Log::inf << "GUI started.";
   demeter->Run();
 }
