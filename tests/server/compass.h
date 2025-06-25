@@ -1,17 +1,22 @@
 #ifndef TEST_H
     #define TEST_H
 
-    #define COL_FMT(n) "\033[" #n "m"
+    #ifndef COLORS_H
+        #define COLORS_H
 
-    #define RESET COL_FMT(0)
-    #define BOLD COL_FMT(1)
+        #define COL_FMT(n) "\033[" #n "m"
 
-    #define RED COL_FMT(31)
-    #define GREEN COL_FMT(32)
-    #define YELLOW COL_FMT(33)
-    #define BLUE COL_FMT(34)
-    #define PURPLE COL_FMT(35)
-    #define CYAN COL_FMT(36)
+        #define RESET COL_FMT(0)
+        #define BOLD COL_FMT(1)
+
+        #define RED COL_FMT(31)
+        #define GREEN COL_FMT(32)
+        #define YELLOW COL_FMT(33)
+        #define BLUE COL_FMT(34)
+        #define PURPLE COL_FMT(35)
+        #define CYAN COL_FMT(36)
+
+    #endif
 
     #include <stdbool.h>
     #include <sys/types.h>
