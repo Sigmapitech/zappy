@@ -147,7 +147,7 @@ public:
    * @param proj The projection matrix defining the camera's lens. (screen
    * space)
    */
-  void Draw(ShaderProgram &shader, const Camera &camera) const;
+  void Draw(ShaderProgram &shader, Camera &camera) const;
 
   /**
    * @brief Sets the texture for a specific mesh in the object.

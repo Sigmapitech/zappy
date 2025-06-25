@@ -85,8 +85,7 @@ void Mesh::SetTexture(std::shared_ptr<Texture> t)
 }
 
 void Mesh::
-  Draw(ShaderProgram &shader, const glm::mat4 &model, const Camera &camera)
-    const
+  Draw(ShaderProgram &shader, const glm::mat4 &model, Camera &camera) const
 {
   glBindVertexArray(VAO);
 
@@ -105,7 +104,7 @@ void Mesh::
   GLint viewLoc = shader.GetUniformLocation("view");
   GLint projLoc = shader.GetUniformLocation("projection");
   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-  glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.view));
+  glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.GetView()));
   glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(camera.GetProj()));
 
   glDrawElements(GL_TRIANGLES, _indices->size(), GL_UNSIGNED_INT, nullptr);
