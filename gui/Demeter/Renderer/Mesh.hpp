@@ -86,10 +86,9 @@ public:
    * @param projection The projection matrix defining the camera's lens.
    * (screen space)
    */
-  void Draw(
-    ShaderProgram &shader,
-    const glm::mat4 &modelMatrix,
-    const Camera &camera) const;
+  void
+  Draw(ShaderProgram &shader, const glm::mat4 &modelMatrix, Camera &camera)
+    const;
 
   /**
    * @brief Overloads the stream insertion operator to output the contents of a

@@ -26,8 +26,9 @@ public:
   {
     // Draw light effects if needed
     glm::vec3 lightPos(200.0, 500.0, 200.0);  // arbitrary light position
-    glm::vec3 viewPos = glm::vec3(glm::inverse(d.camera.view)[3]);  // camera
-                                                                    // position
+    glm::vec3 viewPos = glm::
+      vec3(glm::inverse(d.camera.GetView())[3]);  // camera
+                                                  // position
 
     GLint lightPosLoc = d.GetShader()->GetUniformLocation("lightPos");
     GLint viewPosLoc = d.GetShader()->GetUniformLocation("viewPos");
