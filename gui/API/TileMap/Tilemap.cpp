@@ -50,3 +50,8 @@ void Tilemap::AddToInventory(int x, int y, Item item, int quantity)
 {
   _tilemap[y][x].AddToInventory(item, quantity);
 }
+
+Inventory Tilemap::GetTileInventory(int x, int y)
+{
+  return _tilemap[y][x].GetInventory();
+}
