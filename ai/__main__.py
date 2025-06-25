@@ -3,6 +3,8 @@ import asyncio
 import logging
 from functools import wraps
 from typing import Any, NoReturn, Sequence
+import os
+import time
 
 from .player import Player
 
@@ -86,8 +88,14 @@ async def main():
     except KeyboardInterrupt:
         logging.info("Player interrupted by user.")
     except ConnectionError:
-        while True:
-            pass
+        logging.debug("Waiting for all child processes to exit...")
+        while client.childs:
+            for pid in client.childs[:]:  # Iterate over a copy of the list
+                finished_pid, status = os.waitpid(pid, os.WNOHANG)
+                if finished_pid != 0:
+                    print(f"Child {finished_pid} exited with status {status}")
+                    client.childs.remove(pid)
+            time.sleep(0.1)  # Avoid tight CPU loop
 
 
 if __name__ == "__main__":
