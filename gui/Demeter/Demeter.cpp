@@ -1,13 +1,14 @@
 #include <iostream>
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl2.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Demeter.hpp"
+#include "logging/Logger.hpp"
 
 Dem::Demeter::Time::Time(const SDL2 &sdl2Instance)
   : last(sdl2Instance.GetTicks64()), current(last)
@@ -111,4 +112,33 @@ void Dem::Demeter::Run()
         std::cerr << "OpenGL Error: " << e << '\n';
     }
   }
+}
+
+std::shared_ptr<Texture> Dem::Demeter::AddTexture(const std::string &path)
+{
+  if (textureMap.contains(path))
+    return texturePool[textureMap[path]];
+  std::shared_ptr<Texture> tex;
+  try {
+    tex = std::make_shared<Texture>(*sdl2, path);
+  } catch (...) {
+    Log::failed
+      << "Failed to load texture from path: " << path
+      << ". Using default texture instead.";
+    tex = std::make_shared<Texture>(*sdl2, ASSET_DIR "/no-texture.png");
+  }
+  texturePool.push_back(tex);
+  textureMap[path] = texturePool.size() - 1;
+  return tex;
+}
+
+[[nodiscard]] std::shared_ptr<Object3D>
+Dem::Demeter::AddObject3D(const std::string &path)
+{
+  if (objectMap.contains(path))
+    return objectPool[objectMap[path]];
+  std::shared_ptr<Object3D> object = std::make_shared<Object3D>(path);
+  objectPool.push_back(object);
+  objectMap[path] = objectPool.size() - 1;
+  return object;
 }

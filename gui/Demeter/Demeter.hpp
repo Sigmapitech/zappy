@@ -10,8 +10,6 @@
 
 #include "Entity.hpp"
 
-#include "logging/Logger.hpp"
-
 /**
  * @brief The Demeter struct encapsulates the main application logic for the
  * Demeter GUI.
@@ -185,23 +183,7 @@ namespace Dem {
       std::ranges::remove(entityPool, entity);
     }
 
-    std::shared_ptr<Texture> AddTexture(const std::string &path)
-    {
-      if (textureMap.contains(path))
-        return texturePool[textureMap[path]];
-      std::shared_ptr<Texture> tex;
-      try {
-        tex = std::make_shared<Texture>(*sdl2, path);
-      } catch (...) {
-        Log::failed
-          << "Failed to load texture from path: " << path
-          << ". Using default texture instead.";
-        tex = std::make_shared<Texture>(*sdl2, ASSET_DIR "/no-texture.png");
-      }
-      texturePool.push_back(tex);
-      textureMap[path] = texturePool.size() - 1;
-      return tex;
-    }
+    [[nodiscard]] std::shared_ptr<Texture> AddTexture(const std::string &path);
 
     void DeleteTexture(const std::string &path)
     {
@@ -211,15 +193,7 @@ namespace Dem {
     }
 
     [[nodiscard]] std::shared_ptr<Object3D>
-    AddObject3D(const std::string &path)
-    {
-      if (objectMap.contains(path))
-        return objectPool[objectMap[path]];
-      std::shared_ptr<Object3D> object = std::make_shared<Object3D>(path);
-      objectPool.push_back(object);
-      objectMap[path] = objectPool.size() - 1;
-      return object;
-    }
+    AddObject3D(const std::string &path);
 
     void DeleteObject3D(const std::string &path)
     {
