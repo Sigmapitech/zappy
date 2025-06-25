@@ -4,17 +4,23 @@
 // IWYU pragma: always_keep
 
 
-    #define CFMT(n) "\033[" #n "m"
 
-    #define RESET CFMT(0)
-    #define BOLD CFMT(1)
+    #ifndef COLORS_H
+        #define COLORS_H
 
-    #define RED CFMT(31)
-    #define GREEN CFMT(32)
-    #define YELLOW CFMT(33)
-    #define BLUE CFMT(34)
-    #define PURPLE CFMT(35)
-    #define CYAN CFMT(36)
+        #define COL_FMT(n) "\033[" #n "m"
+
+        #define RESET COL_FMT(0)
+        #define BOLD COL_FMT(1)
+
+        #define RED COL_FMT(31)
+        #define GREEN COL_FMT(32)
+        #define YELLOW COL_FMT(33)
+        #define BLUE COL_FMT(34)
+        #define PURPLE COL_FMT(35)
+        #define CYAN COL_FMT(36)
+
+    #endif
 
     #ifdef DEBUG_MODE
 
