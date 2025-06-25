@@ -39,13 +39,20 @@ def parse_args() -> argparse.Namespace:
         .add_arg("--debug-server", action="store_true")
         .add_arg("--basic-team-names", action="store_true")
         .add_arg("--no-server", action="store_true")
+        .add_arg("--no-gui", action="store_true")
         .add_arg("--split-logs", action="store_true")
+        .add_arg("--host", type=str, default="0.0.0.0")
         .parse_args()
     )
 
 
 def main():
     args = parse_args()
+
+    if args.host != "0.0.0.0":
+        args.no_server = True
+    if args.ref_server:
+        args.debug_server = False
 
     build_settings = 0
     for c, flag in enumerate(

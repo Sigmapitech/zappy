@@ -74,19 +74,20 @@ def run_zappy(bins: ZappyPool, args: argparse.Namespace):
         for _, team in enumerate(teams):
             ai_log = make_log(f"ai_{i}_{team}")
             ai = subprocess.Popen(
-                (bins.ai, "-h", "0.0.0.0", "-p", str(args.port), "-n", team),
+                (bins.ai, "-h", args.host, "-p", str(args.port), "-n", team),
                 stdout=ai_log,
                 stderr=subprocess.STDOUT,
             )
             processes.append(ai)
 
-    gui_log = make_log("gui")
-    gui = subprocess.Popen(
-        (bins.gui, "-h", "0.0.0.0", "-p", str(args.port)),
-        stdout=gui_log,
-        stderr=subprocess.STDOUT,
-    )
-    processes.append(gui)
+    if not args.no_gui:
+        gui_log = make_log("gui")
+        gui = subprocess.Popen(
+            (bins.gui, "-h", args.host, "-p", str(args.port)),
+            stdout=gui_log,
+            stderr=subprocess.STDOUT,
+        )
+        processes.append(gui)
 
     try:
         while True:
