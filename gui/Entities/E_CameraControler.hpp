@@ -40,19 +40,21 @@ public:
       d.camera.position += glm::vec3(0.0, 0.0, 1.0) * deltaTime;
     if (d.GetInput().keys[SDL_SCANCODE_UP])
       d.camera.position -= glm::vec3(0.0, 0.0, 1.0) * deltaTime;
+
     if (d.GetInput().keys[SDL_SCANCODE_SPACE])
-      d.camera.position += glm::vec3(0.0, 0.1, 0.0) * deltaTime;
+      d.camera.position += glm::vec3(0.0, 1.0, 0.0) * deltaTime;
     if (d.GetInput().keys[SDL_SCANCODE_LCTRL])
-      d.camera.position -= glm::vec3(0.0, 0.1, 0.0) * deltaTime;
+      d.camera.position -= glm::vec3(0.0, 1.0, 0.0) * deltaTime;
+
     if (d.GetInput().mouseButtons[SDL_BUTTON_RIGHT]) {
       if (d.GetInput().mouseX > 0)
-        d.camera.yaw += 0.01F * d.GetInput().mouseDeltaX * deltaTime;
+        d.camera.yaw += 5.0F * d.GetInput().mouseDeltaX * deltaTime;
       if (d.GetInput().mouseX < 0)
-        d.camera.yaw -= 0.01F * d.GetInput().mouseDeltaX * deltaTime;
+        d.camera.yaw -= 5.0F * d.GetInput().mouseDeltaX * deltaTime;
       if (d.GetInput().mouseY > 0)
-        d.camera.pitch += 0.01F * d.GetInput().mouseDeltaY * deltaTime;
+        d.camera.pitch += 5.0F * d.GetInput().mouseDeltaY * deltaTime;
       if (d.GetInput().mouseY < 0)
-        d.camera.pitch -= 0.01F * d.GetInput().mouseDeltaY * deltaTime;
+        d.camera.pitch -= 5.0F * d.GetInput().mouseDeltaY * deltaTime;
     }
     std::cout
       << "Camera Position: " << d.camera.position.x << ", "
