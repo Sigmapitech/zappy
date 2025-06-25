@@ -1,11 +1,11 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
-#include "Demeter/Renderer/asset_dir.hpp"
 #include "Renderer/Object3D.hpp"
 
 #include "Entity.hpp"
@@ -82,6 +82,13 @@ namespace Dem {
       }
     } time;
 
+    struct InputState {
+      std::array<bool, SDL_NUM_SCANCODES> keys;
+      int mouseX, mouseY;
+      int mouseDeltaX, mouseDeltaY;
+      std::array<bool, 5> mouseButtons;
+    } input;
+
     std::vector<std::shared_ptr<IEntity>> entityPool;
     std::vector<std::shared_ptr<Texture>> texturePool;
     std::unordered_map<std::string, size_t> textureMap;
@@ -152,11 +159,18 @@ namespace Dem {
      */
     void Draw();
 
+    void HandleEvent();
+
   public:
     Camera camera;  // NOLINT
 
     Demeter(std::unique_ptr<SDL2> renderer, bool activateDebug = false);
     ~Demeter() = default;
+
+    [[nodiscard]] const InputState &GetInput() const
+    {
+      return input;
+    }
 
     [[nodiscard]] const Time &GetTime() const
     {
