@@ -23,6 +23,7 @@ __pycache__
 *.so
 *.egg-info
 .coverage
+callgrind.out.*
 
 # Editors
 .idea

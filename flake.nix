@@ -46,6 +46,8 @@
               doxygen
               graphviz
               pyenv
+              valgrind
+              libsForQt5.kcachegrind
             ])
             ++ (with self.packages.${pkgs.system}; [
               cpp-fmt
