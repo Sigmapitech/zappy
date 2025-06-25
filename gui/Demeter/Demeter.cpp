@@ -18,9 +18,9 @@ Dem::Demeter::Time::Time(const SDL2 &sdl2Instance)
 
 void Dem::Demeter::Time::Update(const SDL2 &sdl2Instance)
 {
-  last = current;
   current = sdl2Instance.GetTicks64();
-  delta = (current - last) * 1000.0 / sdl2Instance.GetTicks64();
+  delta = (current - last) / 1000.0F;  // convert ms to seconds
+  last = current;
 }
 
 Dem::Demeter::Demeter(std::unique_ptr<SDL2> renderer, bool activateDebug)
