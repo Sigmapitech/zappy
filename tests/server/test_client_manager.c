@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/poll.h>
@@ -77,7 +78,8 @@ client_manager_t *client_manager_from_counts(struct counts counts)
 
 enum call {
     CALL_ADD,
-    CALL_PROMOTE,
+    CALL_PROMOTE_PLAYER,
+    CALL_PROMOTE_GUI,
     CALL_REMOVE,
     CALL_NONE
 };
@@ -97,6 +99,45 @@ typedef struct {
 const checker TEST_CLIENT_MANAGER_STATES[] = {
     { { 1, 1, 1 }, "SUGP", MK_FD_ARRAY(0, 1, 2, 3), CALL_NONE, 0 },
     { { 0, 0, 4 }, "SPPPP", MK_FD_ARRAY(0, 1, 2, 3, 4), CALL_NONE, 0 },
+
+    { { 0, 0, 0 }, "SU", MK_FD_ARRAY(0, -1), CALL_ADD, 0 },
+    { { 0, 1, 0 }, "SUG", MK_FD_ARRAY(0, -1, 1), CALL_ADD, 0 },
+    { { 0, 0, 1 }, "SUP", MK_FD_ARRAY(0, -1, 1), CALL_ADD, 0 },
+    { { 0, 1, 1 }, "SUGP", MK_FD_ARRAY(0, -1, 1, 2), CALL_ADD, 0 },
+    { { 1, 0, 0 }, "SUU", MK_FD_ARRAY(0, 1, -1), CALL_ADD, 0 },
+    { { 1, 1, 0 }, "SUUG", MK_FD_ARRAY(0, 1, -1, 2), CALL_ADD, 0 },
+    { { 1, 0, 1 }, "SUUP", MK_FD_ARRAY(0, 1, -1, 2), CALL_ADD, 0 },
+    { { 1, 1, 1 }, "SUUGP", MK_FD_ARRAY(0, 1, -1, 2, 3), CALL_ADD, 0 },
+
+    { { 1, 0, 0 }, "SU", MK_FD_ARRAY(0, 1), CALL_REMOVE, 0 },
+    { { 1, 0, 0 }, "SU", MK_FD_ARRAY(0, 1), CALL_REMOVE, 2 },
+
+    { { 1, 0, 0 }, "S", MK_FD_ARRAY(0), CALL_REMOVE, 1 },
+    { { 1, 1, 0 }, "SG", MK_FD_ARRAY(0, 2), CALL_REMOVE, 1 },
+    { { 1, 0, 1 }, "SP", MK_FD_ARRAY(0, 2), CALL_REMOVE, 1 },
+    { { 1, 1, 1 }, "SGP", MK_FD_ARRAY(0, 2, 3), CALL_REMOVE, 1 },
+    { { 2, 1, 1 }, "SUGP", MK_FD_ARRAY(0, 2, 3, 4), CALL_REMOVE, 1 },
+
+    { { 0, 1, 0 }, "S", MK_FD_ARRAY(0), CALL_REMOVE, 1 },
+    { { 1, 1, 0 }, "SU", MK_FD_ARRAY(0, 1), CALL_REMOVE, 2 },
+    { { 1, 2, 0 }, "SUG", MK_FD_ARRAY(0, 1, 3), CALL_REMOVE, 2 },
+    { { 1, 1, 1 }, "SUP", MK_FD_ARRAY(0, 1, 3), CALL_REMOVE, 2 },
+    { { 1, 2, 1 }, "SUGP", MK_FD_ARRAY(0, 1, 3, 4), CALL_REMOVE, 2 },
+
+    { { 0, 0, 1 }, "S", MK_FD_ARRAY(0), CALL_REMOVE, 1 },
+    { { 0, 1, 1 }, "SG", MK_FD_ARRAY(0, 1), CALL_REMOVE, 2 },
+    { { 0, 0, 2 }, "SP", MK_FD_ARRAY(0, 2), CALL_REMOVE, 1 },
+    { { 0, 1, 2 }, "SGP", MK_FD_ARRAY(0, 1, 3), CALL_REMOVE, 2 },
+
+    { { 1, 0, 0 }, "SG", MK_FD_ARRAY(0, 1), CALL_PROMOTE_GUI, 1 },
+    { { 1, 0, 0 }, "SP", MK_FD_ARRAY(0, 1), CALL_PROMOTE_PLAYER, 1 },
+    { { 2, 0, 0 }, "SUG", MK_FD_ARRAY(0, 2, 1), CALL_PROMOTE_GUI, 1 },
+    { { 2, 0, 0 }, "SUP", MK_FD_ARRAY(0, 2, 1), CALL_PROMOTE_PLAYER, 1 },
+    { { 2, 0, 0 }, "SUG", MK_FD_ARRAY(0, 1, 2), CALL_PROMOTE_GUI, 2 },
+    { { 2, 0, 0 }, "SUP", MK_FD_ARRAY(0, 1, 2), CALL_PROMOTE_PLAYER, 2 },
+
+    { { 1, 0, 1 }, "SPP", MK_FD_ARRAY(0, 1, 2), CALL_PROMOTE_PLAYER, 1 },
+    { { 1, 1, 1 }, "SGPP", MK_FD_ARRAY(0, 2, 1, 3), CALL_PROMOTE_PLAYER, 1 },
 };
 
 Test(client_manager, batch_test)
@@ -105,15 +146,24 @@ Test(client_manager, batch_test)
         checker c = TEST_CLIENT_MANAGER_STATES[i];
         client_manager_t *cm = client_manager_from_counts(c.start_counts);
 
+        fprintf(stderr, "\033[38;5;103m╤══\033[0m batch test %zu\n", i);
         assert("test coherency", strlen(c.team_repr) == c.fd_count);
 
+        client_state_t *client;
         switch (c.func_id) {
             case CALL_ADD:
                 client_manager_add(cm);
                 break;
-            case CALL_PROMOTE:
-                client_state_t *client = cm->clients + c.idx;
-                client_manager_promote(cm, client);
+            case CALL_PROMOTE_GUI:
+                client = cm->clients + c.idx;
+                client->team_id = TEAM_GRAPHIC;
+                if (0) {
+            case CALL_PROMOTE_PLAYER:
+                client = cm->clients + c.idx;
+                client->team_id = TEAM_PLAYER;
+                }
+
+                client_manager_promote(cm, c.idx);
                 break;
             case CALL_REMOVE:
                 client_manager_remove(cm, c.idx);

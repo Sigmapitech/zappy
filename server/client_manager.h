@@ -9,8 +9,8 @@
 | untagged | untagged | gui | player | ... | ...
 `---------`----------`-----`--------`-----`---
                      ^      |
-                     start_tag
-                             ^ start_players
+                     idx_of_gui
+                             ^ idx_of_playerss
 
 1st segment contains "untagged" client (they are connected, and thus their tag
 is unclear until the handshake done).
@@ -33,7 +33,7 @@ typedef struct {
 client_state_t *client_manager_add(client_manager_t *cm);
 
 /** Remove a client, and reflect to pdfs */
-client_state_t *client_manager_remove(client_manager_t *cm, size_t idx);
+void client_manager_remove(client_manager_t *cm, size_t idx);
 
 /** MUST set team_id BEFORE promoting:
  *
@@ -43,8 +43,7 @@ client_state_t *client_manager_remove(client_manager_t *cm, size_t idx);
  * -> moved to the gui section
  * (will also change the id of 1 player, for contrainsts)
  **/
-client_state_t *client_manager_promote(
-    client_manager_t *cm, client_state_t *client);
+client_state_t *client_manager_promote(client_manager_t *cm, size_t idx);
 
 
 #endif
