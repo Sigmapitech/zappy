@@ -14,13 +14,15 @@
  * matrix.
  */
 struct Camera {
-public:
-  glm::mat4 view;  // NOLINT
-
 private:
   glm::mat4 proj;
+  glm::mat4 view;
 
 public:
+  glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);  // NOLINT
+  float yaw = 0.0f;                                  // NOLINT
+  float pitch = 0.0f;                                // NOLINT
+
   Camera() = default;
 
   /**
@@ -37,11 +39,24 @@ public:
    * @param aspectRatio The aspect ratio (width divided by height) of the
    * viewport.
    */
-  Camera(const glm::mat4 &viewMtx, double fov, double aspectRatio)
-    : view(viewMtx)
+  Camera(double fov, double aspectRatio)
   {
     this->proj = glm::
       perspective<float>(glm::radians(fov), aspectRatio, 0.1, 10000.0);
+  }
+
+  [[nodiscard]] glm::mat4 GetView()
+  {
+    // Reset view
+    view = glm::mat4(1.0F);
+
+    // Apply rotation: pitch (X axis), then yaw (Y axis)
+    view = glm::rotate(view, glm::radians(-pitch), glm::vec3(1, 0, 0));
+    view = glm::rotate(view, glm::radians(-yaw), glm::vec3(0, 1, 0));
+
+    // Apply translation (move the world opposite to camera's position)
+    view = glm::translate(view, -position);
+    return view;
   }
 
   [[nodiscard]] glm::mat4 GetProj() const

@@ -33,9 +33,7 @@ Dem::Demeter::Demeter(std::unique_ptr<SDL2> renderer, bool activateDebug)
   shader = std::make_unique<ShaderProgram>(
     std::move(vertexShader), std::move(fragmentShader));
 
-  glm::mat4 view = glm::
-    translate(glm::mat4(1.0), glm::vec3(0.0, -75.0, -500.0));
-  camera = Camera(view, glm::radians(90.0), 800.0 / 600.0);
+  camera = Camera(glm::radians(90.0), 800.0 / 600.0);
 
   if (glDebug) {
     glEnable(GL_DEBUG_OUTPUT);
