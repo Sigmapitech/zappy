@@ -20,7 +20,7 @@ public:
     : api(std::make_shared<API>()),
       network(params.GetPort(), params.GetHost(), api)
   {
-    Log::info << "Network started.";
+    Log::inf << "Network started.";
   }
 
   ~E_Coms() override
@@ -39,5 +39,10 @@ public:
   {
     (void)d;
     return true;
+  }
+
+  std::shared_ptr<API> GetApi() const
+  {
+    return api;
   }
 };
