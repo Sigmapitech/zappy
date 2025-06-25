@@ -65,6 +65,11 @@ public:
   }
 
   /**
+   * @brief Get the tilemap
+   */
+  Tilemap GetTilemap();
+
+  /**
    * @brief Create an egg to store it into _eggList
    *
    * @param id Contain the id of the new egg

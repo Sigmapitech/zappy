@@ -79,7 +79,7 @@ void Network::ServerHandshake()
       "Error: poll failed. Function: RunNetwork, File: Network.cpp");
 
   if (_pollInFd[FD_SERVER_IN].revents & POLLIN)
-    Log::info << "Message received: " << Log::cleanString(ReceiveMessage());
+    Log::inf << "Message received: " << Log::cleanString(ReceiveMessage());
 
   SendMessage("GRAPHIC\n");
 }
@@ -111,7 +111,7 @@ void Network::RunNetworkInternal()
         throw std::runtime_error(
           "Error: read failed. Function: RunNetwork, File: Network.cpp");
       isRunning = false;
-      Log::info << "End of network thread requested.";
+      Log::inf << "End of network thread requested.";
     }
 
     // server message
@@ -142,7 +142,7 @@ void Network::RunNetworkInternal()
       std::stringstream ss(leftover + std::string(buffer.data(), bytesRead));
       while (std::getline(ss, message, '\n'))
         if (!message.empty()) {
-          Log::info
+          Log::inf
             << "Message received from pipe: " << Log::cleanString(message);
           SendMessage(message + "\n");
         }
@@ -164,7 +164,7 @@ void Network::SendMessage(const std::string &msg)
   if (send(_fdServer, msg.c_str(), msg.size(), 0) == -1)
     throw std::
       runtime_error("Error: send, Function: SendMessage, File: Network.cpp");
-  Log::info << "Message sent : " << Log::cleanString(msg);
+  Log::inf << "Message sent : " << Log::cleanString(msg);
 }
 
 std::string Network::ReceiveMessage() const
