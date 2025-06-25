@@ -1,5 +1,6 @@
 #pragma once
 
+#include "API/Inventory/Inventory.hpp"
 #include "Tile.hpp"
 
 #include <vector>
@@ -69,4 +70,6 @@ public:
    * @param quantity  Contain the quantity of the item to add
    */
   void AddToInventory(int x, int y, Item item, int quantity);
+
+  [[nodiscard]] Inventory GetTileInventory(int x, int y);
 };

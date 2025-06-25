@@ -42,9 +42,9 @@ public:
       d.camera.position -= glm::vec3(0.0, 0.0, 1.0) * deltaTime;
 
     if (d.GetInput().keys[SDL_SCANCODE_SPACE])
-      d.camera.position += glm::vec3(0.0, 1.0, 0.0) * deltaTime;
+      d.camera.position += glm::vec3(0.0, 10.0, 0.0) * deltaTime;
     if (d.GetInput().keys[SDL_SCANCODE_LCTRL])
-      d.camera.position -= glm::vec3(0.0, 1.0, 0.0) * deltaTime;
+      d.camera.position -= glm::vec3(0.0, 10.0, 0.0) * deltaTime;
 
     if (d.GetInput().mouseButtons[SDL_BUTTON_RIGHT]) {
       if (d.GetInput().mouseX > 0)
