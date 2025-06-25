@@ -128,7 +128,7 @@ Object3D::Object3D(const std::string &path)
   }
 }
 
-void Object3D::Draw(ShaderProgram &shader, const Camera &camera) const
+void Object3D::Draw(ShaderProgram &shader, Camera &camera) const
 {
   for (const std::unique_ptr<Mesh> &mesh: _meshArr)
     mesh->Draw(shader, modelMatrix, camera);
