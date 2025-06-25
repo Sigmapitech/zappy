@@ -5,8 +5,16 @@
 #include <sys/poll.h>
 #include <unistd.h>
 
-#include "client.h"
 #include "client_manager.h"
+#include "data_structure/resizable_array.h"
+#include "server.h"
+
+enum {
+    SECTION_SERVER = 0,
+    SECTION_UNASSIGNED = 1,
+    SECTION_GRAPHIC = 2,
+    SECTION_PLAYER = 3
+};
 
 static
 client_state_t *swap_clients(client_manager_t *cm, size_t i, size_t j)
@@ -27,16 +35,85 @@ client_state_t *swap_clients(client_manager_t *cm, size_t i, size_t j)
 
 client_state_t *client_manager_add(client_manager_t *cm)
 {
-    return nullptr;
+    if (!sized_struct_ensure_capacity(
+        (void *)cm->clients, 1, sizeof *cm->clients
+    ) || !sized_struct_ensure_capacity(
+        (void *)cm->server_pfds, 1, sizeof *cm->server_pfds)
+    ) {
+        perror("can't reallocate memory for clients");
+        return nullptr;
+    }
+    memset(cm->clients + cm->count, 0, sizeof *cm->clients);
+    memset(cm->server_pfds + cm->count, 0, sizeof *cm->server_pfds);
+    cm->clients[cm->count].fd = -1;
+    cm->server_pfds[cm->count].fd = -1;
+    cm->clients[cm->count].team_id = SECTION_UNASSIGNED;
+    swap_clients(cm, cm->count, cm->idx_of_gui);
+    if (cm->idx_of_gui != cm->idx_of_players)
+        swap_clients(cm, cm->count, cm->idx_of_players);
+    cm->count++;
+    cm->idx_of_players++;
+    cm->idx_of_gui++;
+    return &cm->clients[cm->idx_of_gui - 1];
 }
 
 client_state_t *client_manager_promote(
-    client_manager_t *cm, client_state_t *client)
+    client_manager_t *cm, size_t idx)
 {
+    if (idx >= cm->count)
+        return nullptr;
+    if (cm->clients[idx].team_id == SECTION_GRAPHIC) {
+        swap_clients(cm, idx, cm->idx_of_gui - 1);
+        cm->idx_of_gui--;
+        return cm->clients + cm->idx_of_gui;
+    }
+    if (cm->clients[idx].team_id > SECTION_GRAPHIC) {
+        swap_clients(cm, idx, cm->idx_of_gui - 1);
+        swap_clients(cm, cm->idx_of_gui - 1, cm->idx_of_players - 1);
+        cm->idx_of_players--;
+        cm->idx_of_gui--;
+        return cm->clients + cm->idx_of_players;
+    }
     return nullptr;
 }
 
-client_state_t *client_manager_remove(client_manager_t *cm, size_t idx)
+static
+void client_manager_remove_gui(client_manager_t *cm, size_t idx)
 {
-    return nullptr;
+    swap_clients(cm, idx, cm->idx_of_players - 1);
+    swap_clients(cm, cm->idx_of_players - 1, cm->count - 1);
+    cm->idx_of_players--;
+}
+
+static
+void client_manager_remove_unassigned(client_manager_t *cm, size_t idx)
+{
+    swap_clients(cm, idx, cm->idx_of_gui - 1);
+    swap_clients(cm, cm->idx_of_gui - 1, cm->count - 1);
+    if (cm->clients[cm->idx_of_gui - 1].team_id > SECTION_GRAPHIC)
+        swap_clients(cm, cm->idx_of_gui - 1, cm->idx_of_players - 1);
+    cm->idx_of_gui--;
+    cm->idx_of_players--;
+}
+
+void client_manager_remove(client_manager_t *cm, size_t idx)
+{
+    if (idx >= cm->count)
+        return;
+    switch (cm->clients[idx].team_id) {
+        case SECTION_SERVER:
+            break;
+        case SECTION_UNASSIGNED:
+            client_manager_remove_unassigned(cm, idx);
+            cm->count--;
+            break;
+        case SECTION_GRAPHIC:
+            client_manager_remove_gui(cm, idx);
+            cm->count--;
+            break;
+        default:
+            swap_clients(cm, idx, cm->count - 1);
+            cm->count--;
+            break;
+    }
 }
