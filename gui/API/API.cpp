@@ -1,7 +1,9 @@
 #include "API.hpp"
+#include "API/TileMap/Tilemap.hpp"
 #include "API/Trantor/Trantor.hpp"
 #include "Utils/Utils.hpp"
 
+#include <mutex>
 #include <sys/poll.h>
 #include <unistd.h>
 
@@ -28,6 +30,12 @@ void API::WriteMessage(const std::string &msg)
   if (write(_pipeFdNetwork[1], msg.c_str(), msg.size()) == -1)
     throw std::runtime_error(
       "Error: write failed, Function: WriteMessage, File: API.cpp");
+}
+
+Tilemap API::GetTilemap()
+{
+  std::lock_guard<std::mutex> lock(_tilemapLocker);
+  return _tilemap;
 }
 
 void API::AddEgg(int id, int x, int y)

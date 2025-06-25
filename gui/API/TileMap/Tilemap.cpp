@@ -6,6 +6,14 @@ std::vector<std::vector<Tile>> Tilemap::GetTilemap()
   return _tilemap;
 }
 
+std::pair<int, int> Tilemap::GetSize() const
+{
+  std::pair<int, int> position;
+  position.first = _sizeX;
+  position.second = _sizeY;
+  return position;
+}
+
 void Tilemap::SetSize(int x, int y)
 {
   _sizeX = x;
