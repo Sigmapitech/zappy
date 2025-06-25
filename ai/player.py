@@ -81,6 +81,9 @@ class Player(SecretivePlayer):
         while True:
             look_response = await self.look()
             tiles = self.handle_look_response(look_response)
+            if tiles is None:
+                logger.error("Look command failed, retrying...")
+                continue
             await self.handle_tile_actions(tiles)
             await asyncio.sleep(0.5)
 
@@ -99,20 +102,26 @@ class Player(SecretivePlayer):
         # Take needed resources first
         for item in tiles[0]:
             if item in needed:
-                await self.take(item)
+                response = await self.take(item)
+                if response == "ko\n":
+                    continue
                 self.resources[item] += 1
                 return  # Only take one per tick for realism
 
         # Then take food if present
         if "food" in tiles[0]:
-            await self.take("food")
+            response = await self.take("food")
+            if response == "ko\n":
+                return
             self.food_stock += 1
             return
 
         # Then take any other resource
         for item in tiles[0]:
             if item in self.resources:
-                await self.take(item)
+                response = await self.take(item)
+                if response == "ko\n":
+                    continue
                 self.resources[item] += 1
                 return
 
@@ -122,10 +131,14 @@ class Player(SecretivePlayer):
     async def take_all_on_tile(self, tile_data: List[str]):
         for item in tile_data:
             if item in self.resources:
-                await self.take(item)
+                response = await self.take(item)
+                if response == "ko\n":
+                    continue
                 self.resources[item] += 1
             elif item == "food":
-                await self.take(item)
+                response = await self.take(item)
+                if response == "ko\n":
+                    continue
                 self.food_stock += 1
 
     async def check_evolution(self):
@@ -146,13 +159,22 @@ class Player(SecretivePlayer):
                 for res, amount in req.items()
                 if res != "players"
             )
-            if self.food_stock >= 10 and has_all:
+            if has_all:
+                # Sync stored inventory with the server
+                if self.handle_inventory_response(await self.inventory()) is None:
+                    logger.error("Inventory command failed, retrying...")
+                    continue
+
+            has_all = all(
+                self.resources.get(res, 0) >= amount
+                for res, amount in req.items()
+                if res != "players"
+            )
+            if self.food_stock >= 4 and has_all:
                 print(
                     f"[DEBUG] Ready to evolve to level {next_level} (current: {self.level})"
                 )
-                print(
-                    f"[DEBUG] Inventory: {self.resources}, Food: {self.food_stock}"
-                )
+                print(f"[DEBUG] Inventory: {self.resources}, Food: {self.food_stock}")
                 if req["players"] == 1:
                     # Level 1->2: evolve immediately, no broadcast
                     await self.drop_resources(req)
@@ -172,6 +194,9 @@ class Player(SecretivePlayer):
             await self.broadcast(f"Evolving to level {self.level + 1}")
             look_response = await self.look()
             tiles = self.handle_look_response(look_response)
+            if tiles is None:
+                logger.error("Look command failed, retrying...")
+                continue
             if self.check_for_others(tiles, req["players"]):
                 await self.incantation()
                 break
@@ -187,16 +212,14 @@ class Player(SecretivePlayer):
                     await self.set(resource)
                     self.resources[resource] -= 1
 
-    def check_for_others(
-        self, tiles: List[List[str]], needed_players: int
-    ) -> bool:
+    def check_for_others(self, tiles: List[List[str]], needed_players: int) -> bool:
         # Count players on current tile (tiles[0])
         return tiles[0].count("player") >= needed_players
 
     async def incantation(self):
         await self.start_incantation()
 
-    def handle_look_response(self, response: str) -> List[List[str]]:
+    def handle_look_response(self, response: str) -> List[List[str]] | None:
         """
         Parses the response from the Look command.
         Returns a list of lists: each sublist contains the objects on a tile.
@@ -205,10 +228,35 @@ class Player(SecretivePlayer):
         """
         # Remove brackets and whitespace
         response = response.strip("[] \n")
+        if response == "ko":
+            return None
         # Split by comma (with or without following space)
         tiles = [tile.strip() for tile in response.split(",")]
         # Split each tile by spaces to get objects
         return [tile.split() if tile else [] for tile in tiles]
+
+    def handle_inventory_response(self, response: str) -> dict[str, int] | None:
+        """
+        Parses the response from the Inventory command.
+        Returns a dictionary with resource names as keys and their counts as values.
+        Example input: '[linemate 1, deraumere 2, food 3]'
+        Output: {'linemate': 1, 'deraumere': 2, 'food': 3}
+        """
+        response = response.strip("[] \n")
+        if response == "ko":
+            return None
+        items = [trim.strip() for trim in response.split(",")]
+        inventory = {}
+
+        for item in items:
+            name, count = item.split(" ")
+            inventory[name] = int(count)
+
+        for resource in self.resources:
+            if resource in inventory:
+                self.resources[resource] = inventory[resource]
+        self.food_stock = inventory.get("food", 0)
+        return inventory
 
     async def run_until_death(self):  # type: ignore
         # Register broadcast handler

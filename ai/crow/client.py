@@ -84,5 +84,5 @@ class Client(CommandManager):
         )
 
     async def start_incantation(self):
-        await self.start_incantation()  # Call the incantation command
+        await super().start_incantation()  # Call the incantation command
         print("Incantation started!")
