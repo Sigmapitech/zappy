@@ -53,6 +53,6 @@ private:
 class Log : public LogStream {};
 
 #define debug log(LogLevel::DEBUG, __FILE__, __LINE__)
-#define info log(LogLevel::INFO, __FILE__, __LINE__)
+#define inf log(LogLevel::INFO, __FILE__, __LINE__)
 #define warn log(LogLevel::WARN, __FILE__, __LINE__)
 #define failed log(LogLevel::CRIT, __FILE__, __LINE__)
