@@ -8,6 +8,7 @@ class CommandManager:
 
     def __init__(self, sock: AsyncSocketClient):
         self._sock = sock
+        self.childs = []
 
     async def look(self) -> str:
         return await self._sock.send_command("Look")
@@ -42,7 +43,8 @@ class CommandManager:
         pid = os.fork()
         if pid == 0:
             os.execv(sys.argv[0], sys.argv)
-
+        else:
+            self.childs.append(pid)
         return res
 
     async def connect_nbr(self) -> str:
@@ -53,11 +55,6 @@ class CommandManager:
 
     async def eject(self) -> str:
         return await self._sock.send_command("Eject")
-
-    async def drop(self, obj: str) -> str:
-        return await self._sock.send_command(
-            f"Set {obj} 0"
-        )  # Drop the object by setting its quantity to 0
 
     async def gather_resources(self):
         # Logic to gather resources from the current tile
@@ -77,7 +74,7 @@ class CommandManager:
             self.level
         ].items():
             if self.resources[resource] >= amount:
-                await self.drop(resource)
+                await self.set(resource)
                 self.resources[resource] -= amount
 
     async def incantation(self):
