@@ -28,7 +28,6 @@ __pycache__
 .idea
 .vscode
 compile_commands.json
-ecsls.toml
 
 # Basic files
 a.out
