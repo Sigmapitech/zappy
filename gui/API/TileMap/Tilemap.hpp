@@ -15,6 +15,13 @@ public:
   ~Tilemap() = default;
 
   /**
+   * @brief Get the Size object
+   *
+   * @return std::pair<x, y>
+   */
+  std::pair<int, int> GetSize() const;
+
+  /**
    * @brief Get the Tilemap
    *
    * @return std::vector<std::vector<Tile>>
