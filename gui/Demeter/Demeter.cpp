@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Demeter.hpp"
+#include "Demeter/Renderer/asset_dir.hpp"
 #include "logging/Logger.hpp"
 
 Dem::Demeter::Time::Time(const SDL2 &sdl2Instance)
@@ -92,14 +93,47 @@ void Dem::Demeter::Draw()
   sdl2->SwapWindow();
 }
 
+void Dem::Demeter::HandleEvent()
+{
+  switch (sdl2->GetEvent().type) {
+    case SDL_QUIT:
+      isRunning = false;
+      break;
+    case SDL_KEYDOWN:
+      std::cerr
+        << "Key pressed: "
+        << SDL_GetScancodeName(sdl2->GetEvent().key.keysym.scancode) << '\n';
+      input.keys[sdl2->GetEvent().key.keysym.scancode] = true;
+      break;
+    case SDL_KEYUP:
+      input.keys[sdl2->GetEvent().key.keysym.scancode] = false;
+      break;
+    case SDL_MOUSEMOTION:
+      input.mouseDeltaX = sdl2->GetEvent().motion.xrel;
+      input.mouseDeltaY = sdl2->GetEvent().motion.yrel;
+      input.mouseX = sdl2->GetEvent().motion.x;
+      input.mouseY = sdl2->GetEvent().motion.y;
+      break;
+    case SDL_MOUSEBUTTONDOWN:
+      if (sdl2->GetEvent().button.button < 5)
+        input.mouseButtons[sdl2->GetEvent().button.button] = true;
+      break;
+    case SDL_MOUSEBUTTONUP:
+      if (sdl2->GetEvent().button.button < 5)
+        input.mouseButtons[sdl2->GetEvent().button.button] = false;
+      break;
+    default:
+      break;
+  }
+}
+
 void Dem::Demeter::Run()
 {
   isRunning = true;
   while (isRunning) {
     while (sdl2->PollEvent()) {
       ImGui_ImplSDL2_ProcessEvent(&sdl2->GetEvent());
-      if (sdl2->GetEvent().type == SDL_QUIT)
-        isRunning = false;
+      HandleEvent();
     }
 
     SetupImGUIFrame();
