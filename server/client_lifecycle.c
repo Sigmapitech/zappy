@@ -12,7 +12,7 @@ static
 void add_client_state(server_t *srv, int fd)
 {
     client_state_t client_state = {.input = {},
-        .inv = {}, .team_id = INVALID_TEAM_ID, .x = 0, .y = 0, .tier = 0,
+        .inv = {}, .team_id = TEAM_ID_UNASSIGNED, .x = 0, .y = 0, .tier = 0,
         .fd = fd, .in_buff_idx = 0};
 
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->cstates,
@@ -52,7 +52,7 @@ void add_client(server_t *srv)
 
 void remove_client(server_t *srv, uint32_t idx)
 {
-    if (srv->cstates.buff[idx - 1].team_id < GRAPHIC_TEAM_ID)
+    if (srv->cstates.buff[idx - 1].team_id > TEAM_ID_GRAPHIC)
         send_to_guis(srv, "pdi #%hd\n", srv->cstates.buff[idx - 1].id);
     for (size_t i = 0; i < srv->events.nmemb; i++)
         if (srv->events.buff[i].client_id == (int)(idx - 1))

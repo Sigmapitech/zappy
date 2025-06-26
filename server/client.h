@@ -10,17 +10,10 @@ typedef enum {
     OR_WEST = 3,
 } orientation_t;
 
-/**
- * @brief Invalid team ID.
- *
- */
-static constexpr const uint8_t INVALID_TEAM_ID = 255;
-/**
- * @brief Team ID for the graphic client.
- *
- * This is used to identify the graphic client in the server.
- */
-static constexpr const uint8_t GRAPHIC_TEAM_ID = 254;
+enum {
+    TEAM_ID_UNASSIGNED = 1,
+    TEAM_ID_GRAPHIC = 2
+};
 
 /**
  * @brief Adds a new client to the server.
