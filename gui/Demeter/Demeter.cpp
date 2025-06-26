@@ -120,6 +120,17 @@ void Dem::Demeter::HandleEvent()
       if (sdl2->GetEvent().button.button < 5)
         input.mouseButtons[sdl2->GetEvent().button.button] = false;
       break;
+    case SDL_WINDOWEVENT:
+      {
+        if (sdl2->GetEvent().window.event == SDL_WINDOWEVENT_RESIZED
+            || sdl2->GetEvent().window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+          int new_width = sdl2->GetEvent().window.data1;
+          int new_height = sdl2->GetEvent().window.data2;
+          sdl2->SetWindowSize(new_width, new_height);
+          camera.SetAspectRatio((float)new_width / (float)new_height);
+        }
+        break;
+      }
     default:
       break;
   }
