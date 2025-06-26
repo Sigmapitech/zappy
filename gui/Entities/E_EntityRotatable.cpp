@@ -10,7 +10,10 @@ E_EntityRotatable::E_EntityRotatable(
   int z)
   : _rotation(rotation)
 {
-  obj = d.AddObject3D(objPath);
+  auto tmp = d.AddObject3D(objPath);
+  if (!tmp)
+    throw std::runtime_error("Failed to load object: " + objPath);
+  obj = *tmp;
   texture = d.AddTexture(texturePath);
   modelMatrix = glm::translate(glm::mat4(1), glm::vec3(x, y, z));
 }

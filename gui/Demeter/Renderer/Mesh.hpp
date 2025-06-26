@@ -49,13 +49,15 @@ public:
    *
    * @throws std::runtime_error if the vertices or indices are empty.
    */
-  Mesh(
-    std::string name,
-    std::unique_ptr<std::vector<Vertex>> vv,
-    std::unique_ptr<std::vector<unsigned int>> vi);
+  Mesh() = default;
   Mesh(const Mesh &) = delete;
   Mesh &operator=(const Mesh &) = delete;
   ~Mesh();
+
+  [[nodiscard]] bool Init(
+    const std::string &name,
+    std::unique_ptr<std::vector<Vertex>> vv,
+    std::unique_ptr<std::vector<unsigned int>> vi);
 
   [[nodiscard]] const std::string &GetName() const
   {

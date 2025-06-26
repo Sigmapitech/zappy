@@ -174,12 +174,16 @@ std::shared_ptr<Texture> Dem::Demeter::AddTexture(const std::string &path)
   return tex;
 }
 
-[[nodiscard]] std::shared_ptr<Object3D>
+[[nodiscard]] std::optional<std::shared_ptr<Object3D>>
 Dem::Demeter::AddObject3D(const std::string &path)
 {
   if (objectMap.contains(path))
     return objectPool[objectMap[path]];
-  std::shared_ptr<Object3D> object = std::make_shared<Object3D>(path);
+  std::shared_ptr<Object3D> object = std::make_shared<Object3D>();
+  if (!object->Init(path)) {
+    Log::failed << "Failed to initialize Object3D from path: " << path;
+    return std::nullopt;
+  }
   objectPool.push_back(object);
   objectMap[path] = objectPool.size() - 1;
   return object;

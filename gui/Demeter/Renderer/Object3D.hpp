@@ -42,8 +42,9 @@ private:
    * accordingly.
    *
    * @param ss Reference to an input string stream containing sub-object data.
+   * @return true if the sub-object was successfully handled, false otherwise.
    */
-  void HandleSubObject(std::istringstream &ss);
+  [[nodiscard]] bool HandleSubObject(std::istringstream &ss);
 
   /**
    * @brief Processes a vertex definition from an input string stream.
@@ -109,8 +110,10 @@ private:
    * @param prefix The prefix string that identifies the type or category of
    * the line.
    * @param ss The input string stream containing the line to be parsed.
+   * @return true if the line was successfully parsed and handled, false
    */
-  void ParseLine(const std::string &prefix, std::istringstream &ss);
+  [[nodiscard]] bool
+  ParseLine(const std::string &prefix, std::istringstream &ss);
 
 public:
   /**
@@ -132,7 +135,9 @@ public:
    *
    * @throws std::runtime_error if the file cannot be opened or parsed.
    */
-  Object3D(const std::string &path);
+  Object3D() = default;
+
+  [[nodiscard]] bool Init(const std::string &path);
 
   /**
    * @brief Renders the 3D object using the provided shader and transformation
