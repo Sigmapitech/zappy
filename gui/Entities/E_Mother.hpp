@@ -13,6 +13,7 @@
 #include "Demeter/Renderer/Texture.hpp"
 #include "Demeter/Renderer/asset_dir.hpp"
 #include "Entities/E_Coms.hpp"
+#include "logging/Logger.hpp"
 
 struct TileData {
   int x;
@@ -35,35 +36,35 @@ private:
   std::shared_ptr<API> _api;
 
 public:
-  E_Mother(Dem::Demeter &d)
+  bool Init(Dem::Demeter &d) override
   {
     std::shared_ptr<E_Coms> eComsPtr = std::
       dynamic_pointer_cast<E_Coms>(d.GetEntity(0));
-    if (eComsPtr)
-      _api = eComsPtr->GetApi();
+    _api = eComsPtr->GetApi();
 
     auto tmp = d.AddObject3D(ASSET_DIR "/cube.obj3D");
-    if (!tmp)
-      throw std::
-        runtime_error("Failed to load object: " ASSET_DIR "/cube.obj3D");
+    if (!tmp) {
+      Log::failed << "Failed to load object: " ASSET_DIR "/cube.obj3D";
+      return false;
+    }
     _tile = *tmp;
     _textureTile = d.AddTexture(ASSET_DIR "/textures/ground.jpg");
 
     tmp = d.AddObject3D(ASSET_DIR "/ressources.obj3D");
-    if (!tmp)
-      throw std::
-        runtime_error("Failed to load object: " ASSET_DIR "/ressources.obj3D");
-    _ressources = *tmp;
-    _textureRessource = d.AddTexture(ASSET_DIR "/textures/green.jpg");
-  }
-
-  bool Update(Dem::Demeter &d) override
-  {
-    (void)d;
-    if (_api->GetTilemap().GetSize().first == 0
-        || _api->GetTilemap().GetSize().second == 0) {
+    if (!tmp) {
+      Log::failed << "Failed to load object: " ASSET_DIR "/ressources.obj3D";
       return false;
     }
+    _ressources = *tmp;
+    _textureRessource = d.AddTexture(ASSET_DIR "/textures/green.jpg");
+    return true;
+  }
+
+  bool Update(Dem::Demeter &) override
+  {
+    if (_api->GetTilemap().GetSize().first == 0
+        || _api->GetTilemap().GetSize().second == 0)
+      return false;
 
     if (_tilemap.empty()) {
       auto [width, height] = _api->GetTilemap().GetSize();
