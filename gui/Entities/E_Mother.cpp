@@ -139,6 +139,6 @@ bool E_Mother::Draw(Dem::Demeter &d)
     _egg->Draw(*d.GetShader(), d.camera);
   }
   // Draw ImGui
-  _subWindowHandler.Run(d, _api);
+  _subWindowHandler.Run(d, _api, _events, _eventIndex, _eventCount);
   return true;
 }

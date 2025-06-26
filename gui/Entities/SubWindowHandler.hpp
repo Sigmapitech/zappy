@@ -30,8 +30,17 @@ private:
 public:
   SubWindowHandler() = default;
 
-  void Run(Dem::Demeter &d, const std::shared_ptr<API> &api);
-  void RunMenu(Dem::Demeter &d);
+  void Run(
+    Dem::Demeter &d,
+    const std::shared_ptr<API> &api,
+    std::array<std::string, 256> &eventArray,
+    size_t eventIndex,
+    size_t eventCount);
+  void RunMenu(
+    Dem::Demeter &d,
+    std::array<std::string, 256> &eventArray,
+    size_t eventIndex,
+    size_t eventCount);
   void RunTeam(Dem::Demeter &d);
   void RunOption();
 };
