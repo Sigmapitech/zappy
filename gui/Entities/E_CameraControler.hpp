@@ -10,6 +10,7 @@
 #include "SDL_mouse.h"
 #include "SDL_scancode.h"
 
+#include <iomanip>
 #include <iostream>
 
 class E_CameraControler : public Dem::IEntity {
@@ -17,6 +18,9 @@ private:
   glm::mat4 modelMatrix;
   std::shared_ptr<Object3D> obj = nullptr;
   std::shared_ptr<Texture> texture = nullptr;
+
+  static constexpr float vel = 5;
+  static constexpr float sensitivity = 1.0F;
 
 public:
   E_CameraControler(Dem::Demeter &d)
@@ -27,46 +31,53 @@ public:
 
   bool Update(Dem::Demeter &d) override
   {
-    float deltaTime = d.GetTime().GetDelta();
+    float dt = d.GetTime().GetDelta();
     float t = d.GetTime().GetCurrent() / 1000.0;
     modelMatrix = glm::rotate(glm::mat4(1.0), t, glm::vec3(0.0, 1.0, 0.0));
 
     // Input handling
     glm::vec3 position = d.camera.GetPosition();
-    if (d.GetInput().keys[SDL_SCANCODE_RIGHT])
-      position += glm::vec3(1.0, 0.0, 0.0) * deltaTime;
-    if (d.GetInput().keys[SDL_SCANCODE_LEFT])
-      position -= glm::vec3(1.0, 0.0, 0.0) * deltaTime;
-    if (d.GetInput().keys[SDL_SCANCODE_DOWN])
-      position += glm::vec3(0.0, 0.0, 1.0) * deltaTime;
     if (d.GetInput().keys[SDL_SCANCODE_UP])
-      position -= glm::vec3(0.0, 0.0, 1.0) * deltaTime;
+      position += d.camera.GetFront() * dt * vel;
+    if (d.GetInput().keys[SDL_SCANCODE_DOWN])
+      position -= d.camera.GetFront() * dt * vel;
+    if (d.GetInput().keys[SDL_SCANCODE_LEFT])
+      position -=
+        glm::normalize(glm::cross(d.camera.GetFront(), d.camera.GetUp())) * dt
+        * vel;
+    if (d.GetInput().keys[SDL_SCANCODE_RIGHT])
+      position +=
+        glm::normalize(glm::cross(d.camera.GetFront(), d.camera.GetUp())) * dt
+        * vel;
 
     if (d.GetInput().keys[SDL_SCANCODE_SPACE])
-      position += glm::vec3(0.0, 10.0, 0.0) * deltaTime;
+      position += d.camera.GetUp() * dt * vel;
     if (d.GetInput().keys[SDL_SCANCODE_LCTRL])
-      position -= glm::vec3(0.0, 10.0, 0.0) * deltaTime;
+      position -= d.camera.GetUp() * dt * vel;
     d.camera.SetPosition(position);
 
     float yaw = d.camera.GetYaw();
     float pitch = d.camera.GetPitch();
     if (d.GetInput().mouseButtons[SDL_BUTTON_RIGHT]) {
       if (d.GetInput().mouseX > 0)
-        yaw += 5.0F * d.GetInput().mouseDeltaX * deltaTime;
+        yaw -= 5.0F * d.GetInput().mouseDeltaX * dt * sensitivity;
       if (d.GetInput().mouseX < 0)
-        yaw -= 5.0F * d.GetInput().mouseDeltaX * deltaTime;
+        yaw += 5.0F * d.GetInput().mouseDeltaX * dt * sensitivity;
       if (d.GetInput().mouseY > 0)
-        pitch += 5.0F * d.GetInput().mouseDeltaY * deltaTime;
+        pitch -= 5.0F * d.GetInput().mouseDeltaY * dt * sensitivity;
       if (d.GetInput().mouseY < 0)
-        pitch -= 5.0F * d.GetInput().mouseDeltaY * deltaTime;
+        pitch += 5.0F * d.GetInput().mouseDeltaY * dt * sensitivity;
       d.camera.SetRotation(yaw, pitch);
     }
     std::cout
-      << "Camera Position: " << d.camera.GetPosition().x << ", "
-      << d.camera.GetPosition().y << ", " << d.camera.GetPosition().z << "\n"
-      << "Camera Yaw: " << yaw << "\n"
-      << "Camera Pitch: " << pitch << "\n"
-      << "deltaTime: " << deltaTime << "\n";
+      << std::fixed << std::setprecision(2) << "Camera: pos "
+      << d.camera.GetPosition().x << ", " << d.camera.GetPosition().y << ", "
+      << d.camera.GetPosition().z << "\t"
+      << "| yaw " << yaw << "\t"
+      << "| pitch " << pitch << "\t"
+      << "| front " << d.camera.GetFront().x << ", " << d.camera.GetFront().y
+      << ", " << d.camera.GetFront().z << "\t"
+      << "| dt " << dt << "\n";
     return true;
   }
 
