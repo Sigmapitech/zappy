@@ -33,16 +33,46 @@ client_state_t *swap_clients(client_manager_t *cm, size_t i, size_t j)
     return &cm->clients[i];
 }
 
+static
+bool client_manager_ensure_capacity(client_manager_t *cm, size_t request)
+{
+    resizable_array_t arr = {
+        .buff = (char *)cm->server_pfds,
+        .nmemb = cm->count,
+        .capacity = cm->capacity,
+    };
+
+    if (!sized_struct_ensure_capacity(&arr, request, sizeof *cm->server_pfds)
+        || !sized_struct_ensure_capacity(
+            (resizable_array_t *)cm, request, sizeof *cm->clients))
+        return false;
+    cm->server_pfds = (struct pollfd *)(void *)arr.buff;
+    return true;
+}
+
+bool client_manager_init(client_manager_t *cm)
+{
+    struct pollfd srv_pollfd = { .events = POLLIN };
+    client_state_t srv_client = {
+        .team_id = TEAM_ID_SERVER,
+        .id = 0,
+        0,
+    };
+
+    if (!client_manager_ensure_capacity(cm, 1))
+        return perror("can't allocate memory for clients"), false;
+    cm->count = 1;
+    *cm->server_pfds = srv_pollfd;
+    *cm->clients = srv_client;
+    cm->idx_of_gui++;
+    cm->idx_of_players++;
+    return true;
+}
+
 client_state_t *client_manager_add(client_manager_t *cm)
 {
-    if (!sized_struct_ensure_capacity(
-        (void *)cm->clients, 1, sizeof *cm->clients
-    ) || !sized_struct_ensure_capacity(
-        (void *)cm->server_pfds, 1, sizeof *cm->server_pfds)
-    ) {
-        perror("can't reallocate memory for clients");
-        return nullptr;
-    }
+    if (!client_manager_ensure_capacity(cm, 1))
+        return perror("can't reallocate memory for clients"), nullptr;
     memset(cm->clients + cm->count, 0, sizeof *cm->clients);
     memset(cm->server_pfds + cm->count, 0, sizeof *cm->server_pfds);
     cm->clients[cm->count].fd = -1;

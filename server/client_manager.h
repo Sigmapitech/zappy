@@ -31,6 +31,8 @@ typedef struct {
     struct pollfd *server_pfds;
 } client_manager_t;
 
+bool client_manager_init(client_manager_t *cm);
+
 /** Adds a new client as untagged */
 client_state_t *client_manager_add(client_manager_t *cm);
 

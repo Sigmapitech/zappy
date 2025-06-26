@@ -10,23 +10,23 @@
 #include "server.h"
 
 static
-void add_client_state(server_t *srv, int fd)
+bool add_client_state(server_t *srv, int fd)
 {
     static uint32_t id = 0;
-    client_state_t client_state = {.input = {},
-        .inv = {}, .team_id = TEAM_ID_UNASSIGNED, .x = 0, .y = 0, .tier = 0,
-        .fd = fd, .in_buff_idx = 0, .id = id };
+    client_state_t *client = client_manager_add(&srv->cm);
+    size_t idx;
 
+    if (client == nullptr)
+        return false;
+    client->fd = fd;
+    client->id = id;
+    idx = srv->cm.idx_of_gui - 1;
+    srv->cm.server_pfds[idx].fd = fd;
+    srv->cm.server_pfds[idx].events = POLLIN;
+    srv->cm.server_pfds[idx].revents = 0;
     id++;
-    DEBUG("Client ID (fd %u): %u", fd, id);
-    if (!sized_struct_ensure_capacity((void *)&srv->cm.clients,
-        1, sizeof *srv->cm.clients)) {
-        perror("Can't resize client state");
-        close(fd);
-        return;
-    }
-    srv->cm.clients[srv->cm.count] = client_state;
-    append_to_output(srv, &srv->cm.clients[srv->cm.count], "WELCOME\n");
+    append_to_output(srv, client, "WELCOME\n");
+    return true;
 }
 
 void add_client(server_t *srv)
@@ -39,16 +39,11 @@ void add_client(server_t *srv)
         perror("accept failed");
         return;
     }
-    if (!sized_struct_ensure_capacity((void *)&srv->cm.server_pfds,
-        1, sizeof *srv->cm.server_pfds)) {
-        perror("Can't resize poll file descriptors");
+    if (!add_client_state(srv, new_fd)) {
         close(new_fd);
+        perror("failed to register client");
         return;
     }
-    srv->cm.server_pfds[srv->cm.count] = (pollfd_t){
-        .fd = new_fd, .events = POLLIN, .revents = 0};
-    add_client_state(srv, new_fd);
-    srv->cm.count++;
     DEBUG("New client connected: fd=%d, addr=%s:%d",
         new_fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 }
@@ -60,15 +55,10 @@ void remove_client(server_t *srv, uint32_t idx)
     for (size_t i = 0; i < srv->events.nmemb; i++)
         if (srv->events.buff[i].client_idx == (int)(idx))
             srv->events.buff[i].client_idx = CLIENT_DEAD;
-    DEBUG("Client disconnected: fd=%d", srv->cm.clients[idx].fd);
+    DEBUG("Client disconnected: %u, fd=%d", srv->cm.clients[idx].fd);
     if (srv->cm.clients[idx].fd >= 0)
         close(srv->cm.clients[idx].fd);
-    srv->cm.clients[idx].fd = -1;
     free(srv->cm.clients[idx].input.buff);
-    srv->cm.clients[idx].input.buff = nullptr;
     free(srv->cm.clients[idx].output.buff);
-    srv->cm.clients[idx].output.buff = nullptr;
-    srv->cm.clients[idx] = srv->cm.clients[srv->cm.count - 1];
-    srv->cm.server_pfds[idx] = srv->cm.server_pfds[srv->cm.count - 1];
-    srv->cm.count--;
+    client_manager_remove(&srv->cm, idx);
 }
