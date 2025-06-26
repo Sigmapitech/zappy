@@ -3,9 +3,6 @@
 
 #include <netinet/in.h>
 
-#include <array>
-#include <iostream>
-#include <memory>
 #include <sstream>
 #include <stdexcept>
 
@@ -94,18 +91,14 @@ void Network::RunNetworkInternal()
 {
   ServerHandshake();
 
-  int i = 0;
   bool isRunning = true;
   while (isRunning) {
     if (poll(_pollInFd.data(), _pollInFd.size(), -1) == -1)
       throw std::runtime_error(
         "Error: poll failed. Function: RunNetwork, File: Network.cpp");
 
-    std::cerr << "Poll nb " << i++ << "\n";
-
     // exit event
     if (_pollInFd[FD_PIPE_EXIT].revents & POLLIN) {
-      std::cerr << "Exit event received.\n";
       std::array<char, 10> buffer;
       if (read(_pollInFd[FD_PIPE_EXIT].fd, buffer.data(), buffer.size()) == -1)
         throw std::runtime_error(
@@ -116,10 +109,9 @@ void Network::RunNetworkInternal()
 
     // server message
     if (_pollInFd[FD_SERVER_IN].revents & POLLIN) {
-      std::cerr << "Server message received.\n";
       std::string message = ReceiveMessage();
       try {
-        _api->ParseManageCommande(message);
+        _api->ParseManageCommand(message);
       } catch (const std::exception &e) {
         Log::failed << "Exception in ParseManageCommande: " << e.what();
       }
@@ -127,7 +119,6 @@ void Network::RunNetworkInternal()
 
     // network pipe message
     if (_pollInFd[FD_PIPE_NETWORK].revents & POLLIN) {
-      std::cerr << "Network pipe message received.\n";
       static std::string leftover;
       std::string message;
       std::array<char, 1024> buffer;
@@ -184,7 +175,7 @@ std::string Network::ReceiveMessage() const
     if (bytes_received == 0)
       break;
     buffer.insert(buffer.end(), chunk.begin(), chunk.begin() + bytes_received);
-    if (static_cast<std::size_t>(bytes_received) < chunk_size)
+    if ((size_t)(bytes_received) < chunk_size)
       break;
   }
 
@@ -193,6 +184,6 @@ std::string Network::ReceiveMessage() const
 
 void Network::RequestStop()
 {
-  std::cerr << "Requesting stop of network thread.\n";
+  Log::inf << "Requesting stop of network thread.\n";
   write(_pipeFdExit[FD_EXIT_OUT], "x", 1);
 }

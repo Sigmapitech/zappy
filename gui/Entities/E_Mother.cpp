@@ -1,14 +1,22 @@
 #include "Entities/E_Mother.hpp"
+#include <sstream>
 
 #include "API/Inventory/Inventory.hpp"
 #include "Demeter/Renderer/asset_dir.hpp"
 #include "Entities/E_Coms.hpp"
+#include "logging/Logger.hpp"
 
 bool E_Mother::Init(Dem::Demeter &d)
 {
   std::shared_ptr<E_Coms> eComsPtr = std::
     dynamic_pointer_cast<E_Coms>(d.GetEntity(0));
   _api = eComsPtr->GetApi();
+
+  fd = _api->GetEventsInFd();
+
+  _pollOutFd[0].fd = fd;
+  _pollOutFd[0].events = POLLIN;
+  _pollOutFd[0].revents = 0;
 
   auto tmp = d.AddObject3D(ASSET_DIR "/cube.obj3D");
   if (!tmp) {
@@ -28,10 +36,8 @@ bool E_Mother::Init(Dem::Demeter &d)
   return true;
 }
 
-bool E_Mother::Update(Dem::Demeter &d)
+bool E_Mother::Update(Dem::Demeter &)
 {
-  (void)d;
-
   _api->AskAllTileContent();
 
   if (_api->GetTilemap().GetSize().first == 0
@@ -46,6 +52,35 @@ bool E_Mother::Update(Dem::Demeter &d)
     for (int i = 0; i < height; ++i)
       for (int j = 0; j < width; ++j)
         _tilemap[i][j] = {.x = i, .y = 0, .z = j, .rotation = 0.0};
+  }
+
+  std::array<char, 1024> buffer;
+
+  std::string fullData;
+  while (true) {
+    if (poll(_pollOutFd.data(), _pollOutFd.size(), 0) == -1) {
+      Log::failed << "Poll failed in E_Mother::Update";
+      return false;
+    }
+    if (!(_pollOutFd[0].revents & POLLIN))
+      break;  // No data to read
+    ssize_t bytesRead = read(fd, buffer.data(), buffer.size());
+    if (bytesRead == -1) {
+      Log::failed << "Read failed in E_Mother::Update";
+      return false;
+    }
+    if (bytesRead == 0)
+      break;  // No more data
+    fullData.append(buffer.data(), bytesRead);
+  }
+
+  std::stringstream ss(fullData);
+  std::string message;
+  while (std::getline(ss, message)) {
+    _eventIndex = (_eventIndex + 1) % _events.size();
+    _events[_eventIndex] = std::move(message);
+    if (_eventCount < _events.size())
+      _eventCount++;
   }
   return true;
 }

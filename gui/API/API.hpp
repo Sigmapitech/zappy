@@ -1,18 +1,20 @@
 #pragma once
 
+#include <array>
+#include <mutex>
+
 #include "API/Incantation/Incantation.hpp"
 #include "API/TileMap/Tilemap.hpp"
 #include "API/Trantor/Trantor.hpp"
 
 #include <sys/poll.h>
 
-#include <array>
-#include <mutex>
-
 class API {
 private:
   std::array<int, 2> _pipeFdNetwork;
+  std::array<int, 2> _pipeFdEvents;
   std::array<struct pollfd, 1> _pollOutFd;
+  std::array<struct pollfd, 1> _pollEventOutFd;
   std::mutex _commandListLocker;
 
   Tilemap _tilemap;
@@ -62,6 +64,21 @@ public:
   [[nodiscard]] int GetInFd() const
   {
     return _pipeFdNetwork[0];
+  }
+
+  /**
+   * @brief Retrieves the file descriptor used for relaying events from the
+   * network.
+   *
+   * This method returns the read end of the pipe that is used to receive
+   * events from the network layer. The returned file descriptor can be
+   * monitored for incoming events.
+   *
+   * @return The file descriptor associated with network event relaying.
+   */
+  [[nodiscard]] int GetEventsInFd() const
+  {
+    return _pipeFdEvents[0];
   }
 
   /**
@@ -176,7 +193,7 @@ public:
    *
    * @param command Contain the full string command from the server
    */
-  void ParseManageCommande(std::string &command);
+  void ParseManageCommand(std::string &command);
 
   /**
    * @brief    Add a new player to a team
