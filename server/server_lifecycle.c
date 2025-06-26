@@ -91,20 +91,10 @@ bool server_boot(server_t *srv, params_t *p)
     srv->start_time = get_timestamp();
     srv->frequency = p->frequency;
     srv->cm.server_pfds[0].fd = srv->self_fd;
+    srv->cm.clients[0].fd = srv->self_fd;
     meteor.timestamp = srv->start_time;
     meteor.client_idx = 0;
     return event_heap_push(&srv->events, &meteor);
-}
-
-static
-void fill_cm(server_t *srv)
-{
-    srv->cm.clients[0] = (client_state_t){.team_id = TEAM_ID_SERVER};
-    srv->cm.server_pfds[0] = (pollfd_t){
-        .fd = srv->self_fd, .events = POLLIN, .revents = 0};
-    srv->cm.count = 1;
-    srv->cm.idx_of_gui = 0;
-    srv->cm.idx_of_players = 0;
 }
 
 static
@@ -120,13 +110,10 @@ bool server_allocate(server_t *srv, params_t *p, uint64_t timestamp)
         return perror("Can't set signal handler"), false;
     if (!setup_teams(srv, p, timestamp))
         return false;
-    if (!sized_struct_ensure_capacity((void *)&srv->cm.server_pfds,
-        1, sizeof *srv->cm.server_pfds) || !sized_struct_ensure_capacity(
-        (void *)&srv->cm.clients, 1, sizeof *srv->cm.clients))
-        return perror("Can't allocate client manager"), false;
-    fill_cm(srv);
+    if (!client_manager_init(&srv->cm))
+        return perror("Can't initialize client manager"), false;
     if (!event_heap_init(&srv->events))
-        return perror("Can't initialise event priority queue"), false;
+        return perror("Can't initialize event priority queue"), false;
     signal_handler(0, nullptr, srv);
     return true;
 }

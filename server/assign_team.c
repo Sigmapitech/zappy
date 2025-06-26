@@ -67,6 +67,10 @@ bool send_ai_team_assignment_respone(
 {
     unsigned int count = 0;
 
+    client->team_id = team_id;
+    client = client_manager_promote(&srv->cm, client - srv->cm.clients);
+    if (client == nullptr)
+        return false;
     DEBUG("Client %d assigned to the team with id %zu", client->fd, team_id);
     for (size_t i = 0; i < srv->eggs.nmemb; i++)
         count += srv->eggs.buff[i].team_id == team_id
@@ -98,6 +102,9 @@ static
 bool send_gui_team_assignment_respone(server_t *srv, client_state_t *client)
 {
     client->team_id = TEAM_ID_GRAPHIC;
+    client = client_manager_promote(&srv->cm, client - srv->cm.clients);
+    if (client == nullptr)
+        return false;
     DEBUG("Client %d assigned to GRAPHIC team", client->fd);
     vappend_to_output(srv, client, "msz %hhu %hhu\nsgt %hu\n",
         srv->map_width, srv->map_height, srv->frequency);
