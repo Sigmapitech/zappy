@@ -100,11 +100,9 @@ bool player_eject_handler(server_t *srv, const event_t *event)
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "ko\n"), true;
     append_to_output(srv, cs, "ok\n");
-    for (size_t i = 0; i < srv->cstates.nmemb; i++) {
-        pl = srv->cstates.buff + i;
-        if (LIKELY(pl == cs || pl->x != cs->x || pl->y != cs->y
-            || pl->team_id == TEAM_ID_GRAPHIC
-            || pl->team_id == TEAM_ID_UNASSIGNED))
+    for (size_t i = srv->cm.idx_of_players; i < srv->cm.count; i++) {
+        pl = srv->cm.clients + i;
+        if (LIKELY(pl == cs || pl->x != cs->x || pl->y != cs->y))
             continue;
         player_move(srv, pl, cs->orientation);
         vappend_to_output(srv, pl, "eject: %hhu\n",

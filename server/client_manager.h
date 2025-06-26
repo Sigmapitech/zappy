@@ -1,7 +1,9 @@
 #ifndef CLIENT_STATE_SEGMENT_H
     #define CLIENT_STATE_SEGMENT_H
 
-    #include "server.h"
+typedef struct client_state_s client_state_t;
+
+    #include <stddef.h>
 
 /** Segment for the client state:
                                            v capacity

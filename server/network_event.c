@@ -6,7 +6,7 @@
 
 void process_poll(server_t *srv, uint64_t timeout)
 {
-    int poll_result = poll(srv->pfds.buff, srv->pfds.nmemb, timeout);
+    int poll_result = poll(srv->cm.server_pfds, srv->cm.count, timeout);
 
     if (poll_result < 0) {
         if (srv->is_running)
@@ -16,24 +16,24 @@ void process_poll(server_t *srv, uint64_t timeout)
 
 void process_fds(server_t *srv)
 {
-    if (srv->pfds.buff[0].revents & POLLIN)
+    if (srv->cm.server_pfds[0].revents & POLLIN)
         add_client(srv);
-    for (size_t i = 1; i < srv->pfds.nmemb; i++) {
-        if (srv->pfds.buff[i].revents & POLLIN)
+    for (size_t i = 1; i < srv->cm.count; i++) {
+        if (srv->cm.server_pfds[i].revents & POLLIN)
             read_client(srv, i);
-        if (srv->pfds.buff[i].revents & POLLOUT)
+        if (srv->cm.server_pfds[i].revents & POLLOUT)
             write_client(srv, i);
     }
 }
 
 void process_disconnection(server_t *srv)
 {
-    for (size_t i = 1; i < srv->pfds.nmemb; i++) {
-        if (srv->pfds.buff[i].revents & POLLHUP
-            || srv->pfds.buff[i].revents & POLLERR
+    for (size_t i = 1; i < srv->cm.count; i++) {
+        if (srv->cm.server_pfds[i].revents & POLLHUP
+            || srv->cm.server_pfds[i].revents & POLLERR
         ) {
-                remove_client(srv, i);
-                i--;
+            remove_client(srv, i);
+            i--;
         }
     }
 }
