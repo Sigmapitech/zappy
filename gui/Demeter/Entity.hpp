@@ -18,6 +18,8 @@ namespace Dem {
   public:
     virtual ~IEntity() = default;
 
+    [[nodiscard]] virtual bool Init(Demeter &d) = 0;
+
     /**
      * @brief Updates the state of the entity.
      *
@@ -29,7 +31,7 @@ namespace Dem {
      * update.
      * @return true if the update was successful, false otherwise.
      */
-    virtual bool Update(Demeter &d) = 0;
+    [[nodiscard]] virtual bool Update(Demeter &d) = 0;
 
     /**
      * @brief Draws the entity using the provided Demeter context.
@@ -41,7 +43,7 @@ namespace Dem {
      * @param d Reference to a Demeter object used for drawing operations.
      * @return true if the drawing operation was successful, false otherwise.
      */
-    virtual bool Draw(Demeter &d) = 0;
+    [[nodiscard]] virtual bool Draw(Demeter &d) = 0;
   };
 
 }  // namespace Dem

@@ -17,9 +17,9 @@ private:
   static constexpr float sensitivity = 1.0F;
 
 public:
-  E_CameraControler(Dem::Demeter &d)
+  bool Init(Dem::Demeter &) override
   {
-    (void)d;
+    return true;
   }
 
   bool Update(Dem::Demeter &d) override
@@ -72,9 +72,8 @@ public:
     return true;
   }
 
-  bool Draw(Dem::Demeter &d) override
+  bool Draw(Dem::Demeter &) override
   {
-    (void)d;
     return true;
   }
 };
