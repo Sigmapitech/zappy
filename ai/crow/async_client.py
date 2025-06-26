@@ -51,7 +51,8 @@ class AsyncSocketClient:
                     continue
                 if content[0] == '"' and content[-1] == '"':
                     content = content[1:-1]
-                await self._broadcast_callback(int(direction), content)
+                if self._broadcast_callback is not None:
+                    await self._broadcast_callback(int(direction), content)
                 continue
 
             if msg == "dead":

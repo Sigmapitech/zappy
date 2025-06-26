@@ -58,7 +58,7 @@ class Player(SecretivePlayer):
         self.memory = []
         self.broadcasting = False
         self.evolving = False
-        self.last_fork = 0
+        self.last_fork = False  # Changed from timestamp to bool
         current_dir = pathlib.Path(__file__).parent
         with open(current_dir / "elevation.json") as f:
             self.elevation_requirements = json.load(f)
@@ -67,6 +67,7 @@ class Player(SecretivePlayer):
         # Only react if not evolving and message is for our level
         if self.evolving or self.level < 2:
             return
+        # Listen for "Evolving to level X" messages and move toward the sender
         if f"Evolving to level {self.level + 1}" in msg.content:
             await self.move_towards(direction)
 
@@ -79,6 +80,21 @@ class Player(SecretivePlayer):
 
     async def gather_resources(self):
         while True:
+            # If at max level, only gather food, ignore other resources
+            next_level = str(self.level + 1)
+            if next_level not in self.elevation_requirements:
+                look_response = await self.look()
+                tiles = self.handle_look_response(look_response)
+                if tiles is None:
+                    logger.error("Look command failed, retrying...")
+                    continue
+                if "food" in tiles[0]:
+                    response = await self.take("food")
+                    if response != "ko\n":
+                        self.food_stock += 1
+                await asyncio.sleep(0.5)
+                continue
+
             look_response = await self.look()
             tiles = self.handle_look_response(look_response)
             if tiles is None:
@@ -143,17 +159,12 @@ class Player(SecretivePlayer):
 
     async def check_evolution(self):
         while True:
-            await asyncio.sleep(0.1)  # Try to evolve more often
-            # Fork every 30 seconds if possible
-            if asyncio.get_event_loop().time() - self.last_fork > 30:
-                await self.fork()
-                self.last_fork = asyncio.get_event_loop().time()
-            # Check if ready to evolve
             next_level = str(self.level + 1)
             if next_level not in self.elevation_requirements:
+                await asyncio.sleep(2.0)
                 continue  # Already max level
+
             req = self.elevation_requirements[next_level]
-            # Only check for resources actually required for next level
             has_all = all(
                 self.resources.get(res, 0) >= amount
                 for res, amount in req.items()
@@ -161,8 +172,12 @@ class Player(SecretivePlayer):
             )
             if has_all:
                 # Sync stored inventory with the server
-                if self.handle_inventory_response(await self.inventory()) is None:
+                if (
+                    self.handle_inventory_response(await self.inventory())
+                    is None
+                ):
                     logger.error("Inventory command failed, retrying...")
+                    await asyncio.sleep(1.0)
                     continue
 
             has_all = all(
@@ -174,23 +189,33 @@ class Player(SecretivePlayer):
                 print(
                     f"[DEBUG] Ready to evolve to level {next_level} (current: {self.level})"
                 )
-                print(f"[DEBUG] Inventory: {self.resources}, Food: {self.food_stock}")
+                print(
+                    f"[DEBUG] Inventory: {self.resources}, Food: {self.food_stock}"
+                )
                 if req["players"] == 1:
-                    # Level 1->2: evolve immediately, no broadcast
-                    await self.drop_resources(req)
-                    await self.incantation()
-                    self.level += 1
-                    print(f"[DEBUG] Evolved to level {self.level}")
+                    await self.drop_resources()
+                    success = await self.incantation_and_wait()
+                    if success:
+                        print(f"[DEBUG] Evolved to level {self.level}")
+                        await self.fork()  # Fork immediately after ascending
+                    else:
+                        print("[DEBUG] Incantation failed or timed out.")
                 else:
-                    # Level >=2: broadcast and wait for others
+                    # Broadcast intent to evolve and wait for others
                     await self.prepare_evolution(req)
                     self.level += 1
                     print(f"[DEBUG] Evolved to level {self.level}")
+                    await self.fork()  # Fork immediately after ascending
+
+            await asyncio.sleep(
+                2.0
+            )  # Still keep a small delay to avoid tight loop
 
     async def prepare_evolution(self, req):
         self.evolving = True
-        await self.drop_resources(req)
+        await self.drop_resources()
         while True:
+            # Broadcast intent to evolve so others can join
             await self.broadcast(f"Evolving to level {self.level + 1}")
             look_response = await self.look()
             tiles = self.handle_look_response(look_response)
@@ -198,12 +223,20 @@ class Player(SecretivePlayer):
                 logger.error("Look command failed, retrying...")
                 continue
             if self.check_for_others(tiles, req["players"]):
-                await self.incantation()
+                success = await self.incantation_and_wait()
+                if success:
+                    print(f"[DEBUG] Evolved to level {self.level}")
+                else:
+                    print("[DEBUG] Incantation failed or timed out.")
                 break
             await asyncio.sleep(1)
         self.evolving = False
 
-    async def drop_resources(self, req):
+    async def drop_resources(self):
+        next_level = str(self.level + 1)
+        if next_level not in self.elevation_requirements:
+            return
+        req = self.elevation_requirements[next_level]
         for resource, amount in req.items():
             if resource == "players":
                 continue
@@ -212,12 +245,55 @@ class Player(SecretivePlayer):
                     await self.set(resource)
                     self.resources[resource] -= 1
 
-    def check_for_others(self, tiles: List[List[str]], needed_players: int) -> bool:
+    def check_for_others(
+        self, tiles: List[List[str]], needed_players: int
+    ) -> bool:
         # Count players on current tile (tiles[0])
         return tiles[0].count("player") >= needed_players
 
     async def incantation(self):
         await self.start_incantation()
+
+    async def incantation_and_wait(self):
+        """
+        Handles the incantation process:
+        - Waits for 'Elevation underway'
+        - Waits for 'Current level: k' or 'ko'
+        Returns True if level up succeeded, False otherwise.
+        """
+        resp = await self.start_incantation()
+        if resp is None or "ko" in resp:
+            print("[DEBUG] Incantation failed immediately.")
+            return False
+        if "Elevation underway" not in resp:
+            print(f"[DEBUG] Unexpected incantation response: {resp}")
+            return False
+
+        # Wait for the final result
+        for _ in range(40):  # Wait up to 4 seconds (adjust as needed)
+            await asyncio.sleep(0.1)
+            # You may need to fetch messages from a queue or call a method to get the next message
+            # Here we assume self._sock._next_non_message() or similar is available
+            try:
+                msg = await self._sock._next_non_message()
+            except Exception as e:
+                print(f"[DEBUG] Error waiting for incantation result: {e}")
+                return False
+            if "ko" in msg:
+                print("[DEBUG] Incantation failed after underway.")
+                return False
+            if "Current level:" in msg:
+                try:
+                    k = int(msg.split(":")[1].strip())
+                    if k > self.level:
+                        self.level = k
+                        print(f"[DEBUG] Evolved to level {self.level}")
+                        return True
+                except Exception as e:
+                    print(f"[DEBUG] Failed to parse level from: {msg} ({e})")
+                    return False
+        print("[DEBUG] Incantation timed out waiting for result.")
+        return False
 
     def handle_look_response(self, response: str) -> List[List[str]] | None:
         """
@@ -235,12 +311,13 @@ class Player(SecretivePlayer):
         # Split each tile by spaces to get objects
         return [tile.split() if tile else [] for tile in tiles]
 
-    def handle_inventory_response(self, response: str) -> dict[str, int] | None:
+    def handle_inventory_response(
+        self, response: str
+    ) -> dict[str, int] | None:
         """
         Parses the response from the Inventory command.
+        Expects: '[food X, linemate X, deraumere X, sibur X, mendiane X, phiras X, thystame X]'
         Returns a dictionary with resource names as keys and their counts as values.
-        Example input: '[linemate 1, deraumere 2, food 3]'
-        Output: {'linemate': 1, 'deraumere': 2, 'food': 3}
         """
         response = response.strip("[] \n")
         if response == "ko":
@@ -248,9 +325,31 @@ class Player(SecretivePlayer):
         items = [trim.strip() for trim in response.split(",")]
         inventory = {}
 
+        expected = {
+            "food",
+            "linemate",
+            "deraumere",
+            "sibur",
+            "mendiane",
+            "phiras",
+            "thystame",
+        }
         for item in items:
-            name, count = item.split(" ")
-            inventory[name] = int(count)
+            parts = item.split()
+            if len(parts) != 2:
+                logger.error(f"Malformed inventory item: '{item}'")
+                continue
+            name, count = parts
+            if name not in expected:
+                logger.error(f"Unexpected inventory item: '{name}'")
+                continue
+            try:
+                inventory[name] = int(count)
+            except ValueError:
+                logger.error(
+                    f"Inventory count is not an int for item: '{item}'"
+                )
+                continue
 
         for resource in self.resources:
             if resource in inventory:
