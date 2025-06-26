@@ -13,7 +13,7 @@ static
 void send_guis_player_data(server_t *srv, client_state_t *client, size_t egg)
 {
     for (size_t i = 0; i < srv->cstates.nmemb; i++) {
-        if (srv->cstates.buff[i].team_id != GRAPHIC_TEAM_ID)
+        if (srv->cstates.buff[i].team_id != TEAM_ID_GRAPHIC)
             continue;
         vappend_to_output(srv, &srv->cstates.buff[i],
             "pnw #%d %hhu %hhu %hhu %hhu %s\npin #%d %hhu %hhu %s\nebo #%zu\n",
@@ -83,8 +83,8 @@ static
 void send_players_info(server_t *srv, client_state_t *client)
 {
     for (size_t i = 0; i < srv->cstates.nmemb; i++) {
-        if (srv->cstates.buff[i].team_id == GRAPHIC_TEAM_ID
-            || srv->cstates.buff[i].team_id == INVALID_TEAM_ID)
+        if (srv->cstates.buff[i].team_id == TEAM_ID_GRAPHIC
+            || srv->cstates.buff[i].team_id == TEAM_ID_UNASSIGNED)
             continue;
         vappend_to_output(srv, client, "pnw #%hu %hhu %hhu %hu %s\n",
             srv->cstates.buff[i].id, srv->cstates.buff[i].x,
@@ -101,7 +101,7 @@ void send_players_info(server_t *srv, client_state_t *client)
 static
 bool send_gui_team_assignment_respone(server_t *srv, client_state_t *client)
 {
-    client->team_id = GRAPHIC_TEAM_ID;
+    client->team_id = TEAM_ID_GRAPHIC;
     DEBUG("Client %d assigned to GRAPHIC team", client->fd);
     vappend_to_output(srv, client, "msz %hhu %hhu\nsgt %hu\n",
         srv->map_width, srv->map_height, srv->frequency);
@@ -121,7 +121,7 @@ bool send_gui_team_assignment_respone(server_t *srv, client_state_t *client)
 bool handle_team(server_t *srv, client_state_t *client,
     char *split[static COMMAND_WORD_COUNT])
 {
-    if (client->team_id != INVALID_TEAM_ID)
+    if (client->team_id != TEAM_ID_UNASSIGNED)
         return false;
     if (!strcmp(split[0], GRAPHIC_COMMAND))
         return send_gui_team_assignment_respone(srv, client);

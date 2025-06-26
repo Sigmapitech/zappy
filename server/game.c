@@ -63,7 +63,7 @@ void default_handler(server_t *srv, const event_t *event)
     client = &srv->cstates.buff[event->client_id];
     if (client->fd < 0)
         return;
-    if (client->team_id == GRAPHIC_TEAM_ID)
+    if (client->team_id == TEAM_ID_GRAPHIC)
         append_to_output(srv, client, "suc\n");
     else
         append_to_output(srv, client, "ko\n");

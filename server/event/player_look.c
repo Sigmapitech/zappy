@@ -60,8 +60,8 @@ uint16_t count_player_on_tile(
 
     for (size_t i = 0; i < srv->cstates.nmemb; i++) {
         if (srv->cstates.buff[i].x == x && srv->cstates.buff[i].y == y
-            && srv->cstates.buff[i].team_id != GRAPHIC_TEAM_ID
-            && srv->cstates.buff[i].team_id != INVALID_TEAM_ID) {
+            && srv->cstates.buff[i].team_id != TEAM_ID_GRAPHIC
+            && srv->cstates.buff[i].team_id != TEAM_ID_UNASSIGNED) {
             count++;
         }
     }

@@ -93,7 +93,7 @@ void event_create(server_t *srv, client_state_t *client,
     memcpy(event.command, split, sizeof(event.command));
     for (; event.arg_count < COMMAND_WORD_COUNT
         && event.command[event.arg_count] != nullptr; event.arg_count++);
-    if (client->team_id != GRAPHIC_TEAM_ID)
+    if (client->team_id != TEAM_ID_GRAPHIC)
         event.timestamp = get_late_event(srv, client) + interval;
     else
         event.timestamp = get_timestamp();
@@ -114,9 +114,9 @@ void unknown_command(server_t *srv, client_state_t *client,
 {
     size_t idx = client - srv->cstates.buff;
     event_t event = {.client_id = idx, .command =
-        {client->team_id == GRAPHIC_TEAM_ID ? "suc" : "ko"}};
+        {client->team_id == TEAM_ID_GRAPHIC ? "suc" : "ko"}};
 
-    if (client->team_id != GRAPHIC_TEAM_ID)
+    if (client->team_id != TEAM_ID_GRAPHIC)
         event.timestamp = get_late_event(srv, client);
     else
         event.timestamp = get_timestamp();
@@ -131,20 +131,20 @@ static
 void handle_command(server_t *srv, client_state_t *client,
     char *split[static COMMAND_WORD_COUNT])
 {
-    if (client->team_id == INVALID_TEAM_ID) {
+    if (client->team_id == TEAM_ID_UNASSIGNED) {
         if (!handle_team(srv, client, split))
             append_to_output(srv, client, "ko\n");
         return;
     }
     for (size_t i = 0; i < AI_LUT_SIZE
-        && client->team_id != GRAPHIC_TEAM_ID; i++) {
+        && client->team_id != TEAM_ID_GRAPHIC; i++) {
         if (strcmp(AI_LUT[i].command, split[0]) == 0) {
             event_create(srv, client, split, AI_LUT[i].time_needed);
             return;
         }
     }
     for (size_t i = 0; i < GUI_LUT_SIZE
-        && client->team_id == GRAPHIC_TEAM_ID; i++) {
+        && client->team_id == TEAM_ID_GRAPHIC; i++) {
         if (strcmp(GUI_LUT[i].command, split[0]) == 0) {
             event_create(srv, client, split, 0);
             return;

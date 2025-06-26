@@ -95,8 +95,8 @@ bool player_eject_handler(server_t *srv, const event_t *event)
     for (size_t i = 0; i < srv->cstates.nmemb; i++) {
         pl = srv->cstates.buff + i;
         if (LIKELY(pl == cs || pl->x != cs->x || pl->y != cs->y
-            || pl->team_id == GRAPHIC_TEAM_ID
-            || pl->team_id == INVALID_TEAM_ID))
+            || pl->team_id == TEAM_ID_GRAPHIC
+            || pl->team_id == TEAM_ID_UNASSIGNED))
             continue;
         player_move(srv, pl, cs->orientation);
         vappend_to_output(srv, pl, "eject: %hhu\n",

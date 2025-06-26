@@ -160,7 +160,7 @@ void send_to_guis(server_t *srv, const char *fmt, ...)
     size = compute_formatted_size(fmt, args);
     vsnprintf(buff, size + 1, fmt, args);
     for (size_t i = 0; i < srv->cstates.nmemb; i++)
-        if (srv->cstates.buff[i].team_id == GRAPHIC_TEAM_ID)
+        if (srv->cstates.buff[i].team_id == TEAM_ID_GRAPHIC)
             append_to_output(srv, &srv->cstates.buff[i], buff);
 }
 #pragma clang diagnostic pop

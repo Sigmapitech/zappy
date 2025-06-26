@@ -26,7 +26,7 @@ bool gui_player_get_position_handler(server_t *srv, const event_t *event)
     client_state_t *cs = srv->cstates.buff + event->client_id;
     client_state_t *player;
 
-    if (cs->team_id != GRAPHIC_TEAM_ID) {
+    if (cs->team_id != TEAM_ID_GRAPHIC) {
         send_to_guis(srv, GUI_PLAYER_POS " #%hu %hhd %hhd %hhu\n",
             cs->id, cs->x, cs->y, cs->orientation + 1);
         return true;
@@ -48,7 +48,7 @@ bool gui_player_get_level_handler(server_t *srv, const event_t *event)
     client_state_t *cs = srv->cstates.buff + event->client_id;
     client_state_t *player;
 
-    if (cs->team_id != GRAPHIC_TEAM_ID) {
+    if (cs->team_id != TEAM_ID_GRAPHIC) {
         send_to_guis(srv, GUI_PLAYER_LVL " #%hu %hhu\n", cs->id, cs->tier);
         return true;
     }
@@ -69,7 +69,7 @@ bool gui_player_get_inventory_handler(server_t *srv, const event_t *event)
     client_state_t *cs = &srv->cstates.buff[event->client_id];
     client_state_t *player;
 
-    if (cs->team_id != GRAPHIC_TEAM_ID) {
+    if (cs->team_id != TEAM_ID_GRAPHIC) {
         send_to_guis(srv, GUI_PLAYER_INV " #%hd %hhu %hhu %s\n",
             srv->cstates.buff[event->client_id].id,
             cs->x, cs->y, serialize_inventory(&cs->inv));
