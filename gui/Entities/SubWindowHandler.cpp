@@ -1,13 +1,21 @@
 #include "Entities/SubWindowHandler.hpp"
 #include "API/API.hpp"
 #include "Demeter/Demeter.hpp"
+#include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl2.h"
 
+#include <array>
 #include <iostream>
 #include <memory>
+#include <string>
 
-void SubWindowHandler::Run(Dem::Demeter &d, const std::shared_ptr<API> &api)
+void SubWindowHandler::Run(
+  Dem::Demeter &d,
+  const std::shared_ptr<API> &api,
+  std::array<std::string, 256> &eventArray,
+  size_t eventIndex,
+  size_t eventCount)
 {
   _api = api;
 
@@ -22,7 +30,7 @@ void SubWindowHandler::Run(Dem::Demeter &d, const std::shared_ptr<API> &api)
     _firstFrame = false;
   }
   if (_ImGuiState == STATE_MENU)
-    RunMenu(d);
+    RunMenu(d, eventArray, eventIndex, eventCount);
   if (_ImGuiState == STATE_TEAM)
     RunTeam(d);
   if (_ImGuiState == STATE_OPTIONS)
@@ -32,7 +40,11 @@ void SubWindowHandler::Run(Dem::Demeter &d, const std::shared_ptr<API> &api)
   _windowPos = ImGui::GetWindowPos();
 }
 
-void SubWindowHandler::RunMenu(Dem::Demeter &d)
+void SubWindowHandler::RunMenu(
+  Dem::Demeter &d,
+  std::array<std::string, 256> &eventArray,
+  size_t eventIndex,
+  size_t eventCount)
 {
   ImGui::Begin(_windowName.c_str(), nullptr, _window_flags);
 
@@ -40,12 +52,93 @@ void SubWindowHandler::RunMenu(Dem::Demeter &d)
     _textColor, "Time: %lu seconds", d.GetTime().GetCurrent() / 1000);
   ImGui::Separator();
 
-  ImGui::Dummy(ImVec2(0.0, ImGui::GetContentRegionAvail().y - 60));
+  ImVec2 startPos = ImGui::GetCursorScreenPos();
 
-  if (ImGui::Button("Team Data", ImVec2(-1, 0)))
+  // Draw map Content
+  ImGui::BeginGroup();
+
+  ImGui::TextColored(_textColor, " MAP CONTENT :");
+
+  ImGui::TextColored(
+    _textColor,
+    "\ttilemap size: width = %d, height = %d",
+    _api->GetTilemap().GetSize().first,
+    _api->GetTilemap().GetSize().second);
+  ImGui::TextColored(
+    _textColor,
+    "\tquantity of food : %d",
+    _api->GetTilemap().GetItemQuantity(Item::FOOD));
+  ImGui::TextColored(
+    _textColor,
+    "\tquantity of linemate : %d",
+    _api->GetTilemap().GetItemQuantity(Item::LINEMATE));
+  ImGui::TextColored(
+    _textColor,
+    "\tquantity of deraumere : %d",
+    _api->GetTilemap().GetItemQuantity(Item::DERAUMERE));
+  ImGui::TextColored(
+    _textColor,
+    "\tquantity of mendiane : %d",
+    _api->GetTilemap().GetItemQuantity(Item::MENDIANE));
+  ImGui::TextColored(
+    _textColor,
+    "\tquantity of sibur : %d",
+    _api->GetTilemap().GetItemQuantity(Item::SIBUR));
+  ImGui::TextColored(
+    _textColor,
+    "\tquantity of phyras : %d",
+    _api->GetTilemap().GetItemQuantity(Item::PHIRAS));
+  ImGui::TextColored(
+    _textColor,
+    "\tquantity of thystame : %d",
+    _api->GetTilemap().GetItemQuantity(Item::THYSTAME));
+  ImGui::Unindent();
+
+  ImGui::EndGroup();
+
+  ImVec2 endPos = ImGui::GetCursorScreenPos();
+
+  ImGui::GetWindowDrawList()->AddRect(
+    startPos, endPos, IM_COL32(200, 200, 200, 255), 5.0);
+
+  // Display the events
+  ImGui::TextColored(_textColor, "EVENTS :");
+  ImVec2 startPosEvent = ImGui::GetCursorScreenPos();
+  ImGui::BeginGroup();
+  float scrollableHeight = ImGui::GetContentRegionAvail().y - 60.0;
+  ImGui::BeginChild(
+    "Scrollable",
+    ImVec2(ImGui::GetContentRegionAvail().x, scrollableHeight),
+    true,
+    ImGuiWindowFlags_AlwaysVerticalScrollbar
+      | ImGuiWindowFlags_HorizontalScrollbar);
+  for (size_t i = eventIndex; i < (eventCount + eventIndex); i++)
+    ImGui::TextColored(_textColor, "%s", eventArray[i % eventCount].c_str());
+
+  ImGui::EndChild();
+  ImGui::EndGroup();
+  ImVec2 endPosEvent = ImGui::GetCursorScreenPos();
+
+  ImGui::GetWindowDrawList()->AddRect(
+    startPosEvent, endPosEvent, IM_COL32(200, 200, 200, 255), 5.0);
+
+  // Draw buttons at the bottom
+  float footerHeight = ImGui::GetFrameHeight();
+  float spacing = ImGui::GetStyle().ItemSpacing.y;
+  float bottomPadding = 10.0;
+
+  ImGui::SetCursorPosY(
+    ImGui::GetWindowHeight() - footerHeight - spacing - bottomPadding);
+
+  float totalWidth = ImGui::GetContentRegionAvail().x;
+  float buttonWidth = (totalWidth - 10.0) / 2.0;
+
+  if (ImGui::Button("Team Data", ImVec2(buttonWidth, 0)))
     _ImGuiState = STATE_TEAM;
 
-  if (ImGui::Button("Options", ImVec2(-1, 0)))
+  ImGui::SameLine();
+
+  if (ImGui::Button("Options", ImVec2(buttonWidth, 0)))
     _ImGuiState = STATE_OPTIONS;
 
   ImGui::End();
