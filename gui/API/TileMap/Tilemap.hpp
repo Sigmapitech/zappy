@@ -7,8 +7,8 @@
 
 class Tilemap {
 private:
-  int _sizeX;
-  int _sizeY;
+  int _sizeX = 0;
+  int _sizeY = 0;
   std::vector<std::vector<Tile>> _tilemap;
 
 public:
