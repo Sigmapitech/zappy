@@ -11,14 +11,13 @@ class E_Light : public Dem::IEntity {
 private:
 
 public:
-  E_Light() = default;
-
-  ~E_Light() override = default;
-
-  bool Update(Dem::Demeter &d) override
+  bool Init(Dem::Demeter &) override
   {
-    (void)d;
-    // Update light properties if needed
+    return true;
+  }
+
+  bool Update(Dem::Demeter &) override
+  {
     return true;
   }
 
@@ -27,8 +26,7 @@ public:
     // Draw light effects if needed
     glm::vec3 lightPos(200.0, 500.0, 200.0);  // arbitrary light position
     glm::vec3 viewPos = glm::
-      vec3(glm::inverse(d.camera.GetView())[3]);  // camera
-                                                  // position
+      vec3(glm::inverse(d.camera.GetView())[3]);  // camera position
 
     GLint lightPosLoc = d.GetShader()->GetUniformLocation("lightPos");
     GLint viewPosLoc = d.GetShader()->GetUniformLocation("viewPos");

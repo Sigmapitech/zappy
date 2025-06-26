@@ -6,6 +6,7 @@
 #include "Demeter/Entity.hpp"
 #include "Demeter/Renderer/Object3D.hpp"
 #include "Demeter/Renderer/Texture.hpp"
+#include "logging/Logger.hpp"
 
 class E_Default : public Dem::IEntity {
 private:
@@ -14,13 +15,16 @@ private:
   std::shared_ptr<Texture> texture = nullptr;
 
 public:
-  E_Default(Dem::Demeter &d)
+  bool Init(Dem::Demeter &d) override
   {
     auto tmp = d.AddObject3D("assets/cube.obj3D");
-    if (!tmp)
-      throw std::runtime_error("Failed to load object: assets/cube.obj3D");
+    if (!tmp) {
+      Log::failed << "Failed to load object: assets/cube.obj3D";
+      return false;
+    }
     obj = *tmp;
     texture = d.AddTexture("assets/texture.png");
+    return true;
   }
 
   bool Update(Dem::Demeter &d) override
