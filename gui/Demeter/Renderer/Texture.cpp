@@ -1,14 +1,16 @@
-#include <stdexcept>
+#include "logging/Logger.hpp"
 
 #include "Texture.hpp"
 
-Texture::Texture(SDL2 &sdl, const std::string &path)
-  : surface(std::move(sdl.IMGLoad(path)))
+bool Texture::Init(SDL2 &sdl, const std::string &path)
 {
-  if (!surface)
-    throw std::runtime_error(
-      "Failed to load image: " + path
-      + "\nSDL_image error: " + sdl.GetIMGError());
+  surface = std::unique_ptr<SDL_Surface>(sdl.IMGLoad(path));
+  if (!surface) {
+    Log::failed
+      << "Failed to load image: " << path
+      << "\nSDL_image error: " << sdl.GetIMGError();
+    return false;
+  }
 
   switch (surface->format->BytesPerPixel) {
     case 4:
@@ -18,16 +20,22 @@ Texture::Texture(SDL2 &sdl, const std::string &path)
       format = (surface->format->Rmask == 0x000000ff) ? GL_RGB : GL_BGR;
       break;
     default:
-      throw std::runtime_error("Unknown image format");
+      Log::failed
+        << "Unsupported image format: " << surface->format->BytesPerPixel
+        << " bytes per pixel";
+      return false;
   }
 
   GenGLTexture();
+  return true;
 }
 
 Texture::~Texture()
 {
-  SDL_FreeSurface(surface.release());
-  glDeleteTextures(1, &texture);
+  if (surface)
+    SDL_FreeSurface(surface.release());
+  if (texture)
+    glDeleteTextures(1, &texture);
 }
 
 void Texture::GenGLTexture()
