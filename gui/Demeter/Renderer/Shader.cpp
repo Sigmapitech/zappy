@@ -1,44 +1,46 @@
 #include <array>
 #include <fstream>
-#include <stdexcept>
-
-#include <GL/glew.h>
 
 #include "Shader.hpp"
+#include "logging/Logger.hpp"
 
-Shader::Shader(GLenum type, const std::string &path)
+bool Shader::Init(const std::string &path)
 {
   std::ifstream file(path);
-  if (!file)
-    throw std::runtime_error("Failed to open shader file: " + path);
+  if (!file) {
+    Log::failed << "Failed to open shader file: " << path;
+    return false;
+  }
   std::string data(
     (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
   const char *src = data.c_str();
   file.close();
 
-  shader = glCreateShader(type);
-  glShaderSource(shader, 1, &src, nullptr);
-  glCompileShader(shader);
+  _shader = glCreateShader(_type);
+  glShaderSource(_shader, 1, &src, nullptr);
+  glCompileShader(_shader);
   GLint success;
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+  glGetShaderiv(_shader, GL_COMPILE_STATUS, &success);
   if (!success) {
     std::array<char, 512> log;
-    glGetShaderInfoLog(shader, log.size(), nullptr, log.data());
-    throw std::
-      runtime_error("Shader Compile Error: " + std::string(log.data()));
+    glGetShaderInfoLog(_shader, log.size(), nullptr, log.data());
+    Log::failed << "Shader Compile Error: " << log.data();
+    return false;
   }
+  return true;
 }
 
 Shader::~Shader()
 {
-  glDeleteShader(shader);
+  glDeleteShader(_shader);
 }
 
-ShaderProgram::ShaderProgram(
+bool ShaderProgram::Init(
   std::unique_ptr<VertexShader> vertexShader,
   std::unique_ptr<FragmentShader> fragmentShader)
-  : vs(std::move(vertexShader)), fs(std::move(fragmentShader))
 {
+  vs = std::move(vertexShader);
+  fs = std::move(fragmentShader);
   program = glCreateProgram();
   glAttachShader(program, vs->Get());
   glAttachShader(program, fs->Get());
@@ -48,8 +50,10 @@ ShaderProgram::ShaderProgram(
   if (!success) {
     std::array<char, 512> log;
     glGetProgramInfoLog(program, log.size(), nullptr, log.data());
-    throw std::runtime_error("Program Link Error: " + std::string(log.data()));
+    Log::failed << "Shader Program Link Error: " << log.data();
+    return false;
   }
+  return true;
 }
 
 ShaderProgram::~ShaderProgram()
