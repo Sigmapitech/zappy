@@ -1,7 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+constexpr glm::vec3 up = glm::vec3(0.0F, 1.0F, 0.0F);
 
 /**
  * @struct Camera
@@ -15,14 +18,17 @@
  */
 struct Camera {
 private:
-  glm::mat4 proj;
-  glm::mat4 view;
+  glm::mat4 _proj;
+  glm::mat4 _view;
+
+  glm::vec3 _position = glm::vec3(0.0F, 0.0F, 0.0F);
+  float _yaw = -90.0F;
+  float _pitch = 0.0F;
+
+  glm::vec3 cameraFront = glm::vec3(0.0F, 0.0F, -1.0F);
+  glm::vec3 cameraUp = glm::vec3(0.0F, 1.0F, 0.0F);
 
 public:
-  glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);  // NOLINT
-  float yaw = 0.0f;                                  // NOLINT
-  float pitch = 0.0f;                                // NOLINT
-
   Camera() = default;
 
   /**
@@ -41,26 +47,62 @@ public:
    */
   Camera(double fov, double aspectRatio)
   {
-    this->proj = glm::
+    _proj = glm::
       perspective<float>(glm::radians(fov), aspectRatio, 0.1, 10000.0);
   }
 
-  [[nodiscard]] glm::mat4 GetView()
+  void SetPosition(const glm::vec3 &position)
   {
-    // Reset view
-    view = glm::mat4(1.0F);
-
-    // Apply rotation: pitch (X axis), then yaw (Y axis)
-    view = glm::rotate(view, glm::radians(-pitch), glm::vec3(1, 0, 0));
-    view = glm::rotate(view, glm::radians(-yaw), glm::vec3(0, 1, 0));
-
-    // Apply translation (move the world opposite to camera's position)
-    view = glm::translate(view, -position);
-    return view;
+    _position = position;
+    _view = glm::lookAt(_position, _position + cameraFront, cameraUp);
   }
 
-  [[nodiscard]] glm::mat4 GetProj() const
+  [[nodiscard]] const glm::vec3 &GetPosition() const
   {
-    return proj;
+    return _position;
+  }
+
+  [[nodiscard]] const glm::vec3 &GetFront() const
+  {
+    return cameraFront;
+  }
+
+  [[nodiscard]] const glm::vec3 &GetUp() const
+  {
+    return cameraUp;
+  }
+
+  void SetRotation(float yaw, float pitch)
+  {
+    _yaw = yaw;
+    _pitch = std::min(pitch, 89.0F);
+    _pitch = std::max(pitch, -89.0F);
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(_yaw)) * cos(glm::radians(_pitch));
+    direction.y = sin(glm::radians(_pitch));
+    direction.z = sin(glm::radians(_yaw)) * cos(glm::radians(_pitch));
+    cameraFront = glm::normalize(direction);
+
+    _view = glm::lookAt(_position, _position + cameraFront, cameraUp);
+  }
+
+  [[nodiscard]] float GetYaw() const
+  {
+    return _yaw;
+  }
+
+  [[nodiscard]] float GetPitch() const
+  {
+    return _pitch;
+  }
+
+  [[nodiscard]] const glm::mat4 &GetView() const
+  {
+    return _view;
+  }
+
+  [[nodiscard]] const glm::mat4 &GetProj() const
+  {
+    return _proj;
   }
 };
