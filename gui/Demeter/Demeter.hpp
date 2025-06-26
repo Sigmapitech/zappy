@@ -191,9 +191,10 @@ namespace Dem {
       return shader;
     }
 
-    void AddEntity(std::shared_ptr<IEntity> entity)
+    std::shared_ptr<IEntity> AddEntity(std::shared_ptr<IEntity> entity)
     {
       entityPool.push_back(std::move(entity));
+      return entityPool.back();
     }
 
     std::shared_ptr<IEntity> GetEntity(size_t index) const

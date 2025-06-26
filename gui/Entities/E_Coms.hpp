@@ -20,7 +20,12 @@ public:
     : api(std::make_shared<API>()),
       network(params.GetPort(), params.GetHost(), api)
   {
+  }
+
+  bool Init(Dem::Demeter &) override
+  {
     Log::inf << "Network started.";
+    return true;
   }
 
   ~E_Coms() override
@@ -28,16 +33,14 @@ public:
     network.RequestStop();
   }
 
-  bool Update(Dem::Demeter &d) override
+  bool Update(Dem::Demeter &) override
   {
-    (void)d;
     network.Run();
     return true;
   }
 
-  bool Draw(Dem::Demeter &d) override
+  bool Draw(Dem::Demeter &) override
   {
-    (void)d;
     return true;
   }
 

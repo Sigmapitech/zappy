@@ -10,8 +10,9 @@ private:
   std::unique_ptr<Dem::Demeter> demeter;
 
 public:
-  Zappy(Args &params);
+  Zappy() = default;
   ~Zappy() = default;
+  [[nodiscard]] bool Init(Args &params);
 
   void Run();
 };

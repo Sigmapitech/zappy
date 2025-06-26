@@ -74,7 +74,8 @@ void Dem::Demeter::Update()
   time.Update(*sdl2);
 
   for (std::shared_ptr<Dem::IEntity> &entity: entityPool)
-    entity->Update(*this);
+    if (!entity->Update(*this))
+      Log::warn << "Entity update failed";
 }
 
 void Dem::Demeter::SetupImGUIFrame()
@@ -92,7 +93,8 @@ void Dem::Demeter::Draw()
   shader->Use();  // set the shader program before setting mvp
 
   for (std::shared_ptr<Dem::IEntity> &entity: entityPool)
-    entity->Draw(*this);
+    if (!entity->Draw(*this))
+      Log::warn << "Entity draw failed";
 
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
