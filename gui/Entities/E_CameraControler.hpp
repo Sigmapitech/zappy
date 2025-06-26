@@ -5,8 +5,6 @@
 #include "Demeter/Demeter.hpp"
 #include "Demeter/Entity.hpp"
 #include "Demeter/Renderer/Camera.hpp"
-#include "Demeter/Renderer/Object3D.hpp"
-#include "Demeter/Renderer/Texture.hpp"
 #include "SDL_mouse.h"
 #include "SDL_scancode.h"
 
@@ -15,25 +13,18 @@
 
 class E_CameraControler : public Dem::IEntity {
 private:
-  glm::mat4 modelMatrix;
-  std::shared_ptr<Object3D> obj = nullptr;
-  std::shared_ptr<Texture> texture = nullptr;
-
   static constexpr float vel = 5;
   static constexpr float sensitivity = 1.0F;
 
 public:
   E_CameraControler(Dem::Demeter &d)
   {
-    obj = d.AddObject3D("assets/cube.obj3D");
-    texture = d.AddTexture("assets/texture.png");
+    (void)d;
   }
 
   bool Update(Dem::Demeter &d) override
   {
     float dt = d.GetTime().GetDelta();
-    float t = d.GetTime().GetCurrent() / 1000.0;
-    modelMatrix = glm::rotate(glm::mat4(1.0), t, glm::vec3(0.0, 1.0, 0.0));
 
     // Input handling
     glm::vec3 position = d.camera.GetPosition();
