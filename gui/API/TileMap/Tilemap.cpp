@@ -55,3 +55,39 @@ Inventory Tilemap::GetTileInventory(int x, int y)
 {
   return _tilemap[y][x].GetInventory();
 }
+
+int Tilemap::GetItemQuantity(Item id)
+{
+  int quantity = 0;
+
+  for (auto &tile: _tilemap) {
+    for (auto t: tile) {
+      switch (id) {
+        case Item::FOOD:
+          quantity += t.GetInventory().GetInventory()["food"];
+          break;
+        case Item::LINEMATE:
+          quantity += t.GetInventory().GetInventory()["linemate"];
+          break;
+        case Item::DERAUMERE:
+          quantity += t.GetInventory().GetInventory()["deraumere"];
+          break;
+        case Item::SIBUR:
+          quantity += t.GetInventory().GetInventory()["sibur"];
+          break;
+        case Item::MENDIANE:
+          quantity += t.GetInventory().GetInventory()["mendiane"];
+          break;
+        case Item::PHIRAS:
+          quantity += t.GetInventory().GetInventory()["phiras"];
+          break;
+        case Item::THYSTAME:
+          quantity += t.GetInventory().GetInventory()["thystame"];
+          break;
+        default:
+          continue;
+      }
+    }
+  }
+  return quantity;
+}

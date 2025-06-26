@@ -72,4 +72,12 @@ public:
   void AddToInventory(int x, int y, Item item, int quantity);
 
   [[nodiscard]] Inventory GetTileInventory(int x, int y);
+
+  /**
+   * @brief Get the Item Quantity of item in the tilemap
+   *
+   * @param id Contain the id of the item to get the quantity
+   * @return int
+   */
+  [[nodiscard]] int GetItemQuantity(Item id);
 };
