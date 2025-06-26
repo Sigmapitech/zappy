@@ -65,9 +65,31 @@ public:
   }
 
   /**
+   * @brief Get the Teams
+   *
+   * @return std::map<std::string, std::vector<Trantor>>
+   */
+  [[nodiscard]] std::map<std::string, std::vector<Trantor>> GetTeams()
+  {
+    std::lock_guard<std::mutex> lock(_teamsLocker);
+    return _teams;
+  }
+
+  /**
    * @brief Get the tilemap
    */
   Tilemap GetTilemap();
+
+  /**
+   * @brief Get the Egg List
+   *
+   * @return std::map<int, std::pair<int, int>>
+   */
+  std::map<int, std::pair<int, int>> GetEggList()
+  {
+    std::lock_guard<std::mutex> lock(_eggListLocker);
+    return _eggList;
+  }
 
   /**
    * @brief Create an egg to store it into _eggList

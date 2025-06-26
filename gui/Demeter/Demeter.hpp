@@ -103,6 +103,7 @@ namespace Dem {
     std::unique_ptr<ShaderProgram> shader = std::make_unique<ShaderProgram>();
     bool isRunning;
     bool glDebug;
+    bool isImGUIWindowCreated;
 
     /**
      * @brief OpenGL debug callback function for handling debug messages.
@@ -143,16 +144,6 @@ namespace Dem {
      * kept up to date each frame or tick.
      */
     void Update();
-
-    /**
-     * @brief Sets up a new ImGui frame for rendering.
-     *
-     * This function initializes a new frame for ImGui using the OpenGL3 and
-     * SDL2 backends. It also displays the ImGui demo window for testing and
-     * demonstration purposes. Call this function at the beginning of each
-     * frame before rendering ImGui elements.
-     */
-    static void SetupImGUIFrame();
 
     /**
      * @brief Renders the current frame by drawing all entities and updating
@@ -224,6 +215,11 @@ namespace Dem {
       size_t index = objectMap[path];
       objectMap.erase(path);
       objectPool.erase(objectPool.begin() + index);
+    }
+
+    void SetIsImGuiWindowCreated(bool isCreated)
+    {
+      isImGUIWindowCreated = isCreated;
     }
 
     /**
