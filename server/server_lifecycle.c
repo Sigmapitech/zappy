@@ -140,18 +140,18 @@ void server_destroy(server_t *srv)
 
 bool server_run(params_t *p, uint64_t timestamp)
 {
-    server_t srv = {.self_fd = -1, 0};
-    int32_t to;
+    server_t srv = {.self_fd = -1, .is_running = true};
 
     if (!server_allocate(&srv, p, timestamp) || !server_boot(&srv, p))
         return server_destroy(&srv), false;
-    for (srv.is_running = true; srv.is_running;) {
+    for (int32_t to; srv.is_running;) {
         server_process_events(&srv);
         to = compute_timeout(&srv);
         if (UNLIKELY(to > 0)) {
             process_poll(&srv, to);
             process_fds(&srv);
             process_clients_buff(&srv);
+            process_disconnection(&srv);
             continue;
         }
         if (UNLIKELY(to < 0))

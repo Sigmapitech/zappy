@@ -167,6 +167,7 @@ void process_poll(server_t *srv, uint64_t timeout);
  * @param srv
  */
 void process_fds(server_t *srv);
+void process_disconnection(server_t *srv);
 /**
  * @brief Processes the clients' input buffers in the server.
  *
