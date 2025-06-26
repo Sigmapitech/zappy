@@ -21,12 +21,26 @@ private:
   glm::mat4 _proj;
   glm::mat4 _view;
 
+  float _fov = 90.0F;
+  float _aspectRatio = 800.0F / 600.0F;
+
   glm::vec3 _position = glm::vec3(0.0F, 0.0F, 0.0F);
   float _yaw = -90.0F;
   float _pitch = 0.0F;
 
   glm::vec3 cameraFront = glm::vec3(0.0F, 0.0F, -1.0F);
   glm::vec3 cameraUp = glm::vec3(0.0F, 1.0F, 0.0F);
+
+  void UpdateProjection()
+  {
+    _proj = glm::
+      perspective<float>(glm::radians(_fov), _aspectRatio, 0.1F, 10000.0F);
+  }
+
+  void UpdateView()
+  {
+    _view = glm::lookAt(_position, _position + cameraFront, cameraUp);
+  }
 
 public:
   Camera() = default;
@@ -45,16 +59,15 @@ public:
    * @param aspectRatio The aspect ratio (width divided by height) of the
    * viewport.
    */
-  Camera(double fov, double aspectRatio)
+  Camera(double fov, double aspectRatio) : _fov(fov), _aspectRatio(aspectRatio)
   {
-    _proj = glm::
-      perspective<float>(glm::radians(fov), aspectRatio, 0.1, 10000.0);
+    UpdateProjection();
   }
 
   void SetPosition(const glm::vec3 &position)
   {
     _position = position;
-    _view = glm::lookAt(_position, _position + cameraFront, cameraUp);
+    UpdateView();
   }
 
   [[nodiscard]] const glm::vec3 &GetPosition() const
@@ -83,7 +96,7 @@ public:
     direction.z = sin(glm::radians(_yaw)) * cos(glm::radians(_pitch));
     cameraFront = glm::normalize(direction);
 
-    _view = glm::lookAt(_position, _position + cameraFront, cameraUp);
+    UpdateView();
   }
 
   [[nodiscard]] float GetYaw() const
@@ -99,6 +112,28 @@ public:
   [[nodiscard]] const glm::mat4 &GetView() const
   {
     return _view;
+  }
+
+  void SetAspectRatio(float aspectRatio)
+  {
+    _aspectRatio = aspectRatio;
+    UpdateProjection();
+  }
+
+  [[nodiscard]] float GetAspectRatio() const
+  {
+    return _aspectRatio;
+  }
+
+  void SetFov(float fov)
+  {
+    _fov = fov;
+    UpdateProjection();
+  }
+
+  [[nodiscard]] float GetFov() const
+  {
+    return _fov;
   }
 
   [[nodiscard]] const glm::mat4 &GetProj() const
