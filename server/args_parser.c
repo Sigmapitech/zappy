@@ -7,6 +7,7 @@
 
 #include "args_parser.h"
 #include "bits/getopt_core.h"
+#include "client.h"
 #include "debug.h"
 
 // Helper message to avoid long strings in the code
@@ -26,44 +27,15 @@ static const struct option long_options[] = {
     {nullptr, 0, nullptr, 0}
 };
 
-
-static constexpr const size_t TEAM_ACC_BASE_CAPACITY = 8;
-
-/** Internal structure to allocate the team names properly */
-struct team_acc {
-    char **arr;
-    size_t count;
-    size_t cap;
-};
-
 static
-bool team_ensure_capacity(struct team_acc *ta, size_t requested)
+size_t get_team_slot(char **teams, const char *team_name, size_t count)
 {
-    char **new_str;
-    size_t endsize = TEAM_ACC_BASE_CAPACITY;
+    size_t i = 0;
 
-    if ((ta->count + requested) < ta->cap)
-        return true;
-    for (; endsize < ta->count + requested; endsize <<= 1);
-    if (endsize > ta->cap) {
-        new_str = realloc(ta->arr, endsize * (sizeof *ta->arr));
-        if (new_str == nullptr)
-            return false;
-        ta->arr = new_str;
-        ta->cap = endsize;
-    }
-    return true;
-}
-
-bool is_already_registered(char **teams, const char *team_name, size_t count)
-{
-    if (teams == nullptr)
-        return false;
-    for (size_t i = 0; i < count; i++) {
+    for (; i < count; i++)
         if (strcmp(teams[i], team_name) == 0)
-            return true;
-    }
-    return false;
+            return i;
+    return count;
 }
 
 /**
@@ -79,27 +51,29 @@ bool is_already_registered(char **teams, const char *team_name, size_t count)
  * The function will allocate memory for the team names.
  * The caller is responsible for freeing the memory.
  */
-static char **parse_teams(char *argv[], int *idx)
+static
+bool parse_teams(params_t *params, char *argv[], int *idx)
 {
     size_t i = 0;
-    static struct team_acc teams = {.arr = nullptr, .count = 0, .cap = 0};
+    size_t slot;
 
     if (argv[*idx] == nullptr)
-        return nullptr;
-    for (; argv[*idx + i] && strcspn(argv[*idx + i], "-") != 0; i++);
-    if (!team_ensure_capacity(&teams, i + 1) || teams.cap > TEAM_COUNT_LIMIT)
-        return free(teams.arr), nullptr;
+        return false;
+    for (; argv[*idx + i] != nullptr && *argv[*idx + i] != '-'; i++);
     for (size_t j = 0; j < i; j++) {
-        if (is_already_registered(teams.arr, argv[*idx + j], teams.count)) {
-            DEBUG("Team '%s' is already registered.\n", argv[*idx + j]);
-            return free(teams.arr), nullptr;
-        }
-        teams.arr[teams.count] = argv[*idx + j];
-        teams.count++;
+        slot = get_team_slot(
+            params->teams, argv[*idx + j], params->registered_team_count);
+        if (slot != params->registered_team_count)
+            return fprintf(stderr, (slot > TEAM_ID_GRAPHIC)
+                ? "Team '%s' is already registered.\n"
+                : "Cannot create reserved team name '%s'\n"
+                , argv[*idx + j]), false;
+        params->teams[params->registered_team_count] = argv[*idx + j];
+        params->registered_team_count++;
     }
     *idx += i;
-    teams.arr[teams.count] = nullptr;
-    return teams.arr;
+    params->teams[params->registered_team_count] = nullptr;
+    return true;
 }
 
 /**
@@ -181,8 +155,7 @@ bool arg_dispatcher(params_t *params, char *argv[], char opt)
             return true;
         case 'n':
             optind--;
-            params->teams = parse_teams(argv, &optind);
-            if (!params->teams) {
+            if (!parse_teams(params, argv, &optind)) {
                 fprintf(stderr, "Failed to parse team names.\n");
                 return false;
             }
@@ -224,14 +197,13 @@ bool parse_args(params_t *params, int argc, char *argv[])
     }
     if (params->frequency == 0)
         params->frequency = 100;
-    if (
-        params->port == 0 || params->map_width == 0 || params->map_height == 0
-        || params->team_capacity == 0 || params->teams == nullptr
-    ) {
-        fprintf(stderr, "%s", SERVER_USAGE);
-        free(params->teams);
-        return false;
-    }
+    if (params->port == 0
+        || params->map_width == 0
+        || params->map_height == 0
+        || params->team_capacity == 0
+        || params->teams == nullptr
+    )
+        return fprintf(stderr, "%s", SERVER_USAGE), false;
     DEBUG_CALL(print_params, params);
     return true;
 }

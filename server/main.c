@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 
 #include "args_parser.h"
+#include "macro_utils.h"
 #include "server.h"
 
 const char SERVER_USAGE[] = {
@@ -20,6 +22,17 @@ const char SERVER_USAGE[] = {
 static constexpr const int EXIT_TEK_FAILURE = 84;
 
 /**
+ * Have teams to identify server, unassigned and graphic "teams" for the
+ * client states sectionning.
+ **/
+static
+const char *RESERVED_TEAM_NAMES[] = {
+    "-SERVER",
+    "-UNASSIGNED",
+    "GRAPHIC"
+};
+
+/**
  * @brief Program entry point.
  * @param argc size of argv
  * @param argv command line arguments
@@ -28,14 +41,19 @@ static constexpr const int EXIT_TEK_FAILURE = 84;
 [[gnu::weak]]
 int main(int argc, char *argv[])
 {
-    params_t params = {};
+    char *teams[TEAM_COUNT_LIMIT] = { };
+    params_t params = {
+        .teams = teams,
+        .registered_team_count = LENGTH_OF(RESERVED_TEAM_NAMES)
+    };
 
+    memcpy(params.teams, RESERVED_TEAM_NAMES,
+        LENGTH_OF(RESERVED_TEAM_NAMES) * sizeof *params.teams);
     if (!parse_args(&params, argc, argv))
         return EXIT_TEK_FAILURE;
     if (params.help)
-        return printf("%s\n", SERVER_USAGE), free(params.teams), EXIT_SUCCESS;
+        return printf("%s\n", SERVER_USAGE), EXIT_SUCCESS;
     if (!server_run(&params, get_timestamp()))
-        return free(params.teams), EXIT_TEK_FAILURE;
-    free(params.teams);
+        return EXIT_TEK_FAILURE;
     return EXIT_SUCCESS;
 }

@@ -14,6 +14,7 @@
  */
 typedef struct params_s {
     char **teams; // Team names, NULL-terminated
+    uint8_t registered_team_count;
     uint16_t frequency; // Range between 1 and 10000
     uint8_t map_width; // Range between 10 and 42
     uint8_t map_height; // Range between 10 and 42
