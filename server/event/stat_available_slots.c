@@ -4,7 +4,7 @@
 bool stat_available_slot_handler(server_t *srv, const event_t *event)
 {
     size_t count = 0;
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
 
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "ko\n"), true;

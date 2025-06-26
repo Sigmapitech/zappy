@@ -9,7 +9,7 @@ static constexpr const uint64_t EGG_HATCH = 600;
 
 bool player_fork_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *client = srv->cstates.buff + event->client_id;
+    client_state_t *client = srv->cstates.buff + event->client_idx;
     uint64_t interval_sec = (EGG_HATCH * MICROSEC_IN_SEC) / srv->frequency;
 
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->eggs, 1,
@@ -21,7 +21,7 @@ bool player_fork_handler(server_t *srv, const event_t *event)
         .team_id = client->team_id, .x = client->x, .y = client->y};
     srv->eggs.nmemb++;
     send_to_guis(srv, "enw #%zu %hu %hhu %hhu\n",
-        srv->eggs.nmemb, event->client_id, client->x, client->y);
+        srv->eggs.nmemb, event->client_idx, client->x, client->y);
     append_to_output(srv, client, "ok\n");
     return true;
 }

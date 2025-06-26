@@ -73,7 +73,7 @@ uint64_t get_late_event(server_t *srv, client_state_t *client)
     int idx = client - srv->cstates.buff;
 
     for (size_t i = 0; i < srv->events.nmemb; i++) {
-        if (srv->events.buff[i].client_id == idx
+        if (srv->events.buff[i].client_idx == idx
             && is_in_ai_lut(srv->events.buff[i].command[0])
             && srv->events.buff[i].timestamp > late_event) {
             late_event = srv->events.buff[i].timestamp;
@@ -87,18 +87,18 @@ void event_create(server_t *srv, client_state_t *client,
     char *split[static COMMAND_WORD_COUNT], uint64_t time_needed)
 {
     uint64_t interval = (time_needed * MICROSEC_IN_SEC) / srv->frequency;
-    int idx = client - srv->cstates.buff;
-    event_t event = {.client_id = idx, .arg_count = 0 };
+    event_t event = {
+        .client_idx = client - srv->cstates.buff, .client_id = client->id
+    };
 
     memcpy(event.command, split, sizeof(event.command));
-    for (; event.arg_count < COMMAND_WORD_COUNT
+    for (event.arg_count = 0; event.arg_count < COMMAND_WORD_COUNT
         && event.command[event.arg_count] != nullptr; event.arg_count++);
     if (client->team_id != TEAM_ID_GRAPHIC)
         event.timestamp = get_late_event(srv, client) + interval;
     else
         event.timestamp = get_timestamp();
-    DEBUG("Creating event for client %d:"
-        " '%s' at %lu.%06lu sec since server start",
+    DEBUG("Creating event for client %d: '%s' at %lu%.06lu sec",
         client->fd, event.command[0],
         (event.timestamp - srv->start_time) / MICROSEC_IN_SEC,
         (event.timestamp - srv->start_time) % MICROSEC_IN_SEC);
@@ -110,11 +110,14 @@ void event_create(server_t *srv, client_state_t *client,
 
 static
 void unknown_command(server_t *srv, client_state_t *client,
-    const char *command)
+    const char *command DEBUG_USED)
 {
     size_t idx = client - srv->cstates.buff;
-    event_t event = {.client_id = idx, .command =
-        {client->team_id == TEAM_ID_GRAPHIC ? "suc" : "ko"}};
+    event_t event = {
+        .client_idx = idx,
+        .command = {client->team_id == TEAM_ID_GRAPHIC ? "suc" : "ko"},
+        .client_id = client->id
+    };
 
     if (client->team_id != TEAM_ID_GRAPHIC)
         event.timestamp = get_late_event(srv, client);

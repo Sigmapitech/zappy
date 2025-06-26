@@ -171,7 +171,7 @@ bool arg_dispatcher(params_t *params, char *argv[], char opt)
  *
  * @param params Params structure containing the parsed command line arguments.
  */
-static DEBUG_USED
+DEBUG_USED static
 void print_params(const params_t *params)
 {
     DEBUG_MSG("===================Zappy Server===================");

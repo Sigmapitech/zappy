@@ -56,7 +56,7 @@
         #define DEBUG_RAW(fmt, ...) OMIT
 
         #define DEBUG_CALL(func, ...) OMIT
-        #define DEBUG_USED __attribute__((unused))
+        #define DEBUG_USED [[gnu::unused]]
 
         #define TODO(...) OMIT
     #endif

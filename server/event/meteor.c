@@ -9,7 +9,8 @@ static constexpr const float DENSITIES[RES_COUNT] = {
     0.5F, 0.3F, 0.15F, 0.1F, 0.1F, 0.08F, 0.05F,
 };
 
-static const DEBUG_USED char *RES_NAMES[RES_COUNT] = {
+DEBUG_USED
+static const char *RES_NAMES[RES_COUNT] = {
     "food", "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"
 };
 
@@ -45,7 +46,7 @@ static bool meteor_rescedule(server_t *srv, const event_t *event)
     uint64_t interval_sec =
         (METEOR_PERIODICITY_SEC * MICROSEC_IN_SEC) / srv->frequency;
     event_t new = {
-        .client_id = event->client_id,
+        .client_idx = event->client_idx,
         .command = { METEOR },
         .timestamp = event->timestamp + interval_sec,
     };

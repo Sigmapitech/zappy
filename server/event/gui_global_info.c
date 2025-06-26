@@ -4,7 +4,7 @@
 
 bool gui_map_size_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
 
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "sbp\n"), true;
@@ -15,7 +15,7 @@ bool gui_map_size_handler(server_t *srv, const event_t *event)
 
 bool gui_map_content_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
 
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "sbp\n"), true;
@@ -28,7 +28,7 @@ bool gui_map_content_handler(server_t *srv, const event_t *event)
 
 bool gui_tile_content_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
     char *arg1 = event->command[1];
     char *arg2 = event->command[2];
     char *endptr1;
@@ -50,7 +50,7 @@ bool gui_tile_content_handler(server_t *srv, const event_t *event)
 
 bool gui_team_names_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
 
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "sbp\n"), true;

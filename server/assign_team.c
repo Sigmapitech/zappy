@@ -42,16 +42,18 @@ bool assign_ai_egg_data(server_t *srv, client_state_t *client, size_t team_id)
 static
 bool assign_ai_data(server_t *srv, client_state_t *client, size_t team_id)
 {
-    event_t event = {get_timestamp(), client - srv->cstates.buff,
-        .command = {PLAYER_DEATH}};
+    event_t event = {
+        .timestamp = get_timestamp(),
+        .client_idx = client - srv->cstates.buff,
+        .client_id = client->id,
+        .command = {PLAYER_DEATH}
+    };
 
     DEBUG("Player death incoming at %lu.%06lu sec since server start",
         (event.timestamp - srv->start_time) / MICROSEC_IN_SEC,
         (event.timestamp - srv->start_time) % MICROSEC_IN_SEC);
     client->team_id = team_id;
     client->orientation = (rand() & FOUR_MASK);
-    client->id = srv->ia_id_counter;
-    srv->ia_id_counter++;
     client->inv.food = INITIAL_FOOD_INVENTORY;
     client->tier = 1;
     if (!event_heap_push(&srv->events, &event)) {
