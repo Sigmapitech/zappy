@@ -15,7 +15,11 @@ Zappy::Zappy(Args &params)
     Log::failed << "Failed to initialize SDL2!";
     return;
   }
-  demeter = std::make_unique<Dem::Demeter>(std::move(sdl2));
+  demeter = std::make_unique<Dem::Demeter>();
+  if (!demeter->Init(std::move(sdl2))) {
+    Log::failed << "Failed to initialize Demeter!";
+    return;
+  }
 
   // Register entities
   demeter->AddEntity(std::make_shared<E_Coms>(params));

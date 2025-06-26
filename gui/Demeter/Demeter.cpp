@@ -11,11 +11,6 @@
 #include "Demeter/Renderer/asset_dir.hpp"
 #include "logging/Logger.hpp"
 
-Dem::Demeter::Time::Time(const SDL2 &sdl2Instance)
-  : last(sdl2Instance.GetTicks64()), current(last)
-{
-}
-
 void Dem::Demeter::Time::Update(const SDL2 &sdl2Instance)
 {
   current = sdl2Instance.GetTicks64();
@@ -23,15 +18,28 @@ void Dem::Demeter::Time::Update(const SDL2 &sdl2Instance)
   last = current;
 }
 
-Dem::Demeter::Demeter(std::unique_ptr<SDL2> renderer, bool activateDebug)
-  : sdl2(std::move(renderer)), time(*sdl2), glDebug(activateDebug)
+bool Dem::Demeter::Init(std::unique_ptr<SDL2> renderer, bool activateDebug)
 {
+  sdl2 = std::move(renderer);
+  time = Time(*sdl2);
+  glDebug = activateDebug;
   std::unique_ptr<VertexShader> vertexShader = std::
-    make_unique<VertexShader>(ASSET_DIR "/vertexShader.glsl");
+    make_unique<VertexShader>();
+  if (!vertexShader->Init(ASSET_DIR "/vertexShader.glsl")) {
+    Log::failed << "Failed to initialize vertex shader.";
+    return false;
+  }
   std::unique_ptr<FragmentShader> fragmentShader = std::
-    make_unique<FragmentShader>(ASSET_DIR "/fragmentShader.glsl");
-  shader = std::make_unique<ShaderProgram>(
-    std::move(vertexShader), std::move(fragmentShader));
+    make_unique<FragmentShader>();
+  if (!fragmentShader->Init(ASSET_DIR "/fragmentShader.glsl")) {
+    Log::failed << "Failed to initialize fragment shader.";
+    return false;
+  }
+
+  if (!shader->Init(std::move(vertexShader), std::move(fragmentShader))) {
+    Log::failed << "Failed to initialize shader program.";
+    return false;
+  }
 
   camera = Camera(glm::radians(90.0), 800.0 / 600.0);
 
@@ -39,6 +47,7 @@ Dem::Demeter::Demeter(std::unique_ptr<SDL2> renderer, bool activateDebug)
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(DebugCallback, nullptr);
   }
+  return true;
 }
 
 // OpenGL debug callback function

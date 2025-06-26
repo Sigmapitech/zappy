@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <string>
 
 #include <GL/glew.h>
 
@@ -22,7 +21,8 @@
  */
 class Shader {
 protected:
-  GLuint shader = 0;  // NOLINT
+  GLenum _type = 0;    // NOLINT
+  GLuint _shader = 0;  // NOLINT
 
 public:
   /**
@@ -42,14 +42,17 @@ public:
    * @throws std::runtime_error If the shader file cannot be opened or
    * compilation fails.
    */
-  Shader(GLenum type, const std::string &path);
+  Shader(GLenum type) : _type(type) {}
+
   Shader(const Shader &) = delete;
   Shader &operator=(const Shader &) = delete;
   ~Shader();
 
+  [[nodiscard]] bool Init(const std::string &path);
+
   [[nodiscard]] virtual GLuint Get() const
   {
-    return shader;
+    return _shader;
   }
 };
 
@@ -79,9 +82,9 @@ public:
    * @throws std::runtime_error If the shader file cannot be opened or
    * compilation fails.
    *
-   * @see Shader::Shader(GLenum type, const std::string &path)
+   * @see Shader::Shader(GLenum type)
    */
-  VertexShader(const std::string &path) : Shader(GL_VERTEX_SHADER, path) {}
+  VertexShader() : Shader(GL_VERTEX_SHADER) {}
 };
 
 /**
@@ -111,9 +114,9 @@ public:
    * @throws std::runtime_error If the shader file cannot be opened or
    * compilation fails.
    *
-   * @see Shader::Shader(GLenum type, const std::string &path)
+   * @see Shader::Shader(GLenum type)
    */
-  FragmentShader(const std::string &path) : Shader(GL_FRAGMENT_SHADER, path) {}
+  FragmentShader() : Shader(GL_FRAGMENT_SHADER) {}
 };
 
 /**
@@ -147,12 +150,14 @@ public:
    *
    * @throws std::runtime_error if the shader program fails to link.
    */
-  ShaderProgram(
-    std::unique_ptr<VertexShader> vertexShader,
-    std::unique_ptr<FragmentShader> fragmentShader);
+  ShaderProgram() = default;
   ShaderProgram(const ShaderProgram &) = delete;
   ShaderProgram &operator=(const ShaderProgram &) = delete;
   ~ShaderProgram();
+
+  [[nodiscard]] bool Init(
+    std::unique_ptr<VertexShader> vertexShader,
+    std::unique_ptr<FragmentShader> fragmentShader);
 
   [[nodiscard]] GLuint Get() const
   {
