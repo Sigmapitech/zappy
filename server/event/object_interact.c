@@ -26,7 +26,7 @@ uint8_t get_ressource_id(char *command)
 bool player_take_object_handler(server_t *srv, const event_t *event)
 {
     uint8_t object_id = get_ressource_id(event->command[1]);
-    client_state_t *client = srv->cstates.buff + event->client_id;
+    client_state_t *client = srv->cstates.buff + event->client_idx;
     inventory_t *tile = &srv->map[client->y][client->x];
 
     if (event->arg_count != 2 || object_id == INVALID_OBJECT_ID) {
@@ -45,7 +45,7 @@ bool player_take_object_handler(server_t *srv, const event_t *event)
 bool player_set_object_handler(server_t *srv, const event_t *event)
 {
     uint8_t object_id = get_ressource_id(event->command[1]);
-    client_state_t *client = srv->cstates.buff + event->client_id;
+    client_state_t *client = srv->cstates.buff + event->client_idx;
     inventory_t *tile = &srv->map[client->y][client->x];
 
     if (event->arg_count != 2 || object_id == INVALID_OBJECT_ID) {

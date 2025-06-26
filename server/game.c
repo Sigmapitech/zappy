@@ -58,9 +58,9 @@ void default_handler(server_t *srv, const event_t *event)
     client_state_t *client;
 
     DEBUG("No handler found for command: %s", event->command[0]);
-    if (event->client_id == EVENT_SERVER_ID)
+    if (event->client_idx == EVENT_SERVER_ID)
         return;
-    client = &srv->cstates.buff[event->client_id];
+    client = &srv->cstates.buff[event->client_idx];
     if (client->fd < 0)
         return;
     if (client->team_id == TEAM_ID_GRAPHIC)
@@ -76,15 +76,16 @@ void server_process_events(server_t *srv)
     for (const event_t *event = event_heap_peek(&srv->events)
         ; event != nullptr && event->timestamp < get_timestamp()
         ; event_heap_pop(&srv->events)) {
-        if (event->client_id == CLIENT_DEAD)
+        if (event->client_idx == CLIENT_DEAD)
             continue;
         handler = find_handler(event->command[0]);
         if (handler == nullptr) {
             default_handler(srv, event);
             continue;
         }
-        if (!handler(srv, event))
+        if (!handler(srv, event)) {
             DEBUG("Event handler failed for command [%s] from client %d",
                 event->command[0], event->client_id);
+        }
     }
 }

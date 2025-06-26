@@ -88,7 +88,7 @@ bool event_heap_push(event_heap_t *heap, const event_t *event)
     }
     heap->buff[heap->nmemb].command[i] = nullptr;
     heap->buff[heap->nmemb].arg_count = i;
-    heap->buff[heap->nmemb].client_id = event->client_id;
+    heap->buff[heap->nmemb].client_idx = event->client_idx;
     heap->buff[heap->nmemb].timestamp = event->timestamp;
     heapify_up(heap, heap->nmemb);
     heap->nmemb++;

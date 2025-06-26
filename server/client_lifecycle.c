@@ -11,10 +11,12 @@
 static
 void add_client_state(server_t *srv, int fd)
 {
+    static int id = 0;
     client_state_t client_state = {.input = {},
         .inv = {}, .team_id = TEAM_ID_UNASSIGNED, .x = 0, .y = 0, .tier = 0,
-        .fd = fd, .in_buff_idx = 0};
+        .fd = fd, .in_buff_idx = 0, .id = id };
 
+    id++;
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->cstates,
         1, sizeof *srv->cstates.buff)) {
         perror("Can't resize client state");
@@ -55,8 +57,8 @@ void remove_client(server_t *srv, uint32_t idx)
     if (srv->cstates.buff[idx - 1].team_id > TEAM_ID_GRAPHIC)
         send_to_guis(srv, "pdi #%hd\n", srv->cstates.buff[idx - 1].id);
     for (size_t i = 0; i < srv->events.nmemb; i++)
-        if (srv->events.buff[i].client_id == (int)(idx - 1))
-            srv->events.buff[i].client_id = -2;
+        if (srv->events.buff[i].client_idx == (int)(idx - 1))
+            srv->events.buff[i].client_idx = -2;
     DEBUG("Client disconnected: fd=%d", srv->cstates.buff[idx - 1].fd);
     if (srv->cstates.buff[idx - 1].fd >= 0)
         close(srv->cstates.buff[idx - 1].fd);

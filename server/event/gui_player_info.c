@@ -23,7 +23,7 @@ client_state_t *gui_handler_get_player(server_t *srv, const event_t *event)
 
 bool gui_player_get_position_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
     client_state_t *player;
 
     if (cs->team_id != TEAM_ID_GRAPHIC) {
@@ -45,7 +45,7 @@ bool gui_player_get_position_handler(server_t *srv, const event_t *event)
 
 bool gui_player_get_level_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
     client_state_t *player;
 
     if (cs->team_id != TEAM_ID_GRAPHIC) {
@@ -66,12 +66,12 @@ bool gui_player_get_level_handler(server_t *srv, const event_t *event)
 
 bool gui_player_get_inventory_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = &srv->cstates.buff[event->client_id];
+    client_state_t *cs = &srv->cstates.buff[event->client_idx];
     client_state_t *player;
 
     if (cs->team_id != TEAM_ID_GRAPHIC) {
         send_to_guis(srv, GUI_PLAYER_INV " #%hd %hhu %hhu %s\n",
-            srv->cstates.buff[event->client_id].id,
+            srv->cstates.buff[event->client_idx].id,
             cs->x, cs->y, serialize_inventory(&cs->inv));
         return true;
     }

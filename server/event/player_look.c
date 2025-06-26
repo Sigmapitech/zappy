@@ -110,7 +110,7 @@ void serialiaze_tile(
 
 bool player_look_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
     uint8_t view = (cs->tier + 1) * (cs->tier + 1);
     uint8_t coords[view][2];
 

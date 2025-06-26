@@ -16,7 +16,7 @@ const char *INVENTORY_RESSOURCE_NAMES[RES_COUNT] = {
 
 bool player_inventory_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
     uint32_t *slots = cs->inv.qnts;
 
     if (event->arg_count != 1)

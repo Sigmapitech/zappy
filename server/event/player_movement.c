@@ -17,7 +17,7 @@ void player_move(
 
 bool player_move_forward_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
 
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "ko\n"), true;
@@ -29,7 +29,7 @@ bool player_move_forward_handler(server_t *srv, const event_t *event)
 
 bool player_turn_left_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
 
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "ko\n"), true;
@@ -42,7 +42,7 @@ bool player_turn_left_handler(server_t *srv, const event_t *event)
 
 bool player_turn_right_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
 
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "ko\n"), true;
@@ -86,7 +86,7 @@ void destroy_ejected_eggs(server_t *srv, client_state_t *cs)
 
 bool player_eject_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_id;
+    client_state_t *cs = srv->cstates.buff + event->client_idx;
     client_state_t *pl;
 
     if (event->arg_count != 1)
