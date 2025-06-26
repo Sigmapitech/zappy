@@ -11,6 +11,10 @@
 Zappy::Zappy(Args &params)
 {
   std::unique_ptr<SDL2> sdl2 = std::make_unique<SDL2>();
+  if (!sdl2->Init()) {
+    Log::failed << "Failed to initialize SDL2!";
+    return;
+  }
   demeter = std::make_unique<Dem::Demeter>(std::move(sdl2));
 
   // Register entities

@@ -2,13 +2,20 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl2.h"
 
+#include "logging/Logger.hpp"
+
 #include "SDL2.hpp"
 
-SDL2::SDL2(size_t width, size_t height) : _width(width), _height(height)
+bool SDL2::Init(size_t width, size_t height)
 {
-  if (SDL_Init(SDL_INIT_VIDEO) < 0)
-    throw std::
-      runtime_error("SDL initialization failed! SDL_Error: " + GetError());
+  _width = width;
+  _height = height;
+
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    Log::failed << "SDL initialization failed! SDL_Error: " << GetError();
+    return false;
+  }
+  _isSDLInit = true;
   SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -20,17 +27,21 @@ SDL2::SDL2(size_t width, size_t height) : _width(width), _height(height)
     _width,
     _height,
     SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-  if (_window == nullptr)
-    throw std::
-      runtime_error("SDL_CreateWindow failed! SDL_Error: " + GetError());
+  if (_window == nullptr) {
+    Log::failed << "SDL_CreateWindow failed! SDL_Error: " << GetError();
+    return false;
+  }
 
   _context = SDL_GL_CreateContext(_window);
-  if (_context == nullptr)
-    throw std::
-      runtime_error("SDL_GL_CreateContext failed! SDL_Error: " + GetError());
+  if (_context == nullptr) {
+    Log::failed << "SDL_GL_CreateContext failed! SDL_Error: " << GetError();
+    return false;
+  }
   glewExperimental = GL_TRUE;
-  if (glewInit() != GLEW_OK)
-    throw std::runtime_error("GLEW initialization failed!");
+  if (glewInit() != GLEW_OK) {
+    Log::failed << "GLEW initialization failed!";
+    return false;
+  }
 
   // Initial viewport setup
   SetWindowSize(_width, _height);
@@ -48,9 +59,11 @@ SDL2::SDL2(size_t width, size_t height) : _width(width), _height(height)
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
-    throw std::
-      runtime_error("SDL_image initialization failed: " + GetIMGError());
+  if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0) {
+    Log::failed << "SDL_image initialization failed: " << GetIMGError();
+    return false;
+  }
+  _isIMGInit = true;
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -60,16 +73,23 @@ SDL2::SDL2(size_t width, size_t height) : _width(width), _height(height)
 
   ImGui_ImplSDL2_InitForOpenGL(_window, _context);
   ImGui_ImplOpenGL3_Init();
+  return true;
 }
 
 SDL2::~SDL2()
 {
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
+  if (ImGui::GetCurrentContext()) {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+  }
 
-  IMG_Quit();
-  SDL_GL_DeleteContext(_context);
-  SDL_DestroyWindow(_window);
-  SDL_Quit();
+  if (_isIMGInit)
+    IMG_Quit();
+  if (_context)
+    SDL_GL_DeleteContext(_context);
+  if (_window)
+    SDL_DestroyWindow(_window);
+  if (_isSDLInit)
+    SDL_Quit();
 }

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <cstddef>
 #include <memory>
-#include <stdexcept>
 
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
@@ -23,7 +21,8 @@
  */
 struct SDL2 {
 private:
-  bool _isInit = false;
+  bool _isSDLInit = false;
+  bool _isIMGInit = false;
   SDL_Window *_window;
   SDL_GLContext _context = nullptr;
   SDL_Event _event;
@@ -44,9 +43,7 @@ private:
    */
   void SetAttribute(SDL_GLattr attr, int value) const  // NOLINT
   {
-    if (SDL_GL_SetAttribute(attr, value) < 0)
-      throw std::
-        runtime_error("SDL_GL_SetAttribute failed! SDL_Error: " + GetError());
+    SDL_GL_SetAttribute(attr, value);
   }
 
 public:
@@ -65,8 +62,10 @@ public:
    *         - GLEW initialization
    *         - SDL_image initialization
    */
-  SDL2(size_t width = 800, size_t height = 600);
+  SDL2() = default;
   ~SDL2();
+
+  bool Init(size_t width = 800, size_t height = 600);
 
   void SetWindowSize(size_t width, size_t height)
   {
