@@ -31,6 +31,7 @@ typedef enum {
 } orientation_t;
 
 enum {
+    TEAM_ID_SERVER = 0,
     TEAM_ID_UNASSIGNED = 1,
     TEAM_ID_GRAPHIC = 2
 };
@@ -91,11 +92,11 @@ bool handle_team(server_t *srv, client_state_t *client,
     char *split[static COMMAND_WORD_COUNT]);
 
 static inline
-client_state_t *client_from_id(server_t *srv, uint16_t id)
+client_state_t *client_from_id(server_t *srv, uint32_t id)
 {
-    for (size_t i = 0; i < srv->cstates.nmemb; i++)
-        if (srv->cstates.buff[i].id == id)
-            return &srv->cstates.buff[i];
+    for (size_t i = 0; i < srv->cm.count; i++)
+        if (srv->cm.clients[i].id == id)
+            return &srv->cm.clients[i];
     return nullptr;
 }
 

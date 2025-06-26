@@ -12,10 +12,8 @@ static const char *GRAPHIC_COMMAND = "GRAPHIC";
 static
 void send_guis_player_data(server_t *srv, client_state_t *client, size_t egg)
 {
-    for (size_t i = 0; i < srv->cstates.nmemb; i++) {
-        if (srv->cstates.buff[i].team_id != TEAM_ID_GRAPHIC)
-            continue;
-        vappend_to_output(srv, &srv->cstates.buff[i],
+    for (size_t i = srv->cm.idx_of_gui; i < srv->cm.idx_of_players; i++) {
+        vappend_to_output(srv, &srv->cm.clients[i],
             "pnw #%d %hhu %hhu %hhu %hhu %s\npin #%d %hhu %hhu %s\nebo #%zu\n",
             client->id, client->x, client->y, client->orientation + 1,
             client->tier, srv->team_names[client->team_id],
@@ -44,7 +42,7 @@ bool assign_ai_data(server_t *srv, client_state_t *client, size_t team_id)
 {
     event_t event = {
         .timestamp = get_timestamp(),
-        .client_idx = client - srv->cstates.buff,
+        .client_idx = client - srv->cm.clients,
         .client_id = client->id,
         .command = {PLAYER_DEATH}
     };
@@ -83,19 +81,16 @@ bool send_ai_team_assignment_respone(
 static
 void send_players_info(server_t *srv, client_state_t *client)
 {
-    for (size_t i = 0; i < srv->cstates.nmemb; i++) {
-        if (srv->cstates.buff[i].team_id == TEAM_ID_GRAPHIC
-            || srv->cstates.buff[i].team_id == TEAM_ID_UNASSIGNED)
-            continue;
+    for (size_t i = srv->cm.idx_of_players; i < srv->cm.count; i++) {
         vappend_to_output(srv, client, "pnw #%hu %hhu %hhu %hu %s\n",
-            srv->cstates.buff[i].id, srv->cstates.buff[i].x,
-            srv->cstates.buff[i].y, srv->cstates.buff[i].tier,
-            srv->team_names[srv->cstates.buff[i].team_id]);
+            srv->cm.clients[i].id, srv->cm.clients[i].x,
+            srv->cm.clients[i].y, srv->cm.clients[i].tier,
+            srv->team_names[srv->cm.clients[i].team_id]);
         vappend_to_output(srv, client, "pin #%hu %s\n",
-            srv->cstates.buff[i].id, serialize_inventory(
-                &srv->cstates.buff[i].inv));
+            srv->cm.clients[i].id, serialize_inventory(
+                &srv->cm.clients[i].inv));
         vappend_to_output(srv, client, "plv #%hu %hhu\n",
-            srv->cstates.buff[i].id, srv->cstates.buff[i].tier);
+            srv->cm.clients[i].id, srv->cm.clients[i].tier);
     }
 }
 

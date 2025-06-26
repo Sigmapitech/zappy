@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "client.h"
+#include "data_structure/event.h"
 #include "data_structure/resizable_array.h"
 #include "server.h"
 
@@ -18,15 +19,14 @@ void add_client_state(server_t *srv, int fd)
 
     id++;
     DEBUG("Client ID (fd %u): %u", fd, id);
-    if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->cstates,
-        1, sizeof *srv->cstates.buff)) {
+    if (!sized_struct_ensure_capacity((void *)&srv->cm.clients,
+        1, sizeof *srv->cm.clients)) {
         perror("Can't resize client state");
         close(fd);
         return;
     }
-    srv->cstates.buff[srv->cstates.nmemb] = client_state;
-    append_to_output(srv, &srv->cstates.buff[srv->cstates.nmemb], "WELCOME\n");
-    srv->cstates.nmemb++;
+    srv->cm.clients[srv->cm.count] = client_state;
+    append_to_output(srv, &srv->cm.clients[srv->cm.count], "WELCOME\n");
 }
 
 void add_client(server_t *srv)
@@ -39,38 +39,36 @@ void add_client(server_t *srv)
         perror("accept failed");
         return;
     }
-    if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->pfds,
-        1, sizeof *srv->pfds.buff)) {
+    if (!sized_struct_ensure_capacity((void *)&srv->cm.server_pfds,
+        1, sizeof *srv->cm.server_pfds)) {
         perror("Can't resize poll file descriptors");
         close(new_fd);
         return;
     }
-    srv->pfds.buff[srv->pfds.nmemb] = (pollfd_t){
+    srv->cm.server_pfds[srv->cm.count] = (pollfd_t){
         .fd = new_fd, .events = POLLIN, .revents = 0};
-    srv->pfds.nmemb++;
     add_client_state(srv, new_fd);
+    srv->cm.count++;
     DEBUG("New client connected: fd=%d, addr=%s:%d",
         new_fd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 }
 
 void remove_client(server_t *srv, uint32_t idx)
 {
-    if (srv->cstates.buff[idx - 1].team_id > TEAM_ID_GRAPHIC)
-        send_to_guis(srv, "pdi #%hd\n", srv->cstates.buff[idx - 1].id);
+    if (srv->cm.clients[idx].team_id > TEAM_ID_GRAPHIC)
+        send_to_guis(srv, "pdi #%hd\n", srv->cm.clients[idx].id);
     for (size_t i = 0; i < srv->events.nmemb; i++)
-        if (srv->events.buff[i].client_idx == (int)(idx - 1))
-            srv->events.buff[i].client_idx = -2;
-    DEBUG("Client disconnected: fd=%d", srv->cstates.buff[idx - 1].fd);
-    if (srv->cstates.buff[idx - 1].fd >= 0)
-        close(srv->cstates.buff[idx - 1].fd);
-    srv->cstates.buff[idx - 1].fd = -1;
-    free(srv->cstates.buff[idx - 1].input.buff);
-    srv->cstates.buff[idx - 1].input.buff = nullptr;
-    free(srv->cstates.buff[idx - 1].output.buff);
-    srv->cstates.buff[idx - 1].output.buff = nullptr;
-    srv->cstates.buff[idx - 1] =
-        srv->cstates.buff[srv->cstates.nmemb - 1];
-    srv->cstates.nmemb--;
-    srv->pfds.buff[idx] = srv->pfds.buff[srv->pfds.nmemb - 1];
-    srv->pfds.nmemb--;
+        if (srv->events.buff[i].client_idx == (int)(idx))
+            srv->events.buff[i].client_idx = CLIENT_DEAD;
+    DEBUG("Client disconnected: fd=%d", srv->cm.clients[idx].fd);
+    if (srv->cm.clients[idx].fd >= 0)
+        close(srv->cm.clients[idx].fd);
+    srv->cm.clients[idx].fd = -1;
+    free(srv->cm.clients[idx].input.buff);
+    srv->cm.clients[idx].input.buff = nullptr;
+    free(srv->cm.clients[idx].output.buff);
+    srv->cm.clients[idx].output.buff = nullptr;
+    srv->cm.clients[idx] = srv->cm.clients[srv->cm.count - 1];
+    srv->cm.server_pfds[idx] = srv->cm.server_pfds[srv->cm.count - 1];
+    srv->cm.count--;
 }

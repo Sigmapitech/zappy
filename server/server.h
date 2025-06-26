@@ -8,6 +8,7 @@
     #include <sys/time.h>
 
     #include "args_parser.h"
+    #include "client_manager.h"
     #include "data_structure/event.h"
     #include "debug.h"
 
@@ -104,9 +105,8 @@ typedef struct {
 typedef struct server_s {
     int self_fd;
     volatile bool is_running;
-    client_state_array_t cstates;
     egg_array_t eggs;
-    pollfd_array_t pfds;
+    client_manager_t cm;
     char *team_names[TEAM_COUNT_LIMIT];
     uint8_t map_height;
     uint8_t map_width;

@@ -71,7 +71,7 @@ bool gui_player_get_inventory_handler(server_t *srv, const event_t *event)
         return false;
     if (cs->team_id != TEAM_ID_GRAPHIC) {
         send_to_guis(srv, GUI_PLAYER_INV " #%hd %hhu %hhu %s\n",
-            srv->cstates.buff[event->client_idx].id,
+            srv->cm.clients[event->client_idx].id,
             cs->x, cs->y, serialize_inventory(&cs->inv));
         return true;
     }

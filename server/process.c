@@ -70,7 +70,7 @@ static
 uint64_t get_late_event(server_t *srv, client_state_t *client)
 {
     uint64_t late_event = get_timestamp();
-    int idx = client - srv->cstates.buff;
+    int idx = client - srv->cm.clients;
 
     for (size_t i = 0; i < srv->events.nmemb; i++) {
         if (srv->events.buff[i].client_idx == idx
@@ -88,7 +88,7 @@ void event_create(server_t *srv, client_state_t *client,
 {
     uint64_t interval = (time_needed * MICROSEC_IN_SEC) / srv->frequency;
     event_t event = {
-        .client_idx = client - srv->cstates.buff, .client_id = client->id
+        .client_idx = client - srv->cm.clients, .client_id = client->id
     };
 
     memcpy(event.command, split, sizeof(event.command));
@@ -111,7 +111,7 @@ static
 void unknown_command(server_t *srv, client_state_t *client,
     const char *command DEBUG_USED)
 {
-    size_t idx = client - srv->cstates.buff;
+    size_t idx = client - srv->cm.clients;
     event_t event = {
         .client_idx = idx,
         .command = {client->team_id == TEAM_ID_GRAPHIC ? "suc" : "ko"},
@@ -161,13 +161,11 @@ void process_clients_buff(server_t *srv)
     client_state_t *client = nullptr;
     char *split[COMMAND_WORD_COUNT] = {nullptr};
 
-    if (srv->cstates.nmemb == 0)
-        return;
-    for (size_t i = 0; i < srv->cstates.nmemb; i++) {
-        client = &srv->cstates.buff[i];
+    for (size_t i = 1; i < srv->cm.count; i++) {
+        client = srv->cm.clients + i;
         if (client->input.buff == nullptr)
             continue;
-        if (!(srv->pfds.buff[i + 1].revents & POLLIN)
+        if (!(srv->cm.server_pfds[i].revents & POLLIN)
             || client->in_buff_idx >= client->input.nmemb)
             continue;
         command_len = strcspn(client->input.buff + client->in_buff_idx, "\n");

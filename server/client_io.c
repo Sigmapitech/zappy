@@ -29,7 +29,7 @@ void error_helper(server_t *srv, const char *msg, uint32_t idx)
 static
 bool recv_wrapper(server_t *srv, uint32_t idx, char *buffer, ssize_t *res)
 {
-    client_state_t *client = &srv->cstates.buff[idx - 1];
+    client_state_t *client = srv->cm.clients + idx;
     ssize_t recv_res = recv(client->fd, buffer, BUFFER_SIZE - 1, 0);
 
     if (recv_res < 0) {
@@ -48,7 +48,7 @@ void read_client(server_t *srv, uint32_t idx)
 {
     char buffer[BUFFER_SIZE] = {0};
     ssize_t recv_res = sizeof(buffer) - 1;
-    client_state_t *client = &srv->cstates.buff[idx - 1];
+    client_state_t *client = srv->cm.clients + idx;
 
     if (client == nullptr)
         return;
@@ -69,7 +69,7 @@ void read_client(server_t *srv, uint32_t idx)
 
 void write_client(server_t *srv, uint32_t idx)
 {
-    client_state_t *cl = &srv->cstates.buff[idx - 1];
+    client_state_t *cl = srv->cm.clients + idx;
     ssize_t sent;
     size_t line_len;
 
@@ -88,13 +88,13 @@ void write_client(server_t *srv, uint32_t idx)
         return;
     cl->output.nmemb = 0;
     cl->out_buff_idx = 0;
-    srv->pfds.buff[idx].events &= ~POLLOUT;
+    srv->cm.server_pfds[idx].events &= ~POLLOUT;
 }
 
 void append_to_output(server_t *srv, client_state_t *client, const char *msg)
 {
     size_t len = strlen(msg);
-    size_t idx = client - srv->cstates.buff;
+    size_t idx = client - srv->cm.clients;
 
     if (!sized_struct_ensure_capacity(&client->output, len + 1,
         sizeof *client->output.buff)) {
@@ -105,7 +105,7 @@ void append_to_output(server_t *srv, client_state_t *client, const char *msg)
     client->output.nmemb += len;
     if (!strchr(msg, '\n'))
         return;
-    srv->pfds.buff[idx + 1].events |= POLLOUT;
+    srv->cm.server_pfds[idx].events |= POLLOUT;
 }
 
 #pragma clang diagnostic push
@@ -159,8 +159,7 @@ void send_to_guis(server_t *srv, const char *fmt, ...)
     va_start(args, fmt);
     size = compute_formatted_size(fmt, args);
     vsnprintf(buff, size + 1, fmt, args);
-    for (size_t i = 0; i < srv->cstates.nmemb; i++)
-        if (srv->cstates.buff[i].team_id == TEAM_ID_GRAPHIC)
-            append_to_output(srv, &srv->cstates.buff[i], buff);
+    for (size_t i = srv->cm.idx_of_gui; i < srv->cm.idx_of_players; i++)
+        append_to_output(srv, &srv->cm.clients[i], buff);
 }
 #pragma clang diagnostic pop

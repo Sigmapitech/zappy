@@ -118,14 +118,14 @@ event_t event_heap_pop(event_heap_t *heap)
 
 client_state_t *event_get_client(server_t *srv, event_t const *event)
 {
-    client_state_t *maybe_client = srv->cstates.buff + event->client_idx;
+    client_state_t *maybe_client = srv->cm.clients + event->client_idx;
 
     if (event->client_id == CLIENT_DEAD)
         return nullptr;
     if (maybe_client->id == (uint32_t)event->client_id)
         return maybe_client;
-    for (size_t i = 0; i < srv->cstates.nmemb; i++)
-        if (srv->cstates.buff[i].id == (uint32_t)event->client_id)
-            return srv->cstates.buff + i;
+    for (size_t i = 0; i < srv->cm.count; i++)
+        if (srv->cm.clients[i].id == (uint32_t)event->client_id)
+            return srv->cm.clients + i;
     return nullptr;
 }
