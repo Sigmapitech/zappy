@@ -32,35 +32,40 @@ public:
     modelMatrix = glm::rotate(glm::mat4(1.0), t, glm::vec3(0.0, 1.0, 0.0));
 
     // Input handling
+    glm::vec3 position = d.camera.GetPosition();
     if (d.GetInput().keys[SDL_SCANCODE_RIGHT])
-      d.camera.position += glm::vec3(1.0, 0.0, 0.0) * deltaTime;
+      position += glm::vec3(1.0, 0.0, 0.0) * deltaTime;
     if (d.GetInput().keys[SDL_SCANCODE_LEFT])
-      d.camera.position -= glm::vec3(1.0, 0.0, 0.0) * deltaTime;
+      position -= glm::vec3(1.0, 0.0, 0.0) * deltaTime;
     if (d.GetInput().keys[SDL_SCANCODE_DOWN])
-      d.camera.position += glm::vec3(0.0, 0.0, 1.0) * deltaTime;
+      position += glm::vec3(0.0, 0.0, 1.0) * deltaTime;
     if (d.GetInput().keys[SDL_SCANCODE_UP])
-      d.camera.position -= glm::vec3(0.0, 0.0, 1.0) * deltaTime;
+      position -= glm::vec3(0.0, 0.0, 1.0) * deltaTime;
 
     if (d.GetInput().keys[SDL_SCANCODE_SPACE])
-      d.camera.position += glm::vec3(0.0, 10.0, 0.0) * deltaTime;
+      position += glm::vec3(0.0, 10.0, 0.0) * deltaTime;
     if (d.GetInput().keys[SDL_SCANCODE_LCTRL])
-      d.camera.position -= glm::vec3(0.0, 10.0, 0.0) * deltaTime;
+      position -= glm::vec3(0.0, 10.0, 0.0) * deltaTime;
+    d.camera.SetPosition(position);
 
+    float yaw = d.camera.GetYaw();
+    float pitch = d.camera.GetPitch();
     if (d.GetInput().mouseButtons[SDL_BUTTON_RIGHT]) {
       if (d.GetInput().mouseX > 0)
-        d.camera.yaw += 5.0F * d.GetInput().mouseDeltaX * deltaTime;
+        yaw += 5.0F * d.GetInput().mouseDeltaX * deltaTime;
       if (d.GetInput().mouseX < 0)
-        d.camera.yaw -= 5.0F * d.GetInput().mouseDeltaX * deltaTime;
+        yaw -= 5.0F * d.GetInput().mouseDeltaX * deltaTime;
       if (d.GetInput().mouseY > 0)
-        d.camera.pitch += 5.0F * d.GetInput().mouseDeltaY * deltaTime;
+        pitch += 5.0F * d.GetInput().mouseDeltaY * deltaTime;
       if (d.GetInput().mouseY < 0)
-        d.camera.pitch -= 5.0F * d.GetInput().mouseDeltaY * deltaTime;
+        pitch -= 5.0F * d.GetInput().mouseDeltaY * deltaTime;
+      d.camera.SetRotation(yaw, pitch);
     }
     std::cout
-      << "Camera Position: " << d.camera.position.x << ", "
-      << d.camera.position.y << ", " << d.camera.position.z << "\n"
-      << "Camera Yaw: " << d.camera.yaw << "\n"
-      << "Camera Pitch: " << d.camera.pitch << "\n"
+      << "Camera Position: " << d.camera.GetPosition().x << ", "
+      << d.camera.GetPosition().y << ", " << d.camera.GetPosition().z << "\n"
+      << "Camera Yaw: " << yaw << "\n"
+      << "Camera Pitch: " << pitch << "\n"
       << "deltaTime: " << deltaTime << "\n";
     return true;
   }
