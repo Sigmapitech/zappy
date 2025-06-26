@@ -1,24 +1,35 @@
+#include <functional>
+#include <iostream>
+#include <sstream>
+
+#include <sys/poll.h>
+#include <unistd.h>
+
 #include "API.hpp"
 #include "API/TileMap/Tilemap.hpp"
 #include "API/Trantor/Trantor.hpp"
 #include "Utils/Utils.hpp"
 
-#include <mutex>
-#include <sys/poll.h>
-#include <unistd.h>
-
-#include <functional>
-#include <iostream>
-#include <sstream>
-
 API::API()
 {
+  // Initialize the pipe for network communication
   if (pipe(_pipeFdNetwork.data()) == -1)
     throw std::runtime_error(
       "Error: pipe failed, Function: API constructor, File: API.cpp");
+
+  // Create pipe for events
+  if (pipe(_pipeFdEvents.data()) == -1)
+    throw std::runtime_error(
+      "Error: pipe failed. Function: API constructor, File: API.cpp");
+
+  // Initialize the poll structures
   _pollOutFd[0].fd = _pipeFdNetwork[1];
   _pollOutFd[0].events = POLLOUT;
   _pollOutFd[0].revents = 0;
+
+  _pollEventOutFd[0].fd = _pipeFdEvents[1];
+  _pollEventOutFd[0].events = POLLOUT;
+  _pollEventOutFd[0].revents = 0;
 }
 
 void API::WriteMessage(const std::string &msg)
@@ -156,7 +167,7 @@ void API::AskPlayerInventory(int id)
   WriteMessage(tmp_command);
 }
 
-void API::ParseManageCommande(std::string &command)
+void API::ParseManageCommand(std::string &command)
 {
   if (command.empty())
     return;
@@ -204,6 +215,15 @@ void API::ParseManageCommande(std::string &command)
   std::string line;
 
   while (std::getline(stream, line)) {
+    line += "\n";
+    if (poll(_pollEventOutFd.data(), _pollEventOutFd.size(), 0) == -1)
+      throw std::runtime_error(
+        "Error: poll failed, Function: ParseManageCommand, File: API.cpp");
+    if (_pollEventOutFd[0].revents & POLLOUT)
+      if (write(_pipeFdEvents[1], line.c_str(), line.size()) == -1)
+        throw std::runtime_error(
+          "Error: write failed, Function: ParseManageCommand, File: API.cpp");
+
     std::stringstream lineParsed(line);
     std::string word;
     lineParsed >> word;
