@@ -87,7 +87,7 @@ namespace Dem {
       int mouseX, mouseY;
       int mouseDeltaX, mouseDeltaY;
       std::array<bool, 5> mouseButtons;
-    } input;
+    } input = {};
 
     std::vector<std::shared_ptr<IEntity>> entityPool;
     std::vector<std::shared_ptr<Texture>> texturePool;
