@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <memory>
 #include <stdexcept>
 
@@ -26,6 +27,8 @@ private:
   SDL_Window *_window;
   SDL_GLContext _context = nullptr;
   SDL_Event _event;
+  size_t _width;
+  size_t _height;
 
   /**
    * @brief Sets an OpenGL attribute for the SDL context.
@@ -62,8 +65,25 @@ public:
    *         - GLEW initialization
    *         - SDL_image initialization
    */
-  SDL2();
+  SDL2(size_t width = 800, size_t height = 600);
   ~SDL2();
+
+  void SetWindowSize(size_t width, size_t height)
+  {
+    _width = width;
+    _height = height;
+    glViewport(0, 0, (GLsizei)_width, (GLsizei)_height);
+  }
+
+  [[nodiscard]] size_t GetWidth() const
+  {
+    return _width;
+  }
+
+  [[nodiscard]] size_t GetHeight() const
+  {
+    return _height;
+  }
 
   std::string GetError() const  // NOLINT
   {
