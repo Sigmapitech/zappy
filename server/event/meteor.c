@@ -51,6 +51,8 @@ static bool meteor_rescedule(server_t *srv, const event_t *event)
         .timestamp = event->timestamp + interval_sec,
     };
 
+    DEBUG("Meteor incoming in %ld ms",
+        (new.timestamp - get_timestamp()) / MILISEC_IN_SEC);
     if (!event_heap_push(&srv->events, &new)) {
         perror("Failed to reschedule meteor event");
         return false;
@@ -64,9 +66,6 @@ bool meteor_handler(server_t *srv, const event_t *event)
     size_t x = 0;
     size_t y = 0;
 
-    DEBUG("Meteor incoming at %lu.%06lu sec since server start",
-        (event->timestamp - srv->start_time) / MICROSEC_IN_SEC,
-        (event->timestamp - srv->start_time) % MICROSEC_IN_SEC);
     for (size_t n = 0; n < RES_COUNT; n++) {
         qty_needed = (size_t)(srv->map_height * srv->map_width * DENSITIES[n])
             - srv->total_item_in_map.qnts[n];

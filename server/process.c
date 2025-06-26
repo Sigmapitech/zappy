@@ -98,10 +98,9 @@ void event_create(server_t *srv, client_state_t *client,
         event.timestamp = get_late_event(srv, client) + interval;
     else
         event.timestamp = get_timestamp();
-    DEBUG("Creating event for client %d: '%s' at %lu%.06lu sec",
+    DEBUG("Creating event for client %d: '%s' in %lu ms",
         client->fd, event.command[0],
-        (event.timestamp - srv->start_time) / MICROSEC_IN_SEC,
-        (event.timestamp - srv->start_time) % MICROSEC_IN_SEC);
+        (event.timestamp - get_timestamp()) / MILISEC_IN_SEC);
     if (!event_heap_push(&srv->events, &event))
         srv->is_running = false;
     if (!strcmp(split[0], PLAYER_FORK))
