@@ -57,7 +57,12 @@ namespace Dem {
        * @param sdl2Instance Reference to an SDL2 object used to obtain the
        * current tick count.
        */
-      Time(const SDL2 &sdl2Instance);
+      Time() = default;
+
+      Time(const SDL2 &sdl2Instance)
+        : last(sdl2Instance.GetTicks64()), current(last)
+      {
+      }
 
       /**
        * @brief Updates the delta time using the provided SDL2 instance.
@@ -95,7 +100,7 @@ namespace Dem {
     std::unordered_map<std::string, size_t> textureMap;
     std::vector<std::shared_ptr<Object3D>> objectPool;
     std::unordered_map<std::string, size_t> objectMap;
-    std::unique_ptr<ShaderProgram> shader;
+    std::unique_ptr<ShaderProgram> shader = std::make_unique<ShaderProgram>();
     bool isRunning;
     bool glDebug;
 
@@ -165,8 +170,11 @@ namespace Dem {
   public:
     Camera camera;  // NOLINT
 
-    Demeter(std::unique_ptr<SDL2> renderer, bool activateDebug = false);
+    Demeter() = default;
     ~Demeter() = default;
+
+    [[nodiscard]] bool
+    Init(std::unique_ptr<SDL2> renderer, bool activateDebug = false);
 
     [[nodiscard]] const InputState &GetInput() const
     {
