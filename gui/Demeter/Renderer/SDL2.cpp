@@ -4,7 +4,7 @@
 
 #include "SDL2.hpp"
 
-SDL2::SDL2()
+SDL2::SDL2(size_t width, size_t height) : _width(width), _height(height)
 {
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
     throw std::
@@ -17,9 +17,9 @@ SDL2::SDL2()
     "SDL2 OpenGL Cube",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
-    800,
-    600,
-    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    _width,
+    _height,
+    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
   if (_window == nullptr)
     throw std::
       runtime_error("SDL_CreateWindow failed! SDL_Error: " + GetError());
@@ -31,6 +31,11 @@ SDL2::SDL2()
   glewExperimental = GL_TRUE;
   if (glewInit() != GLEW_OK)
     throw std::runtime_error("GLEW initialization failed!");
+
+  // Initial viewport setup
+  SetWindowSize(_width, _height);
+
+  // Enable depth testing
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
