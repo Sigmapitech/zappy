@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -206,7 +207,7 @@ namespace Dem {
       texturePool.erase(texturePool.begin() + index);
     }
 
-    [[nodiscard]] std::shared_ptr<Object3D>
+    [[nodiscard]] std::optional<std::shared_ptr<Object3D>>
     AddObject3D(const std::string &path);
 
     void DeleteObject3D(const std::string &path)

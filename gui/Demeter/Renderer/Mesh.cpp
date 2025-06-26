@@ -4,16 +4,23 @@
 
 #include "logging/Logger.hpp"
 
-Mesh::Mesh(
-  std::string name,
+bool Mesh::Init(
+  const std::string &name,
   std::unique_ptr<std::vector<Vertex>> vv,
   std::unique_ptr<std::vector<unsigned int>> vi)
-  : _name(std::move(name)), _vertices(std::move(vv)), _indices(std::move(vi))
 {
-  if (_vertices->empty() || _indices->empty())
-    throw std::runtime_error("Mesh cannot be empty");
+  _name = name;
+  _vertices = std::move(vv);
+  _indices = std::move(vi);
+  if (_vertices->empty() || _indices->empty()) {
+    Log::failed
+      << "Mesh '" << _name
+      << "' cannot be initialized with empty vertices or indices.";
+    return false;
+  }
 
   GenMesh();
+  return true;
 }
 
 void Mesh::GenMesh()
@@ -94,7 +101,7 @@ void Mesh::
     glBindTexture(GL_TEXTURE_2D, _texture->GetGL());
   else {
     Log::warn
-      << "Mesh '" << _name << "' has no texture set, using default texture.";
+      << "Mesh '" << _name << "' has no texture set, unbinding texture.";
     glBindTexture(GL_TEXTURE_2D, 0);  // unbind texture if not set
   }
   glUniform1i(shader.GetUniformLocation("tex"), 0);

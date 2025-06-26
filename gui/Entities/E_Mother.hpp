@@ -41,9 +41,19 @@ public:
       dynamic_pointer_cast<E_Coms>(d.GetEntity(0));
     if (eComsPtr)
       _api = eComsPtr->GetApi();
-    _tile = d.AddObject3D(ASSET_DIR "/cube.obj3D");
+
+    auto tmp = d.AddObject3D(ASSET_DIR "/cube.obj3D");
+    if (!tmp)
+      throw std::
+        runtime_error("Failed to load object: " ASSET_DIR "/cube.obj3D");
+    _tile = *tmp;
     _textureTile = d.AddTexture(ASSET_DIR "/textures/ground.jpg");
-    _ressources = d.AddObject3D(ASSET_DIR "/ressources.obj3D");
+
+    tmp = d.AddObject3D(ASSET_DIR "/ressources.obj3D");
+    if (!tmp)
+      throw std::
+        runtime_error("Failed to load object: " ASSET_DIR "/ressources.obj3D");
+    _ressources = *tmp;
     _textureRessource = d.AddTexture(ASSET_DIR "/textures/green.jpg");
   }
 
