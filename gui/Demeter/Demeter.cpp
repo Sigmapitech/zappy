@@ -161,14 +161,13 @@ std::shared_ptr<Texture> Dem::Demeter::AddTexture(const std::string &path)
 {
   if (textureMap.contains(path))
     return texturePool[textureMap[path]];
-  std::shared_ptr<Texture> tex;
-  try {
-    tex = std::make_shared<Texture>(*sdl2, path);
-  } catch (...) {
+  std::shared_ptr<Texture> tex = std::make_shared<Texture>();
+  if (!tex->Init(*sdl2, path)) {
     Log::failed
       << "Failed to load texture from path: " << path
       << ". Using default texture instead.";
-    tex = std::make_shared<Texture>(*sdl2, ASSET_DIR "/no-texture.png");
+    tex = std::make_shared<Texture>();
+    tex->Init(*sdl2, ASSET_DIR "/no-texture.png");
   }
   texturePool.push_back(tex);
   textureMap[path] = texturePool.size() - 1;
