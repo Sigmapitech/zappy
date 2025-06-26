@@ -9,7 +9,6 @@
 
     #include "args_parser.h"
     #include "data_structure/event.h"
-    #include "data_structure/resizable_array.h"
     #include "debug.h"
 
     #define MAP_MAX_SIDE_SIZE 42
@@ -47,25 +46,6 @@ typedef union {
     };
     uint32_t qnts[RES_COUNT];
 } inventory_t;
-
-/**
- * @brief Structure representing a client state in the server.
- *
- */
-typedef struct client_state_s {
-    resizable_array_t input;
-    resizable_array_t output;
-    inventory_t inv;
-    uint8_t team_id;
-    uint8_t x;
-    uint8_t y;
-    uint8_t tier;
-    uint8_t orientation;
-    uint32_t id;
-    int fd;
-    size_t in_buff_idx;
-    size_t out_buff_idx;
-} client_state_t;
 
 /**
  * @brief Structure representing an egg in the server.

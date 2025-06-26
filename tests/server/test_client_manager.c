@@ -5,6 +5,7 @@
 #include <sys/poll.h>
 
 #include "compass.h"
+#include "client.h"
 #include "client_manager.h"
 #include "macro_utils.h"
 

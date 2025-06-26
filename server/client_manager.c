@@ -5,9 +5,9 @@
 #include <sys/poll.h>
 #include <unistd.h>
 
+#include "client.h"
 #include "client_manager.h"
 #include "data_structure/resizable_array.h"
-#include "server.h"
 
 enum {
     SECTION_SERVER = 0,
