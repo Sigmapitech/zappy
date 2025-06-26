@@ -16,7 +16,10 @@ private:
 public:
   E_Default(Dem::Demeter &d)
   {
-    obj = d.AddObject3D("assets/cube.obj3D");
+    auto tmp = d.AddObject3D("assets/cube.obj3D");
+    if (!tmp)
+      throw std::runtime_error("Failed to load object: assets/cube.obj3D");
+    obj = *tmp;
     texture = d.AddTexture("assets/texture.png");
   }
 

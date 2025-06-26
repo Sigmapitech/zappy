@@ -3,14 +3,20 @@
 #include <memory>
 #include <sstream>
 
+#include "logging/Logger.hpp"
+
 #include "Object3D.hpp"
 #include "Utils.hpp"
 
-void Object3D::HandleSubObject(std::istringstream &ss)
+bool Object3D::HandleSubObject(std::istringstream &ss)
 {
   if (!meshIndices->empty()) {
-    std::unique_ptr<Mesh> m = std::make_unique<Mesh>(
-      currentName, std::move(meshVertices), std::move(meshIndices));
+    std::unique_ptr<Mesh> m = std::make_unique<Mesh>();
+    if (
+      !m->Init(currentName, std::move(meshVertices), std::move(meshIndices))) {
+      Log::failed << "Failed to initialize mesh for object: " << currentName;
+      return false;
+    }
     _meshArr.push_back(std::move(m));
     // Reset for next mesh
     meshVertices = std::make_unique<std::vector<Vertex>>();
@@ -19,6 +25,7 @@ void Object3D::HandleSubObject(std::istringstream &ss)
     index = 0;
   }
   ss >> currentName;
+  return true;
 }
 
 void Object3D::HandleVertex(std::istringstream &ss)
@@ -81,13 +88,12 @@ void Object3D::HandleFace(std::istringstream &ss)
   }
 }
 
-void Object3D::ParseLine(const std::string &prefix, std::istringstream &ss)
+bool Object3D::ParseLine(const std::string &prefix, std::istringstream &ss)
 {
   switch (Hash(prefix.c_str())) {
     case Hash("o"):
     case Hash("g"):
-      HandleSubObject(ss);
-      break;
+      return HandleSubObject(ss);
     case Hash("v"):
       HandleVertex(ss);
       break;
@@ -103,13 +109,16 @@ void Object3D::ParseLine(const std::string &prefix, std::istringstream &ss)
     default:
       break;  // Ignore other lines
   }
+  return true;
 }
 
-Object3D::Object3D(const std::string &path)
+bool Object3D::Init(const std::string &path)
 {
   std::ifstream file(path);
-  if (!file.is_open())
-    throw std::runtime_error("Failed to open OBJ file: " + path);
+  if (!file.is_open()) {
+    Log::failed << "Could not open OBJ file: " << path;
+    return false;
+  }
 
   std::string line;
   while (std::getline(file, line)) {
@@ -117,15 +126,23 @@ Object3D::Object3D(const std::string &path)
     std::string prefix;
     ss >> prefix;
 
-    ParseLine(prefix, ss);
+    if (!ParseLine(prefix, ss)) {
+      Log::failed << "Failed to parse line in OBJ file: " << line;
+      return false;
+    }
   }
 
   // Final mesh (in case file doesn't end with new object)
   if (!meshIndices->empty()) {
-    std::unique_ptr<Mesh> m = std::make_unique<Mesh>(
-      currentName, std::move(meshVertices), std::move(meshIndices));
+    std::unique_ptr<Mesh> m = std::make_unique<Mesh>();
+    if (
+      !m->Init(currentName, std::move(meshVertices), std::move(meshIndices))) {
+      Log::failed << "Failed to initialize mesh for object: " << currentName;
+      return false;
+    }
     _meshArr.push_back(std::move(m));
   }
+  return true;
 }
 
 void Object3D::Draw(ShaderProgram &shader, Camera &camera) const
@@ -136,8 +153,6 @@ void Object3D::Draw(ShaderProgram &shader, Camera &camera) const
 
 void Object3D::SetTexture(size_t meshID, std::shared_ptr<Texture> t)
 {
-  if (_meshArr.size() <= meshID)
-    throw std::
-      out_of_range("Mesh ID out of bounds: " + std::to_string(meshID));
-  _meshArr[meshID]->SetTexture(std::move(t));
+  if (meshID < _meshArr.size())
+    _meshArr[meshID]->SetTexture(std::move(t));
 }
