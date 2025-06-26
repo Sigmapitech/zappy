@@ -49,11 +49,8 @@ bool assign_ai_data(server_t *srv, client_state_t *client, size_t team_id)
         .command = {PLAYER_DEATH}
     };
 
-    DEBUG("Player death incoming at %lu.%06lu sec since server start (id: %u)",
-        (event.timestamp - srv->start_time) / MICROSEC_IN_SEC,
-        (event.timestamp - srv->start_time) % MICROSEC_IN_SEC,
-        client->id
-        );
+    DEBUG("Player (id: %u) death incoming in %lu ms",
+        client->id, (event.timestamp - get_timestamp()) / MILISEC_IN_SEC);
     client->team_id = team_id;
     client->orientation = (rand() & FOUR_MASK);
     client->inv.food = INITIAL_FOOD_INVENTORY;
