@@ -78,14 +78,6 @@ void Dem::Demeter::Update()
       Log::warn << "Entity update failed";
 }
 
-void Dem::Demeter::SetupImGUIFrame()
-{
-  ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplSDL2_NewFrame();
-  ImGui::NewFrame();
-  ImGui::ShowDemoWindow();
-}
-
 void Dem::Demeter::Draw()
 {
   sdl2->Clear(0.1, 0.12, 0.15, 1.0);
@@ -96,8 +88,10 @@ void Dem::Demeter::Draw()
     if (!entity->Draw(*this))
       Log::warn << "Entity draw failed";
 
-  ImGui::Render();
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  if (isImGUIWindowCreated) {
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  }
 
   sdl2->SwapWindow();
 }
@@ -156,7 +150,6 @@ void Dem::Demeter::Run()
       HandleEvent();
     }
 
-    SetupImGUIFrame();
     Update();
     Draw();
 
