@@ -21,7 +21,7 @@ Zappy::Zappy(Args &params)
   demeter->AddEntity(std::make_shared<E_Mother>(*demeter));
 
   // camera
-  demeter->camera.position = glm::vec3(0.0, 1.0, 200.0);
+  demeter->camera.SetPosition({0.0, 1.0, 200.0});
 }
 
 void Zappy::Run()
