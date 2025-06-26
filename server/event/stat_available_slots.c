@@ -4,8 +4,10 @@
 bool stat_available_slot_handler(server_t *srv, const event_t *event)
 {
     size_t count = 0;
-    client_state_t *cs = srv->cstates.buff + event->client_idx;
+    client_state_t *cs = event_get_client(srv, event);
 
+    if (cs == nullptr)
+        return false;
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "ko\n"), true;
     for (size_t i = 0; i < srv->eggs.nmemb; i++)

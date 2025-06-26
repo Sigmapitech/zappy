@@ -10,6 +10,9 @@ static const char *RES_NAMES[RES_COUNT] = {
     "food", "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"
 };
 
+static constexpr const size_t TIER_MAX = 8;
+static constexpr const size_t TIER_MAX_AREA = (TIER_MAX + 1) * (TIER_MAX + 1);
+
 static
 void rotate(int8_t delta[2], uint8_t direction)
 {
@@ -110,10 +113,13 @@ void serialiaze_tile(
 
 bool player_look_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_idx;
-    uint8_t view = (cs->tier + 1) * (cs->tier + 1);
-    uint8_t coords[view][2];
+    client_state_t *cs = event_get_client(srv, event);
+    uint8_t coords[TIER_MAX_AREA][2];
+    uint8_t view;
 
+    if (cs == nullptr)
+        return false;
+    view = (cs->tier + 1) * (cs->tier + 1);
     fill_coords(coords, view, srv, cs);
     append_to_output(srv, cs, "[ ");
     for (size_t i = 0; i < view; i++) {

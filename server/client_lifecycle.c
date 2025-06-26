@@ -11,12 +11,13 @@
 static
 void add_client_state(server_t *srv, int fd)
 {
-    static int id = 0;
+    static uint32_t id = 0;
     client_state_t client_state = {.input = {},
         .inv = {}, .team_id = TEAM_ID_UNASSIGNED, .x = 0, .y = 0, .tier = 0,
         .fd = fd, .in_buff_idx = 0, .id = id };
 
     id++;
+    DEBUG("Client ID (fd %u): %u", fd, id);
     if (!sized_struct_ensure_capacity((resizable_array_t *)&srv->cstates,
         1, sizeof *srv->cstates.buff)) {
         perror("Can't resize client state");

@@ -94,7 +94,7 @@ bool server_boot(server_t *srv, params_t *p)
         .fd = srv->self_fd, .events = POLLIN, .revents = 0};
     srv->pfds.nmemb++;
     meteor.timestamp = srv->start_time;
-    meteor.client_idx = EVENT_SERVER_ID;
+    meteor.client_idx = 0;
     return event_heap_push(&srv->events, &meteor);
 }
 
