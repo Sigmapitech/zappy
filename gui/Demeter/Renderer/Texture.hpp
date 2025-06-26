@@ -17,7 +17,7 @@
  */
 struct Texture {
 private:
-  std::unique_ptr<SDL_Surface> surface;
+  std::unique_ptr<SDL_Surface> surface = nullptr;
   GLenum format;
   GLuint texture = 0;
 
@@ -52,10 +52,12 @@ public:
    * @throws std::runtime_error If the image cannot be loaded or if the image
    * format is unknown.
    */
-  Texture(SDL2 &sdl, const std::string &path);
+  Texture() = default;
   Texture(const Texture &) = delete;
   Texture &operator=(const Texture &) = delete;
   ~Texture();
+
+  bool Init(SDL2 &sdl, const std::string &path);
 
   [[nodiscard]] GLuint GetGL() const
   {
