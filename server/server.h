@@ -52,7 +52,7 @@ typedef union {
  * @brief Structure representing a client state in the server.
  *
  */
-typedef struct {
+typedef struct client_state_s {
     resizable_array_t input;
     resizable_array_t output;
     inventory_t inv;
@@ -121,7 +121,7 @@ typedef struct {
  * @brief Structure representing the server state.
  *
  */
-typedef struct {
+typedef struct server_s {
     int self_fd;
     volatile bool is_running;
     client_state_array_t cstates;

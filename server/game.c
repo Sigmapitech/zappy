@@ -58,7 +58,7 @@ void default_handler(server_t *srv, const event_t *event)
     client_state_t *client;
 
     DEBUG("No handler found for command: %s", event->command[0]);
-    if (event->client_idx == EVENT_SERVER_ID)
+    if (event->client_idx == 0)
         return;
     client = &srv->cstates.buff[event->client_idx];
     if (client->fd < 0)

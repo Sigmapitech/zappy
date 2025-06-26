@@ -4,8 +4,10 @@
 
 bool gui_map_size_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_idx;
+    client_state_t *cs = event_get_client(srv, event);
 
+    if (cs == nullptr)
+        return cs;
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "sbp\n"), true;
     vappend_to_output(srv, cs, GUI_MAP_SIZE " %hhu %hhu\n",
@@ -15,8 +17,10 @@ bool gui_map_size_handler(server_t *srv, const event_t *event)
 
 bool gui_map_content_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_idx;
+    client_state_t *cs = event_get_client(srv, event);
 
+    if (cs == nullptr)
+        return cs;
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "sbp\n"), true;
     for (size_t y = 0; y < srv->map_height; y++)
@@ -28,7 +32,7 @@ bool gui_map_content_handler(server_t *srv, const event_t *event)
 
 bool gui_tile_content_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_idx;
+    client_state_t *cs = event_get_client(srv, event);
     char *arg1 = event->command[1];
     char *arg2 = event->command[2];
     char *endptr1;
@@ -36,6 +40,8 @@ bool gui_tile_content_handler(server_t *srv, const event_t *event)
     size_t x;
     size_t y;
 
+    if (cs == nullptr)
+        return cs;
     if (event->arg_count != 3 || arg1 == nullptr || arg2 == nullptr)
         return append_to_output(srv, cs, "sbp\n"), true;
     x = strtoul(arg1, &endptr1, 10);
@@ -50,8 +56,10 @@ bool gui_tile_content_handler(server_t *srv, const event_t *event)
 
 bool gui_team_names_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *cs = srv->cstates.buff + event->client_idx;
+    client_state_t *cs = event_get_client(srv, event);
 
+    if (cs == nullptr)
+        return cs;
     if (event->arg_count != 1)
         return append_to_output(srv, cs, "sbp\n"), true;
     for (size_t i = 0; srv->team_names[i] != nullptr; i++)

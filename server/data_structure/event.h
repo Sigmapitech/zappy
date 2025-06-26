@@ -5,16 +5,13 @@
     #include <stddef.h>
     #include <stdint.h>
 
+    #include "debug.h"
+
 /**
  * @brief Maximum number of words in a command.
  *
  */
 static constexpr const int COMMAND_WORD_COUNT = 5;
-/**
- * @brief Maximum number of words in a command for AI clients.
- *
- */
-static constexpr const int EVENT_SERVER_ID = -1;
 
 constexpr const int CLIENT_DEAD = -2;
 
@@ -85,13 +82,6 @@ bool event_heap_push(event_heap_t *heap, const event_t *event);
  * @return event_t
  */
 event_t event_heap_pop(event_heap_t *heap);
-/**
- * @brief Peeks at the top event in the event heap without removing it.
- *
- * @param heap
- * @return const event_t*
- */
-const event_t *event_heap_peek(const event_heap_t *heap);
 
 /**
  * @brief Checks if the event heap is empty.
@@ -100,9 +90,35 @@ const event_t *event_heap_peek(const event_heap_t *heap);
  * @return true
  * @return false
  */
-static inline bool event_heap_is_empty(const event_heap_t *heap)
+static inline
+bool event_heap_is_empty(const event_heap_t *heap)
 {
     return heap->nmemb == 0;
 }
+
+/**
+ * @brief Peeks at the top event in the event heap without removing it.
+ *
+ * @param heap
+ * @return const event_t*
+ */
+static inline
+const event_t *event_heap_peek(const event_heap_t *heap)
+{
+    if (heap->nmemb == 0) {
+        DEBUG_MSG("Event heap is empty, Can't peek");
+        return nullptr;
+    }
+    return &heap->buff[0];
+}
+
+typedef struct client_state_s client_state_t;
+typedef struct server_s server_t;
+
+/**
+ * @brief Properly find the client using the event index
+ * with to linear search fallback
+ **/
+client_state_t *event_get_client(server_t *srv, event_t const *event);
 
 #endif /* EVENT_H_ */

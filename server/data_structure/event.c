@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "event.h"
 #include "resizable_array.h"
+#include "server.h"
 
 static void swap(event_t *a, event_t *b)
 {
@@ -90,6 +91,7 @@ bool event_heap_push(event_heap_t *heap, const event_t *event)
     heap->buff[heap->nmemb].arg_count = i;
     heap->buff[heap->nmemb].client_idx = event->client_idx;
     heap->buff[heap->nmemb].timestamp = event->timestamp;
+    heap->buff[heap->nmemb].client_id = event->client_id;
     heapify_up(heap, heap->nmemb);
     heap->nmemb++;
     return true;
@@ -114,11 +116,16 @@ event_t event_heap_pop(event_heap_t *heap)
     return heap->buff[0];
 }
 
-const event_t *event_heap_peek(const event_heap_t *heap)
+client_state_t *event_get_client(server_t *srv, event_t const *event)
 {
-    if (heap->nmemb == 0) {
-        DEBUG_MSG("Event heap is empty, Can't peek");
+    client_state_t *maybe_client = srv->cstates.buff + event->client_idx;
+
+    if (event->client_id == CLIENT_DEAD)
         return nullptr;
-    }
-    return &heap->buff[0];
+    if (maybe_client->id == (uint32_t)event->client_id)
+        return maybe_client;
+    for (size_t i = 0; i < srv->cstates.nmemb; i++)
+        if (srv->cstates.buff[i].id == (uint32_t)event->client_id)
+            return srv->cstates.buff + i;
+    return nullptr;
 }

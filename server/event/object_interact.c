@@ -26,42 +26,43 @@ uint8_t get_ressource_id(char *command)
 bool player_take_object_handler(server_t *srv, const event_t *event)
 {
     uint8_t object_id = get_ressource_id(event->command[1]);
-    client_state_t *client = srv->cstates.buff + event->client_idx;
-    inventory_t *tile = &srv->map[client->y][client->x];
+    client_state_t *cs = event_get_client(srv, event);
+    inventory_t *tile = &srv->map[cs->y][cs->x];
 
+    if (cs == nullptr)
+        return false;
     if (event->arg_count != 2 || object_id == INVALID_OBJECT_ID) {
-        append_to_output(srv, client, "ko\n");
+        append_to_output(srv, cs, "ko\n");
         return true;
     }
     tile->qnts[object_id]--;
-    client->inv.qnts[object_id]++;
-    append_to_output(srv, client, "ok\n");
+    cs->inv.qnts[object_id]++;
+    append_to_output(srv, cs, "ok\n");
     send_to_guis(srv, "pin #%hu %hhu %hhu %s\nbct %hhu %hhu %s\n",
-        client->id, client->x, client->y, serialize_inventory(&client->inv),
-        client->x, client->y, serialize_inventory(tile));
+        cs->id, cs->x, cs->y, serialize_inventory(&cs->inv),
+        cs->x, cs->y, serialize_inventory(tile));
     return true;
 }
 
 bool player_set_object_handler(server_t *srv, const event_t *event)
 {
+    client_state_t *cs = event_get_client(srv, event);
     uint8_t object_id = get_ressource_id(event->command[1]);
-    client_state_t *client = srv->cstates.buff + event->client_idx;
-    inventory_t *tile = &srv->map[client->y][client->x];
+    inventory_t *tile;
 
-    if (event->arg_count != 2 || object_id == INVALID_OBJECT_ID) {
-        append_to_output(srv, client, "ko\n");
-        return true;
-    }
-    if (client->inv.qnts[object_id] == 0) {
-        append_to_output(srv, client, "ko\n");
-        return true;
-    }
+    if (cs == nullptr)
+        return false;
+    tile = &srv->map[cs->y][cs->x];
+    if (event->arg_count != 2 || object_id == INVALID_OBJECT_ID)
+        return append_to_output(srv, cs, "ko\n"), true;
+    if (cs->inv.qnts[object_id] == 0)
+        return append_to_output(srv, cs, "ko\n"), true;
     tile->qnts[object_id]++;
-    client->inv.qnts[object_id]--;
+    cs->inv.qnts[object_id]--;
     srv->total_item_in_map.qnts[object_id]++;
-    append_to_output(srv, client, "ok\n");
+    append_to_output(srv, cs, "ok\n");
     send_to_guis(srv, "pin #%hu %hhu %hhu %s\nbct %hhu %hhu %s\n",
-        client->id, client->x, client->y, serialize_inventory(&client->inv),
-        client->x, client->y, serialize_inventory(tile));
+        cs->id, cs->x, cs->y, serialize_inventory(&cs->inv),
+        cs->x, cs->y, serialize_inventory(tile));
     return true;
 }

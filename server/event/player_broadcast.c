@@ -27,20 +27,22 @@ int get_relative_sound_direction(
 
 bool player_broadcast_handler(server_t *srv, const event_t *event)
 {
-    client_state_t *author = srv->cstates.buff + event->client_idx;
+    client_state_t *cs = event_get_client(srv, event);
 
+    if (cs == nullptr)
+        return false;
     if (event->arg_count != 2)
-        return append_to_output(srv, author, "ko\n"), true;
+        return append_to_output(srv, cs, "ko\n"), true;
     for (size_t i = 0; i < srv->cstates.nmemb; i++) {
-        if (author->id == srv->cstates.buff[i].id)
+        if (cs->id == srv->cstates.buff[i].id)
             continue;
         vappend_to_output(srv, &srv->cstates.buff[i],
             "message %d, %s\n",
-            get_relative_sound_direction(srv, author, &srv->cstates.buff[i]),
+            get_relative_sound_direction(srv, cs, &srv->cstates.buff[i]),
             event->command[1]);
     }
     send_to_guis(srv, "pbc #%hd %s\n",
         srv->cstates.buff[event->client_idx].id, event->command[1]);
-    append_to_output(srv, author, "ok\n");
+    append_to_output(srv, cs, "ok\n");
     return true;
 }
