@@ -73,6 +73,8 @@ void server_process_events(server_t *srv)
     for (const event_t *event = event_heap_peek(&srv->events)
         ; event != nullptr && event->timestamp < get_timestamp()
         ; event_heap_pop(&srv->events)) {
+        DEBUG("Processing event [%s] for client %zd",
+            event->command[0], event->client_id);
         if (event->client_idx == CLIENT_DEAD)
             continue;
         handler = find_handler(event->command[0]);
