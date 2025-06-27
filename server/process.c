@@ -28,7 +28,8 @@ static const struct ai_lut_entry AI_LUT[] = {
     {"Eject", 7},
     {"Fork", 42},
     {"Forward", 7},
-    {"Incantation", 300},
+    {"Incantation", 0},
+    {PLAYER_END_INCANTATION, 300}, // Internal use only
     {"Inventory", 1},
     {"Left", 7},
     {"Look", 7},
