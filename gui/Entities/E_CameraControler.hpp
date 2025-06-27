@@ -60,15 +60,17 @@ public:
         pitch += 5.0F * d.GetInput().mouseDeltaY * dt * sensitivity;
       d.camera.SetRotation(yaw, pitch);
     }
-    std::cout
-      << std::fixed << std::setprecision(2) << "Camera: pos "
-      << d.camera.GetPosition().x << ", " << d.camera.GetPosition().y << ", "
-      << d.camera.GetPosition().z << "\t"
-      << "| yaw " << yaw << "\t"
-      << "| pitch " << pitch << "\t"
-      << "| front " << d.camera.GetFront().x << ", " << d.camera.GetFront().y
-      << ", " << d.camera.GetFront().z << "\t"
-      << "| dt " << dt << "\n";
+    // std::cout
+    //   << std::fixed << std::setprecision(2) << "Camera: pos "
+    //   << d.camera.GetPosition().x << ", " << d.camera.GetPosition().y << ",
+    //   "
+    //   << d.camera.GetPosition().z << "\t"
+    //   << "| yaw " << yaw << "\t"
+    //   << "| pitch " << pitch << "\t"
+    //   << "| front " << d.camera.GetFront().x << ", " <<
+    //   d.camera.GetFront().y
+    //   << ", " << d.camera.GetFront().z << "\t"
+    //   << "| dt " << dt << "\n";
     return true;
   }
 

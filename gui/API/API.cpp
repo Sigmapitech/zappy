@@ -269,9 +269,10 @@ void API::HandleBCT(std::stringstream &ss)
   if (!(ss >> x >> y >> q0 >> q1 >> q2 >> q3 >> q4 >> q5 >> q6))
     throw std::runtime_error(
       "Error: invalid bct params, Function: HandleBCT, File: API.cpp");
-  std::cout
-    << "tile (" << x << "," << y << ") resources: " << q0 << "," << q1 << ","
-    << q2 << "," << q3 << "," << q4 << "," << q5 << "," << q6 << "\n";
+  // std::cout
+  //   << "tile (" << x << "," << y << ") resources: " << q0 << "," << q1 <<
+  //   ","
+  //   << q2 << "," << q3 << "," << q4 << "," << q5 << "," << q6 << "\n";
   std::lock_guard<std::mutex> locker(_tilemapLocker);
   _tilemap.SetTileInventory(x, y, q0, q1, q2, q3, q4, q5, q6);
 }

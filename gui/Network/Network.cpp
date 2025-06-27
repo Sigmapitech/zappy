@@ -133,8 +133,8 @@ void Network::RunNetworkInternal()
       std::stringstream ss(leftover + std::string(buffer.data(), bytesRead));
       while (std::getline(ss, message, '\n'))
         if (!message.empty()) {
-          Log::inf
-            << "Message received from pipe: " << Log::cleanString(message);
+          // Log::inf
+          //   << "Message received from pipe: " << Log::cleanString(message);
           SendMessage(message + "\n");
         }
       // if there is still data in the stream, save it for the next iteration
@@ -155,7 +155,7 @@ void Network::SendMessage(const std::string &msg)
   if (send(_fdServer, msg.c_str(), msg.size(), 0) == -1)
     throw std::
       runtime_error("Error: send, Function: SendMessage, File: Network.cpp");
-  Log::inf << "Message sent : " << Log::cleanString(msg);
+  // Log::inf << "Message sent : " << Log::cleanString(msg);
 }
 
 std::string Network::ReceiveMessage() const
