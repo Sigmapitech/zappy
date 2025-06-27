@@ -24,7 +24,7 @@ bool E_Mother::Init(Dem::Demeter &d)
     return false;
   }
   _tile = *tmp;
-  _textureTile = d.AddTexture(ASSET_DIR "/textures/ground.jpg");
+  _textureTile = d.AddTexture(ASSET_DIR "/textures/grass.png");
 
   tmp = d.AddObject3D(ASSET_DIR "/ressources.obj3D");
   if (!tmp) {
@@ -32,7 +32,7 @@ bool E_Mother::Init(Dem::Demeter &d)
     return false;
   }
   _ressources = *tmp;
-  _textureRessource = d.AddTexture(ASSET_DIR "/textures/green.jpg");
+  _textureRessource = d.AddTexture(ASSET_DIR "/textures/green.png");
   return true;
 }
 
