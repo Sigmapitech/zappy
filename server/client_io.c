@@ -160,6 +160,7 @@ void send_to_guis(server_t *srv, const char *fmt, ...)
     va_start(args, fmt);
     size = compute_formatted_size(fmt, args);
     vsnprintf(buff, size + 1, fmt, args);
+    DEBUG("send to guis: [%s]", buff);
     for (size_t i = srv->cm.idx_of_gui; i < srv->cm.idx_of_players; i++)
         append_to_output(srv, &srv->cm.clients[i], buff);
 }
