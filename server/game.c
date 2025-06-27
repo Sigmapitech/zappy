@@ -15,6 +15,7 @@ struct command_handler_s {
 static const struct command_handler_s COMMAND_HANDLERS[] = {
     { METEOR, meteor_handler },
     { PLAYER_DEATH, player_death_handler },
+
     { PLAYER_INVENTORY, player_inventory_handler },
     { PLAYER_BROADCAST, player_broadcast_handler },
     { PLAYER_LOOK, player_look_handler },
@@ -25,7 +26,10 @@ static const struct command_handler_s COMMAND_HANDLERS[] = {
     { PLAYER_TAKE_OBJECT, player_take_object_handler },
     { PLAYER_SET_OBJECT, player_set_object_handler },
     { PLAYER_FORK, player_fork_handler },
+    { PLAYER_START_INCANTATION, player_start_incentation_handler },
+    { PLAYER_END_INCANTATION, player_end_incentation_handler },
     { STAT_AVAILABLE_SLOTS, stat_available_slot_handler },
+    { PLAYER_LOCK, player_lock_handler },
 
     { GUI_PLAYER_INV, gui_player_get_inventory_handler },
     { GUI_PLAYER_LVL, gui_player_get_level_handler },

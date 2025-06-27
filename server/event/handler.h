@@ -29,6 +29,9 @@ bool player_take_object_handler(server_t *srv, const event_t *event);
 bool player_set_object_handler(server_t *srv, const event_t *event);
 
 bool player_fork_handler(server_t *srv, const event_t *event);
+bool player_start_incentation_handler(server_t *srv, const event_t *event);
+bool player_end_incentation_handler(server_t *srv, const event_t *event);
+bool player_lock_handler(server_t *, const event_t *);
 
 bool stat_available_slot_handler(server_t *srv, const event_t *event);
 

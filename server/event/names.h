@@ -17,6 +17,9 @@
     #define PLAYER_SET_OBJECT "Set"
 
     #define PLAYER_FORK "Fork"
+    #define PLAYER_START_INCANTATION "Incantation"
+    #define PLAYER_END_INCANTATION "EI"
+    #define PLAYER_LOCK "noop"
 
     #define STAT_AVAILABLE_SLOTS "Connect_nbr"
 

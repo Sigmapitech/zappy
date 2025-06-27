@@ -18,6 +18,7 @@ typedef struct client_state_s {
     uint8_t tier;
     uint8_t orientation;
     uint32_t id;
+    bool is_in_incantation;
     int fd;
     size_t in_buff_idx;
     size_t out_buff_idx;
