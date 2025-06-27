@@ -42,6 +42,7 @@ def parse_args() -> argparse.Namespace:
         .add_arg("--no-gui", action="store_true")
         .add_arg("--split-logs", action="store_true")
         .add_arg("--host", type=str, default="0.0.0.0")
+        .add_arg("--pause-before-connections", action="store_true")
         .parse_args()
     )
 

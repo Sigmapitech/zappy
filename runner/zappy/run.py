@@ -69,6 +69,8 @@ def run_zappy(bins: ZappyPool, args: argparse.Namespace):
         processes.append(srv)
 
     time.sleep(1)
+    if args.pause_before_connections:
+        input("Press enter to continue...")
 
     for i in range(args.team_init_count):
         for _, team in enumerate(teams):
