@@ -14,7 +14,7 @@
 class E_CameraControler : public Dem::IEntity {
 private:
   static constexpr float vel = 5;
-  static constexpr float sensitivity = 1.0F;
+  static constexpr float sensitivity = 0.5F;
 
 public:
   bool Init(Dem::Demeter &) override
@@ -51,9 +51,9 @@ public:
     float pitch = d.camera.GetPitch();
     if (d.GetInput().mouseButtons[SDL_BUTTON_RIGHT]) {
       if (d.GetInput().mouseX > 0)
-        yaw -= 5.0F * d.GetInput().mouseDeltaX * dt * sensitivity;
-      if (d.GetInput().mouseX < 0)
         yaw += 5.0F * d.GetInput().mouseDeltaX * dt * sensitivity;
+      if (d.GetInput().mouseX < 0)
+        yaw -= 5.0F * d.GetInput().mouseDeltaX * dt * sensitivity;
       if (d.GetInput().mouseY > 0)
         pitch -= 5.0F * d.GetInput().mouseDeltaY * dt * sensitivity;
       if (d.GetInput().mouseY < 0)
