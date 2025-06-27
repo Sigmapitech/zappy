@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "event/names.h"
 #include "handler.h"
@@ -62,14 +63,16 @@ static bool meteor_rescedule(server_t *srv, const event_t *event)
 
 bool meteor_handler(server_t *srv, const event_t *event)
 {
-    size_t qty_needed = 0;
+    ssize_t qty_needed = 0;
     size_t x = 0;
     size_t y = 0;
 
     for (size_t n = 0; n < RES_COUNT; n++) {
-        qty_needed = (size_t)(srv->map_height * srv->map_width * DENSITIES[n])
+        qty_needed = (ssize_t)(srv->map_height * srv->map_width * DENSITIES[n])
             - srv->total_item_in_map.qnts[n];
-        for (size_t i = 0; i < qty_needed; i++) {
+        DEBUG("meteor: %zu %s, missing %u",
+            srv->total_item_in_map.qnts[n], RES_NAMES[n], qty_needed);
+        for (ssize_t i = 0; i < qty_needed; i++) {
             x = rand() % srv->map_width;
             y = rand() % srv->map_height;
             srv->map[y][x].qnts[n]++;
