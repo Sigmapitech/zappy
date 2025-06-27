@@ -43,6 +43,8 @@ public:
    */
   [[nodiscard]] int GetRotation() const;
 
+  [[nodiscard]] int GetLevel() const;
+
   /**
    * @brief Set the Position object
    *
