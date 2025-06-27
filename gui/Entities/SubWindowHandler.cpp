@@ -50,6 +50,7 @@ void SubWindowHandler::RunMenu(
 
   ImGui::TextColored(
     _textColor, "Time: %lu seconds", d.GetTime().GetCurrent() / 1000);
+
   ImGui::Separator();
 
   ImVec2 startPos = ImGui::GetCursorScreenPos();
@@ -101,6 +102,8 @@ void SubWindowHandler::RunMenu(
   ImGui::GetWindowDrawList()->AddRect(
     startPos, endPos, IM_COL32(200, 200, 200, 255), 5.0);
 
+  ImGui::Separator();
+
   // Display the events
   ImGui::TextColored(_textColor, "EVENTS :");
   ImVec2 startPosEvent = ImGui::GetCursorScreenPos();
@@ -112,7 +115,7 @@ void SubWindowHandler::RunMenu(
     true,
     ImGuiWindowFlags_AlwaysVerticalScrollbar
       | ImGuiWindowFlags_HorizontalScrollbar);
-  for (size_t i = eventIndex; i < (eventCount + eventIndex); i++)
+  for (size_t i = eventIndex + 1; i < (eventCount + eventIndex + 1); i++)
     ImGui::TextColored(_textColor, "%s", eventArray[i % eventCount].c_str());
 
   ImGui::EndChild();
@@ -129,20 +132,36 @@ void SubWindowHandler::RunMenu(
 
   ImGui::SetCursorPosY(
     ImGui::GetWindowHeight() - footerHeight - spacing - bottomPadding);
-
   float totalWidth = ImGui::GetContentRegionAvail().x;
   float buttonWidth = (totalWidth - 10.0) / 2.0;
 
   if (ImGui::Button("Team Data", ImVec2(buttonWidth, 0)))
     _ImGuiState = STATE_TEAM;
-
   ImGui::SameLine();
-
   if (ImGui::Button("Options", ImVec2(buttonWidth, 0)))
     _ImGuiState = STATE_OPTIONS;
 
   ImGui::End();
 }
+
+// void SubWindowHandler::RunInventory()
+//{
+//   if (ImGui::Begin("Fenêtre principale")) {
+//       ImVec2 size = ImVec2(300, 200);
+//       bool border = true;
+//
+//       ImGui::BeginChild("ZoneScroll", size, border,
+//       ImGuiWindowFlags_HorizontalScrollbar);
+//
+//       for (int i = 0; i < 50; i++) {
+//           ImGui::Text("Ligne %d", i);
+//       }
+//
+//       ImGui::EndChild();
+//   }
+//
+//   ImGui::End();
+// }
 
 void SubWindowHandler::RunTeam(Dem::Demeter &d)
 {
@@ -152,57 +171,51 @@ void SubWindowHandler::RunTeam(Dem::Demeter &d)
     _textColor, "Time: %lu seconds", d.GetTime().GetCurrent() / 1000);
   ImGui::Separator();
 
-  ImVec2 scrollSize = ImVec2(
-    ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y - 30);
-  ImGui::BeginChild(
-    "ZoneScrollable",
-    scrollSize,
-    true,
-    ImGuiWindowFlags_AlwaysVerticalScrollbar
-      | ImGuiWindowFlags_HorizontalScrollbar);
+  // Display the teams
+  float scrollableHeight = ImGui::GetContentRegionAvail().y - 100.0;
+  for (auto &team: _api->GetTeams()) {
 
-  if (
-    ImGui::BeginTable(
-      "PlayerTable",
-      4,
-      ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders
-        | ImGuiTableFlags_ScrollX)) {
+    ImGui::TextColored(_textColor, "Team : %s", team.first.c_str());
+    ImGui::BeginChild(
+      team.first.c_str(),
+      ImVec2(ImGui::GetContentRegionAvail().x, scrollableHeight),
+      false);
 
-    if (_showTableBg) {
-      ImGui::TableSetBgColor(
-        ImGuiTableBgTarget_RowBg0,
-        ImGui::GetColorU32(ImVec4(0.86, 0.86, 0.86, 1.0)));
-    } else {
-      ImGui::TableSetBgColor(
-        ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(ImVec4(1, 1, 1, 0)));
+    if (ImGui::BeginTable(team.first.c_str(), 4)) {
+      ImGui::TableSetupColumn("ID");
+      ImGui::TableSetupColumn("POSITION");
+      ImGui::TableSetupColumn("INVENTORY");
+      ImGui::TableSetupColumn("LEVEL");
+      ImGui::TableHeadersRow();
+      for (auto &player: team.second) {
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("%d", player.GetId());
+        ImGui::TableSetColumnIndex(1);
+        ImGui::Text(
+          "x = %i, y = %i",
+          player.GetPosition().first,
+          player.GetPosition().second);
+        ImGui::TableSetColumnIndex(2);
+        if (ImGui::Button("Inventory"))
+          ImGui::OpenPopup("InventoryPopup");
+        ImGui::TableSetColumnIndex(3);
+        ImGui::Text("%i", player.GetLevel());
+      }
+      ImGui::EndTable();
     }
 
-    ImGui::TableSetupColumn("Player");
-    ImGui::TableSetupColumn("Position");
-    ImGui::TableSetupColumn("Action");
-    ImGui::TableSetupColumn("Level");
-    ImGui::TableHeadersRow();
+    ImGui::EndChild();
 
-    for (int i = 0; i < 100; i++) {
-      ImGui::TableNextRow();
-      ImGui::TableSetColumnIndex(0);
-      ImGui::TextColored(_textColor, "Player: %d", i);
-      ImGui::TableSetColumnIndex(1);
-      ImGui::TextColored(_textColor, "x = %d, y = %d", i, i * 2);
-      ImGui::TableSetColumnIndex(2);
-      std::string label = "Bouton##" + std::to_string(i);
-      if (ImGui::Button(label.c_str()))
-        std::cout << "\a";
-      ImGui::TableSetColumnIndex(3);
-      ImGui::TextColored(_textColor, "Lvl: %d", i);
-    }
-    ImGui::EndTable();
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
   }
-  ImGui::EndChild();
 
+  // Display button
+  ImGui::Dummy(ImVec2(0.0, ImGui::GetContentRegionAvail().y - 30));
   if (ImGui::Button("Back to Menu", ImVec2(-1, 0)))
     _ImGuiState = STATE_MENU;
-
   ImGui::End();
 }
 
@@ -215,13 +228,11 @@ void SubWindowHandler::RunOption()
 
   ImGui::ColorEdit3("Text Color", (float *)&_textColor);
   ImGui::Checkbox("Show Table Background", &_showTableBg);
-  ImGui::Checkbox("Debug Mode", &_debugMode);
 
+  // Button
   ImGui::Dummy(ImVec2(0.0, ImGui::GetContentRegionAvail().y - 30));
-
   if (ImGui::Button("Back to Menu", ImVec2(-1, 0)))
     _ImGuiState = STATE_MENU;
-
   ImGui::End();
 }
 

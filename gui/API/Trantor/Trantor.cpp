@@ -12,6 +12,11 @@ int Trantor::GetId() const
   return _id;
 }
 
+int Trantor::GetLevel() const
+{
+  return _level;
+}
+
 void Trantor::SetPosition(int x, int y, int orientation)
 {
   _position.first = x;
