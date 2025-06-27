@@ -33,7 +33,7 @@ bool recv_wrapper(server_t *srv, uint32_t idx, char *buffer, ssize_t *res)
     ssize_t recv_res = recv(client->fd, buffer, BUFFER_SIZE - 1, 0);
 
     if (recv_res < 0) {
-        DEBUG("fd = %zu, idx = %zu", client->fd, idx);
+        DEBUG("fd = %d, idx = %u", client->fd, idx);
         error_helper(srv, "recv failed", idx);
         return false;
     }
