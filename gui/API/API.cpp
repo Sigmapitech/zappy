@@ -249,7 +249,7 @@ void API::HandleMSZ(std::stringstream &ss)
   if (!(ss >> x >> y))
     throw std::runtime_error(
       "Error: invalid msz params, Function: HandleMSZ, File: API.cpp");
-  std::cout << "map size: x=" << x << " y=" << y << "\n";
+  // std::cout << "map size: x=" << x << " y=" << y << "\n";
   std::lock_guard<std::mutex> locker(_tilemapLocker);
   _tilemap.SetSize(x, y);
 }
@@ -269,7 +269,7 @@ void API::HandleBCT(std::stringstream &ss)
   if (!(ss >> x >> y >> q0 >> q1 >> q2 >> q3 >> q4 >> q5 >> q6))
     throw std::runtime_error(
       "Error: invalid bct params, Function: HandleBCT, File: API.cpp");
-  // std::cout
+  // //std::cout
   //   << "tile (" << x << "," << y << ") resources: " << q0 << "," << q1 <<
   //   ","
   //   << q2 << "," << q3 << "," << q4 << "," << q5 << "," << q6 << "\n";
@@ -279,7 +279,7 @@ void API::HandleBCT(std::stringstream &ss)
 
 void API::HandleMCT()
 {
-  std::cout << "map content (bct *): Handled line-by-line\n";
+  // std::cout << "map content (bct *): Handled line-by-line\n";
 }
 
 void API::HandleTNA(std::stringstream &ss)
@@ -290,7 +290,7 @@ void API::HandleTNA(std::stringstream &ss)
   if (!(ss >> N))
     throw std::runtime_error(
       "Error: invalid tna params, Function: HandleTNA, File: API.cpp");
-  std::cout << "team name: " << N << "\n";
+  // std::cout << "team name: " << N << "\n";
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   _teams[N] = teamTmp;
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
@@ -336,9 +336,9 @@ void API::HandlePPO(std::stringstream &ss)
 
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
-  std::cout
-    << "player #" << std::stoi(nTmp) << " position: (" << X << "," << Y
-    << ") facing " << O << "\n";
+  // std::cout
+  //   << "player #" << std::stoi(nTmp) << " position: (" << X << "," << Y
+  //   << ") facing " << O << "\n";
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
@@ -358,7 +358,7 @@ void API::HandlePLV(std::stringstream &ss)
 
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
-  std::cout << "player #" << std::stoi(nTmp) << " level: " << L << "\n";
+  // std::cout << "player #" << std::stoi(nTmp) << " level: " << L << "\n";
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
@@ -414,7 +414,7 @@ void API::HandlePEX(std::stringstream &ss)
 
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
-  std::cout << "expulsion by player #" << std::stoi(nTmp) << "\n";
+  // std::cout << "expulsion by player #" << std::stoi(nTmp) << "\n";
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName) {
@@ -482,7 +482,7 @@ void API::HandlePBC(std::stringstream &ss)
 
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
-  std::cout << "broadcast from #" << std::stoi(nTmp) << ": " << msg << "\n";
+  // std::cout << "broadcast from #" << std::stoi(nTmp) << ": " << msg << "\n";
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
@@ -500,23 +500,23 @@ void API::HandlePIC(std::stringstream &ss)
   if (!(ss >> X >> Y >> L))
     throw std::runtime_error(
       "Error: invalid pic params, Function: HandlePIC, File: API.cpp");
-  std::cout
-    << "start incantation at (" << X << "," << Y << ") level " << L
-    << " by players:";
+  // std::cout
+  //   << "start incantation at (" << X << "," << Y << ") level " << L
+  //   << " by players:";
 
   Incantation tmp(L, X, Y);
   std::vector<std::string> nList;
   for (int i = 0; ss >> nList[i]; i++) {
     if (nList[i][0] == '#')
       nList[i].erase(0, 1);
-    std::cout << " #" << nList[i];
+    // std::cout << " #" << nList[i];
     tmp.AddMember(std::stoi(nList[i]));
   }
   {
     std::lock_guard<std::mutex> locker(_incantationListLocker);
     _incantationList.push_back(tmp);
   }
-  std::cout << "\n";
+  // std::cout << "\n";
 }
 
 void API::HandlePIE(std::stringstream &ss)
@@ -528,8 +528,9 @@ void API::HandlePIE(std::stringstream &ss)
   if (!(ss >> X >> Y >> R))
     throw std::runtime_error(
       "Error: invalid pie params, Function: HandlePIE, File: API.cpp");
-  std::cout
-    << "end incantation at (" << X << "," << Y << "): result = " << R << "\n";
+  // std::cout
+  //   << "end incantation at (" << X << "," << Y << "): result = " << R <<
+  //   "\n";
   std::lock_guard<std::mutex> locker(_incantationListLocker);
   for (auto &incant: _incantationList)
     if (incant.GetPosition().first == X && incant.GetPosition().second == Y)
@@ -546,7 +547,7 @@ void API::HandlePFK(std::stringstream &ss)
 
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
-  std::cout << "egg laiying by player #" << std::stoi(nTmp) << "\n";
+  // std::cout << "egg laiying by player #" << std::stoi(nTmp) << "\n";
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
@@ -566,8 +567,8 @@ void API::HandlePDR(std::stringstream &ss)
 
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
-  std::cout
-    << "player #" << std::stoi(nTmp) << " dropped resource " << i << "\n";
+  // std::cout
+  //   << "player #" << std::stoi(nTmp) << " dropped resource " << i << "\n";
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
@@ -594,8 +595,8 @@ void API::HandlePGT(std::stringstream &ss)
 
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
-  std::cout
-    << "player #" << std::stoi(nTmp) << " collected resource " << i << "\n";
+  // std::cout
+  //   << "player #" << std::stoi(nTmp) << " collected resource " << i << "\n";
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
@@ -621,7 +622,7 @@ void API::HandlePDI(std::stringstream &ss)
 
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
-  std::cout << "player #" << std::stoi(nTmp) << " died\n";
+  // std::cout << "player #" << std::stoi(nTmp) << " died\n";
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
@@ -645,9 +646,9 @@ void API::HandleENW(std::stringstream &ss)
     eTmp.erase(0, 1);
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
-  std::cout
-    << "egg #" << std::stoi(eTmp) << " laid by player #" << std::stoi(nTmp)
-    << " at (" << X << "," << Y << ")\n";
+  // std::cout
+  //   << "egg #" << std::stoi(eTmp) << " laid by player #" << std::stoi(nTmp)
+  //   << " at (" << X << "," << Y << ")\n";
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
@@ -680,7 +681,7 @@ void API::HandleEDI(std::stringstream &ss)
 
   if (eTmp[0] == '#')
     eTmp.erase(0, 1);
-  std::cout << "egg #" << eTmp << " died\n";
+  // std::cout << "egg #" << eTmp << " died\n";
   DeleteEgg(std::stoi(eTmp));
 }
 
@@ -691,7 +692,7 @@ void API::HandleSGT(std::stringstream &ss)
   if (!(ss >> T))
     throw std::runtime_error(
       "Error: invalid sgt params, Function: HandleSGT, File: API.cpp");
-  std::cout << "server time unit: " << T << "\n";
+  // std::cout << "server time unit: " << T << "\n";
   std::lock_guard<std::mutex> locker(_timeUnitLocker);
   _timeUnit = T;
 }
@@ -703,7 +704,7 @@ void API::HandleSST(std::stringstream &ss)
   if (!(ss >> T))
     throw std::runtime_error(
       "Error: invalid sst params, Function: HandleSST, File: API.cpp");
-  std::cout << "server time unit changed to: " << T << "\n";
+  // std::cout << "server time unit changed to: " << T << "\n";
   std::lock_guard<std::mutex> locker(_timeUnitLocker);
   _timeUnit = T;
 }
@@ -715,7 +716,7 @@ void API::HandleSEG(std::stringstream &ss)
   if (!(ss >> N))
     throw std::runtime_error(
       "Error: invalid seg params, Function: HandleSEG, File: API.cpp");
-  std::cout << "end of game, winning team: " << N << "\n";
+  // std::cout << "end of game, winning team: " << N << "\n";
   std::lock_guard<std::mutex> locker(_winnerLocker);
   _winner = N;
 }
@@ -728,17 +729,17 @@ void API::HandleSMG(std::stringstream &ss)
   if (msg.empty())
     throw std::runtime_error(
       "Error: missing message in smg, Function: HandleSMG, File: API.cpp");
-  std::cout << "server message: " << msg << "\n";
+  // std::cout << "server message: " << msg << "\n";
   std::lock_guard<std::mutex> locker(_serverMessageLocker);
   _serverMessage.push_back(msg);
 }
 
 void API::HandleSUC()
 {
-  std::cout << "unknown command\n";
+  // std::cout << "unknown command\n";
 }
 
 void API::HandleSBP()
 {
-  std::cout << "bad command parameter\n";
+  // std::cout << "bad command parameter\n";
 }

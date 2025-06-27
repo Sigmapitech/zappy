@@ -144,24 +144,20 @@ void SubWindowHandler::RunMenu(
   ImGui::End();
 }
 
-// void SubWindowHandler::RunInventory()
-//{
-//   if (ImGui::Begin("Fenêtre principale")) {
-//       ImVec2 size = ImVec2(300, 200);
-//       bool border = true;
-//
-//       ImGui::BeginChild("ZoneScroll", size, border,
-//       ImGuiWindowFlags_HorizontalScrollbar);
-//
-//       for (int i = 0; i < 50; i++) {
-//           ImGui::Text("Ligne %d", i);
-//       }
-//
-//       ImGui::EndChild();
-//   }
-//
-//   ImGui::End();
-// }
+void SubWindowHandler::RunInventory(std::string team, int id)
+{
+  if (ImGui::Begin("PLAYER INVENTORY", nullptr, ImGuiWindowFlags_Modal)) {
+    ImVec2 size = ImVec2(300, 200);
+    bool border = true;
+
+    ImGui::BeginChild(
+      "ZoneScroll", size, border, ImGuiWindowFlags_HorizontalScrollbar);
+
+    ImGui::EndChild();
+  }
+
+  ImGui::End();
+}
 
 void SubWindowHandler::RunTeam(Dem::Demeter &d)
 {
@@ -198,7 +194,7 @@ void SubWindowHandler::RunTeam(Dem::Demeter &d)
           player.GetPosition().second);
         ImGui::TableSetColumnIndex(2);
         if (ImGui::Button("Inventory"))
-          ImGui::OpenPopup("InventoryPopup");
+          RunInventory(team.first, player.GetId());
         ImGui::TableSetColumnIndex(3);
         ImGui::Text("%i", player.GetLevel());
       }

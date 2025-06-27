@@ -38,6 +38,10 @@ bool E_Mother::Init(Dem::Demeter &d)
 
 bool E_Mother::Update(Dem::Demeter &)
 {
+  _api->AskAllPlayerInventory();
+  _api->AskAllPlayerLevel();
+  _api->AskAllPlayerPos();
+  _api->AskAllTeamName();
   _api->AskAllTileContent();
 
   if (_api->GetTilemap().GetSize().first == 0

@@ -43,4 +43,5 @@ public:
     size_t eventCount);
   void RunTeam(Dem::Demeter &d);
   void RunOption();
+  void RunInventory(std::string team, int id);
 };
