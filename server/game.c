@@ -71,7 +71,7 @@ void server_process_events(server_t *srv)
     bool (*handler)(server_t *, const event_t *);
 
     for (const event_t *event = event_heap_peek(&srv->events)
-        ; event != nullptr && event->timestamp < get_timestamp()
+        ; event != nullptr && event->timestamp <= get_timestamp()
         ; event_heap_pop(&srv->events)) {
         DEBUG("Processing event [%s] for client %zd",
             event->command[0], event->client_id);
