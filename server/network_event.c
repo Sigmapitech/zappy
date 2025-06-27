@@ -1,8 +1,9 @@
 #include <poll.h>
 #include <stdio.h>
 
-#include "server.h"
 #include "client.h"
+#include "debug.h"
+#include "server.h"
 
 void process_poll(server_t *srv, uint64_t timeout)
 {
@@ -14,15 +15,15 @@ void process_poll(server_t *srv, uint64_t timeout)
     }
 }
 
-static
+DEBUG_USED static
 void check_cm_liveness(server_t *srv)
 {
-    client_state_t *client;
+    DEBUG_USED client_state_t *client;
 
-    DEBUG("srv->self_fd = %zu", srv->self_fd);
+    DEBUG("srv->self_fd = %d", srv->self_fd);
     for (size_t i = 0; i < srv->cm.count; i++) {
         client = srv->cm.clients + i;
-        DEBUG("cm[%zu]: id=%zu, fd=%zu, team=%zu", i,
+        DEBUG("cm[%zu]: id=%u, fd=%d, team=%hhu", i,
             client->id, client->fd, client->team_id);
     }
     if (srv->cm.clients[0].fd != srv->self_fd) {
@@ -50,7 +51,7 @@ void process_disconnection(server_t *srv)
         if (srv->cm.server_pfds[i].revents & POLLHUP
             || srv->cm.server_pfds[i].revents & POLLERR
         ) {
-            client_manager_remove(&srv->cm, i);
+            remove_client(srv, i);
             i--;
         }
     }

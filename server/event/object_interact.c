@@ -31,7 +31,10 @@ bool player_take_object_handler(server_t *srv, const event_t *event)
 
     if (cs == nullptr)
         return false;
-    if (event->arg_count != 2 || object_id == INVALID_OBJECT_ID) {
+    if (event->arg_count != 2
+        || object_id == INVALID_OBJECT_ID
+        || tile->qnts[object_id] == 0
+    ) {
         append_to_output(srv, cs, "ko\n");
         return true;
     }

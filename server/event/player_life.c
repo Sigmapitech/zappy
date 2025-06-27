@@ -41,7 +41,7 @@ bool player_death_handler(server_t *srv, const event_t *event)
     if (cs->inv.food > 0)
         return death_rescedule(srv, event);
     append_to_output(srv, cs, "dead\n");
-    write_client(srv, event->client_idx + 1);
-    remove_client(srv, event->client_idx + 1);
+    write_client(srv, event->client_idx);
+    remove_client(srv, event->client_idx);
     return true;
 }

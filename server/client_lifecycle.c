@@ -50,12 +50,14 @@ void add_client(server_t *srv)
 
 void remove_client(server_t *srv, uint32_t idx)
 {
+    if (idx >= srv->cm.count)
+        return;
     if (srv->cm.clients[idx].team_id > TEAM_ID_GRAPHIC)
         send_to_guis(srv, "pdi #%hd\n", srv->cm.clients[idx].id);
     for (size_t i = 0; i < srv->events.nmemb; i++)
         if (srv->events.buff[i].client_idx == (int)(idx))
             srv->events.buff[i].client_idx = CLIENT_DEAD;
-    DEBUG("Client disconnected: %u, fd=%d", srv->cm.clients[idx].fd);
+    DEBUG("Client disconnected: %u, fd=%d", idx, srv->cm.clients[idx].fd);
     if (srv->cm.clients[idx].fd >= 0)
         close(srv->cm.clients[idx].fd);
     free(srv->cm.clients[idx].input.buff);
