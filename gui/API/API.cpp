@@ -506,11 +506,12 @@ void API::HandlePIC(std::stringstream &ss)
 
   Incantation tmp(L, X, Y);
   std::vector<std::string> nList;
-  for (int i = 0; ss >> nList[i]; i++) {
-    if (nList[i][0] == '#')
-      nList[i].erase(0, 1);
-    // std::cout << " #" << nList[i];
-    tmp.AddMember(std::stoi(nList[i]));
+  std::string tmpStr;
+  while (ss >> tmpStr) {
+    if (tmpStr[0] == '#')
+      tmpStr.erase(0, 1);
+    tmp.AddMember(std::stoi(tmpStr));
+    nList.push_back(tmpStr);
   }
   {
     std::lock_guard<std::mutex> locker(_incantationListLocker);
