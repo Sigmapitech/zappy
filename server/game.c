@@ -74,23 +74,22 @@ void server_process_events(server_t *srv)
 {
     bool (*handler)(server_t *, const event_t *);
 
-    for (const event_t *event = event_heap_peek(&srv->events)
-        ; event != nullptr && event->timestamp <= get_timestamp()
+    for (const event_t *e = event_heap_peek(&srv->events)
+        ; e != nullptr && e->timestamp <= get_timestamp()
         ; event_heap_pop(&srv->events)) {
-        event = event_heap_peek(&srv->events);
-        DEBUG("Processing event [%s] for client %zd",
-            event->command[0], event->client_id);
-        if (event->client_idx == CLIENT_DEAD)
+        e = event_heap_peek(&srv->events);
+        DEBUG("event [%s] for client %d", e->command[0], e->client_id);
+        if (e->client_idx == CLIENT_DEAD)
             continue;
-        handler = find_handler(event->command[0]);
+        handler = find_handler(e->command[0]);
         if (handler == nullptr) {
-            default_handler(srv, event);
+            default_handler(srv, e);
             continue;
         }
-        if (!handler(srv, event)) {
+        if (!handler(srv, e)) {
             DEBUG("Event handler failed for command [%s] from client %d",
-                event->command[0], event->client_id);
+                e->command[0], e->client_id);
         }
-        event = event_heap_peek(&srv->events);
+        e = event_heap_peek(&srv->events);
     }
 }
