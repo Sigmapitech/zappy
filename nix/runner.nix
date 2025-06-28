@@ -2,6 +2,7 @@
   lib,
   buildPythonPackage,
   hatchling,
+  bleach,
 }:
 buildPythonPackage {
   name = "zappy";
@@ -11,6 +12,11 @@ buildPythonPackage {
   src = ../runner;
 
   build-system = [hatchling];
+
+  preBuild = ''
+    substituteInPlace zappy/run.py \
+      --replace-fail "./bleach" "${bleach}/bin/bleach"
+  '';
 
   pythonImportsCheck = "zappy";
 
