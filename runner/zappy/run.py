@@ -92,6 +92,13 @@ def run_zappy(bins: ZappyPool, args: argparse.Namespace):
         processes.append(gui)
 
     try:
+        if args.split_logs:
+            cmd = "tail -f logs/server.log"
+
+            if os.path.exists("./bleach"):
+                cmd += " | tee /dev/stderr | ./bleach > logs/server-bleach.log"
+
+            os.system(cmd)
         while True:
             time.sleep(1)
     except KeyboardInterrupt:

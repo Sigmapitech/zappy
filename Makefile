@@ -205,6 +205,9 @@ cov_server: tests_run_server
 .NOTPARALLEL: cov
 cov: cov_ai cov_gui cov_server
 
+bleach: bleach.c
+	$(CC) -o $@ -O2 $<
+
 V ?= 0
 ifneq ($(V),0)
   Q :=

@@ -83,7 +83,9 @@
 
           server-debug = pkgs'.server.override {debugServer = true;};
 
-          runner = pypkgs.callPackage ./nix/runner.nix {};
+          runner = pypkgs.callPackage ./nix/runner.nix {
+            inherit (pkgs') bleach;
+          };
 
           default = pkgs.symlinkJoin {
             name = "zappy";
@@ -97,6 +99,8 @@
 
             meta.mainProgram = "zappy";
           };
+
+          bleach = pkgs.callPackage ./nix/bleach.nix {};
         }
         // {
           ref-gui = pkgs.callPackage ./nix/ref-gui.nix {};
