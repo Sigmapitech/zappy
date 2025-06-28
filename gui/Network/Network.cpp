@@ -32,10 +32,23 @@ Network::Network(int port, std::string hostname, std::shared_ptr<API> &data)
     throw std::runtime_error(
       "Error: inet_pton failed. Function: RunNetwork, File: Network.cpp");
 
-  // Bind the socket to the address and port
-  if (connect(_fdServer, (const sockaddr *)(&serverAddr), sockLen) == -1)
+  // Try to connect to the server in a loop until successful or unrecoverable
+  // error
+  while (true) {
+    if (connect(_fdServer, (const sockaddr *)(&serverAddr), sockLen) == 0)
+      break;  // Connected successfully
+    // Check for recoverable errors
+    if (errno == EINTR || errno == ECONNREFUSED || errno == ETIMEDOUT) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      continue;
+    }
+    // Unrecoverable error
     throw std::runtime_error(
-      "Error: connect failed. Function: RunNetwork, File: Network.cpp");
+      std::string(
+        "Error: connect failed. Function: Network, File: "
+        "Network.cpp: (")
+      + strerror(errno) + ").");
+  }
 
   // Create pipe for thread exit
   if (pipe(_pipeFdExit.data()) == -1)
@@ -47,7 +60,7 @@ Network::Network(int port, std::string hostname, std::shared_ptr<API> &data)
   _pollInFd[FD_SERVER_IN].fd = _fdServer;
   _pollInFd[FD_PIPE_NETWORK].fd = _api->GetInFd();
   for (pollfd &pollFd: _pollInFd) {
-    pollFd.events = POLLIN;
+    pollFd.events = POLLIN | POLLHUP;  // monitor for input and hangup
     pollFd.revents = 0;
   }
 
@@ -96,6 +109,13 @@ void Network::RunNetworkInternal()
     if (poll(_pollInFd.data(), _pollInFd.size(), -1) == -1)
       throw std::runtime_error(
         "Error: poll failed. Function: RunNetwork, File: Network.cpp");
+
+    // server disconnected
+    if (_pollInFd[FD_SERVER_IN].revents & POLLHUP) {
+      Log::failed << "Server disconnected.";
+      isRunning = false;
+      continue;
+    }
 
     // exit event
     if (_pollInFd[FD_PIPE_EXIT].revents & POLLIN) {
@@ -151,7 +171,13 @@ void Network::SendMessage(const std::string &msg)
   if (poll(_pollOutFd.data(), _pollOutFd.size(), -1) == -1)
     throw std::runtime_error(
       "Error: poll failed, Function: SendMessage, File: Network.cpp");
-  // skip the POLLOUT check, there is only one fd in _pollOutFd
+
+  // Check if the socket is ready for writing
+  if (!(_pollOutFd[FD_SERVER_OUT].revents & POLLOUT))
+    throw std::runtime_error(
+      "Error: socket not ready for writing, Function: SendMessage, File: "
+      "Network.cpp");
+
   if (send(_fdServer, msg.c_str(), msg.size(), 0) == -1)
     throw std::
       runtime_error("Error: send, Function: SendMessage, File: Network.cpp");
