@@ -35,7 +35,8 @@ bool Zappy::Init(Args &params)
     Log::failed << "Failed to initialize E_Mother!";
 
   // camera
-  demeter->camera.SetPosition({0.0, 1.0, 200.0});
+  demeter->camera.SetPosition({0.0, 200.0, 200.0});
+  demeter->camera.SetRotation(-90.0, -45.0);
   return true;
 }
 
