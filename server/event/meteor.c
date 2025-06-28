@@ -70,7 +70,7 @@ bool meteor_handler(server_t *srv, const event_t *event)
     for (size_t n = 0; n < RES_COUNT; n++) {
         qty_needed = (ssize_t)(srv->map_height * srv->map_width * DENSITIES[n])
             - srv->total_item_in_map.qnts[n];
-        DEBUG("meteor: %zu %s, missing %u",
+        DEBUG("meteor: %u %s, missing %ld",
             srv->total_item_in_map.qnts[n], RES_NAMES[n], qty_needed);
         for (ssize_t i = 0; i < qty_needed; i++) {
             x = rand() % srv->map_width;
