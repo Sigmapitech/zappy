@@ -13,6 +13,7 @@ developer/contribution
 developer/systems
 developer/usage_ai
 developer/runner
+gui/gui
 modules
 protocol/protocol
 ```

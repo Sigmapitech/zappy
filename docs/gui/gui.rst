@@ -16,3 +16,4 @@ This section describes the GUI client implementation and internal design:
     graphical_engine
     entity_manager
     sub_window
+    demeter_V3
