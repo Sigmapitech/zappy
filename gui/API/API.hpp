@@ -109,6 +109,13 @@ public:
   }
 
   /**
+   * @brief Get the teams name
+   *
+   * @return std::string
+   */
+  std::vector<std::string> GetTeamsName();
+
+  /**
    * @brief Create an egg to store it into _eggList
    *
    * @param id Contain the id of the new egg
