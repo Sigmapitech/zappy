@@ -17,13 +17,13 @@ enum class Item : uint8_t {
 
 class Inventory {
 private:
-  size_t _food;
-  size_t _linemate;
-  size_t _deraumere;
-  size_t _sibur;
-  size_t _mendiane;
-  size_t _phiras;
-  size_t _thystame;
+  size_t _food = 0;
+  size_t _linemate = 0;
+  size_t _deraumere = 0;
+  size_t _sibur = 0;
+  size_t _mendiane = 0;
+  size_t _phiras = 0;
+  size_t _thystame = 0;
 
 public:
   /**

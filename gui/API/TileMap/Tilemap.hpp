@@ -12,7 +12,14 @@ private:
   std::vector<std::vector<Tile>> _tilemap;
 
 public:
-  Tilemap() = default;
+  Tilemap()
+  {
+    _tilemap.clear();
+    _tilemap.resize(0);
+    _sizeX = 0;
+    _sizeY = 0;
+  }
+
   ~Tilemap() = default;
 
   /**
