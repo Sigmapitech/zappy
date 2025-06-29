@@ -1,5 +1,6 @@
 #include "Entities/SubWindowHandler.hpp"
 #include "API/API.hpp"
+#include "API/Inventory/Inventory.hpp"
 #include "Demeter/Demeter.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
@@ -148,21 +149,6 @@ void SubWindowHandler::RunMenu(
   ImGui::End();
 }
 
-void SubWindowHandler::RunInventory(std::string team, int id)
-{
-  if (ImGui::Begin("PLAYER INVENTORY", nullptr, ImGuiWindowFlags_Modal)) {
-    ImVec2 size = ImVec2(300, 200);
-    bool border = true;
-
-    ImGui::BeginChild(
-      "ZoneScroll", size, border, ImGuiWindowFlags_HorizontalScrollbar);
-
-    ImGui::EndChild();
-  }
-
-  ImGui::End();
-}
-
 void SubWindowHandler::RunTeam(Dem::Demeter &d)
 {
   ImGui::Begin(_windowName.c_str(), nullptr);
@@ -174,8 +160,7 @@ void SubWindowHandler::RunTeam(Dem::Demeter &d)
   // Display the teams
   float scrollableHeight = ImGui::GetContentRegionAvail().y - 100.0;
   for (auto &team: _api->GetTeams()) {
-
-    ImGui::TextColored(_textColor, "Team : %s", team.first.c_str());
+    ImGui::TextColored(_teams[team.first], "Team : %s", team.first.c_str());
     ImGui::BeginChild(
       team.first.c_str(),
       ImVec2(ImGui::GetContentRegionAvail().x, scrollableHeight),
@@ -190,17 +175,26 @@ void SubWindowHandler::RunTeam(Dem::Demeter &d)
       for (auto &player: team.second) {
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
-        ImGui::Text("%d", player.GetId());
+        ImGui::TextColored(_teams[team.first], "%d", player.GetId());
         ImGui::TableSetColumnIndex(1);
-        ImGui::Text(
+        ImGui::TextColored(
+          _teams[team.first],
           "x = %i, y = %i",
           player.GetPosition().first,
           player.GetPosition().second);
         ImGui::TableSetColumnIndex(2);
-        if (ImGui::Button("Inventory"))
-          RunInventory(team.first, player.GetId());
+        ImGui::TextColored(
+          _teams[team.first],
+          "%lu, %lu, %lu, %lu, %lu, %lu, %lu",
+          player.GetInventory().at("food"),
+          player.GetInventory().at("linemate"),
+          player.GetInventory().at("deraumere"),
+          player.GetInventory().at("mendiane"),
+          player.GetInventory().at("sibur"),
+          player.GetInventory().at("phiras"),
+          player.GetInventory().at("thystame"));
         ImGui::TableSetColumnIndex(3);
-        ImGui::Text("%i", player.GetLevel());
+        ImGui::TextColored(_teams[team.first], "%i", player.GetLevel());
       }
       ImGui::EndTable();
     }

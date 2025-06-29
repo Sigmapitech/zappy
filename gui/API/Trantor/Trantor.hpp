@@ -43,7 +43,19 @@ public:
    */
   [[nodiscard]] int GetRotation() const;
 
+  /**
+   * @brief Get the Level
+   *
+   * @return int
+   */
   [[nodiscard]] int GetLevel() const;
+
+  /**
+   * @brief Get the Inventory
+   *
+   * @return std::map<std::string, size_t>
+   */
+  [[nodiscard]] std::map<std::string, size_t> GetInventory();
 
   /**
    * @brief Set the Position object
