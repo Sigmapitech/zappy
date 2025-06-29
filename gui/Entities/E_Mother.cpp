@@ -55,7 +55,7 @@ bool E_Mother::Init(Dem::Demeter &d)
   _textureFood = d.AddTexture(ASSET_DIR "/textures/brown.png");
   _textureLinemate = d.AddTexture(ASSET_DIR "/textures/yellow.png");
   _textureDeraumere = d.AddTexture(ASSET_DIR "/textures/green.png");
-  _textureSibur = d.AddTexture(ASSET_DIR "/textures/blue.jpg");
+  _textureSibur = d.AddTexture(ASSET_DIR "/textures/blue.png");
   _textureMendiane = d.AddTexture(ASSET_DIR "/textures/red.png");
   _texturePhiras = d.AddTexture(ASSET_DIR "/textures/white.png");
   _textureThystame = d.AddTexture(ASSET_DIR "/textures/pink.png");
