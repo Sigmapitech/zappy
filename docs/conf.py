@@ -31,9 +31,9 @@ source_suffix = {
 }
 
 exhale_args = {
-    "containmentFolder": "./api",
-    "rootFileName": "api.rst",
-    "rootFileTitle": "API Documentation",
+    "containmentFolder": "./code",
+    "rootFileName": "code.rst",
+    "rootFileTitle": "Code Documentation",
     "doxygenStripFromPath": "..",
     "createTreeView": True,
 }

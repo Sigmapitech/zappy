@@ -5,9 +5,10 @@
 :maxdepth: 2
 :caption: Contents:
 
-api/api
+code/code
 ai/ai
 developer/architecture
+developer/build
 developer/contribution
 developer/systems
 developer/usage_ai

@@ -1,5 +1,5 @@
 PROJECT_NAME = Zappy
-INPUT = server gui
+INPUT = server gui ia
 
 FILE_PATTERNS = *.c *.cpp *.h *.hpp
 RECURSIVE = YES
