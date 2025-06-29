@@ -49,7 +49,7 @@ public:
 
     float yaw = d.camera.GetYaw();
     float pitch = d.camera.GetPitch();
-    if (d.GetInput().mouseButtons[SDL_BUTTON_RIGHT]) {
+    if (d.GetInput().mouseButtons[SDL_BUTTON_MIDDLE]) {
       if (d.GetInput().mouseX > 0)
         yaw += 5.0F * d.GetInput().mouseDeltaX * dt * sensitivity;
       if (d.GetInput().mouseX < 0)
