@@ -1,12 +1,14 @@
 AI Protocol
 ===========
 
-This page explains the communication protocol between the AI client and the server, as defined in the project specification.
+This page explains the communication protocol between the AI client and the server,
+as defined in the project specification.
 
 Overview
 --------
 
-The AI connects to the server via TCP and exchanges text commands. The server responds in plain text. The basic handshake:
+The AI connects to the server via TCP and exchanges text commands. The server
+responds in plain text. The basic handshake:
 
 ::
 
@@ -23,22 +25,48 @@ Where:
 Command/Response Examples
 --------------------------
 
-+-----------------+-------------------------+------------------------------+
-| Command         | Time (1/f)              | Response                     |
-+=================+=========================+==============================+
-| Forward         | 7/f                     | ok                           |
-| Right           | 7/f                     | ok                           |
-| Left            | 7/f                     | ok                           |
-| Look            | 7/f                     | [tile1, tile2, ...]          |
-| Inventory       | 1/f                     | [object count, ...]          |
-| Broadcast text  | 7/f                     | ok                           |
-| Connect_nbr     | -                       | number of remaining slots    |
-| Fork            | 42/f                    | ok                           |
-| Eject           | 7/f                     | ok / ko                      |
-| Take object     | 7/f                     | ok / ko                      |
-| Set object      | 7/f                     | ok / ko                      |
-| Incantation     | 300/f                   | Elevation underway / ko      |
-+-----------------+-------------------------+------------------------------+
+.. list-table:: Player Commands
+   :header-rows: 1
+
+   * - Command
+     - Time (1/f)
+     - Response
+   * - Forward
+     - 7/f
+     - ok
+   * - Right
+     - 7/f
+     - ok
+   * - Left
+     - 7/f
+     - ok
+   * - Look
+     - 7/f
+     - [tile1, tile2, ...]
+   * - Inventory
+     - 1/f
+     - [object count, ...]
+   * - Broadcast text
+     - 7/f
+     - ok
+   * - Connect_nbr
+     - -
+     - number of remaining slots
+   * - Fork
+     - 42/f
+     - ok
+   * - Eject
+     - 7/f
+     - ok / ko
+   * - Take object
+     - 7/f
+     - ok / ko
+   * - Set object
+     - 7/f
+     - ok / ko
+   * - Incantation
+     - 300/f
+     - Elevation underway / ko
 
 Vision
 ------
@@ -63,7 +91,9 @@ Players can broadcast messages. The server responds:
 
    message K, text
 
-Where K indicates direction relative to the receiver. Directions are determined by the tile layout around the player, choosing the shortest wraparound path on the toroidal map.
+Where K indicates direction relative to the receiver. Directions are determined
+by the tile layout around the player, choosing the shortest wraparound path on
+the toroidal map.
 
 Reproduction
 ------------
