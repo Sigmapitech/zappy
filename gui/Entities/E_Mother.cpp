@@ -62,6 +62,16 @@ bool E_Mother::Init(Dem::Demeter &d)
 
   _texturePlayer = d.AddTexture(ASSET_DIR "/textures/purple.png");
   _textureEgg = d.AddTexture(ASSET_DIR "/textures/white.png");
+
+  _textureTeams[0] = d.AddTexture(ASSET_DIR "/textures/red.png");
+  _textureTeams[1] = d.AddTexture(ASSET_DIR "/textures/orange.png");
+  _textureTeams[2] = d.AddTexture(ASSET_DIR "/textures/yellow.png");
+  _textureTeams[3] = d.AddTexture(ASSET_DIR "/textures/green.png");
+  _textureTeams[4] = d.AddTexture(ASSET_DIR "/textures/cyan.png");
+  _textureTeams[5] = d.AddTexture(ASSET_DIR "/textures/light_blue.png");
+  _textureTeams[6] = d.AddTexture(ASSET_DIR "/textures/purple.png");
+  _textureTeams[7] = d.AddTexture(ASSET_DIR "/textures/pink.png");
+
   return true;
 }
 
@@ -249,7 +259,13 @@ bool E_Mother::Draw(Dem::Demeter &d)
         glm::radians(trantor.GetRotation() * 45.0F),
         glm::vec3(0.0, 1.0, 0.0));
       _player->modelMatrix = modelMatrix;
-      _player->SetTexture(0, _texturePlayer);
+      size_t teamsIndex = 0;
+      for (const auto &teamName: _api->GetTeamsName()) {
+        if (teamName == teams.first)
+          break;
+        teamsIndex++;
+      }
+      _player->SetTexture(0, _textureTeams[teamsIndex]);
       _player->Draw(*d.GetShader(), d.camera);
     }
   }
