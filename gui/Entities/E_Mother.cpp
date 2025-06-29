@@ -1,5 +1,7 @@
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 #include "Entities/E_Mother.hpp"
 
@@ -55,6 +57,65 @@ bool E_Mother::Init(Dem::Demeter &d)
   return true;
 }
 
+namespace {
+  std::string getTeamNameFromMessage(
+    const std::string &message,
+    const std::map<std::string, std::vector<Trantor>> &teams)
+  {
+    std::istringstream iss(message);
+    std::string command;
+    iss >> command;
+
+    int id = -1;
+    std::string teamName;
+
+    if (command == "pnw") {
+      std::string idStr;
+      int x;
+      int y;
+      int o;
+      int l;
+
+      iss >> idStr >> x >> y >> o >> l >> teamName;
+      if (teams.find(teamName) != teams.end())
+        return teamName;
+
+      if (idStr[0] == '#')
+        id = std::stoi(idStr.substr(1));
+    }
+
+    else if (
+      command == "ppo" || command == "plv" || command == "pin"
+      || command == "pex" || command == "pbc" || command == "pfk"
+      || command == "pdr" || command == "pgt" || command == "pdi") {
+      std::string idStr;
+      iss >> idStr;
+      if (!idStr.empty() && idStr[0] == '#')
+        id = std::stoi(idStr.substr(1));
+    }
+
+    else if (command == "enw") {
+      std::string eggStr;
+      std::string idStr;
+      int x;
+      int y;
+      iss >> eggStr >> idStr >> x >> y;
+      if (!idStr.empty() && idStr[0] == '#')
+        id = std::stoi(idStr.substr(1));
+    }
+
+    if (id != -1) {
+      for (const auto &[team, trantors]: teams) {
+        for (const auto &trantor: trantors)
+          if (trantor.GetId() == id)
+            return team;
+      }
+    }
+
+    return {};
+  }
+}  // namespace
+
 bool E_Mother::Update(Dem::Demeter &)
 {
   _api->AskAllPlayerInventory();
@@ -101,9 +162,14 @@ bool E_Mother::Update(Dem::Demeter &)
   std::string message;
   while (std::getline(ss, message)) {
     _eventIndex = (_eventIndex + 1) % _events.size();
-    _events[_eventIndex] = std::move(message);
-    if (_eventCount < _events.size())
-      _eventCount++;
+    // Set _events[_eventIndex].first to the team name
+    if (!getTeamNameFromMessage(message, _api->GetTeams()).empty()) {
+      _events[_eventIndex].first = getTeamNameFromMessage(
+        message, _api->GetTeams());
+      _events[_eventIndex].second = std::move(message);
+      if (_eventCount < _events.size())
+        _eventCount++;
+    }
   }
   return true;
 }

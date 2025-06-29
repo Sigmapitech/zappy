@@ -6,18 +6,20 @@
 #include "imgui_impl_sdl2.h"
 
 #include <array>
-#include <iostream>
 #include <memory>
 #include <string>
 
 void SubWindowHandler::Run(
   Dem::Demeter &d,
   const std::shared_ptr<API> &api,
-  std::array<std::string, 256> &eventArray,
+  std::array<std::pair<std::string, std::string>, 256> &eventArray,
   size_t eventIndex,
   size_t eventCount)
 {
   _api = api;
+
+  _api->AskAllTeamName();
+  FillTeamColors(_api->GetTeamsName());
 
   d.SetIsImGuiWindowCreated(true);
   ImGui_ImplOpenGL3_NewFrame();
@@ -42,7 +44,7 @@ void SubWindowHandler::Run(
 
 void SubWindowHandler::RunMenu(
   Dem::Demeter &d,
-  std::array<std::string, 256> &eventArray,
+  std::array<std::pair<std::string, std::string>, 256> &eventArray,
   size_t eventIndex,
   size_t eventCount)
 {
@@ -115,7 +117,10 @@ void SubWindowHandler::RunMenu(
     ImGuiWindowFlags_AlwaysVerticalScrollbar
       | ImGuiWindowFlags_HorizontalScrollbar);
   for (size_t i = eventIndex + 1; i < (eventCount + eventIndex + 1); i++)
-    ImGui::TextColored(_textColor, "%s", eventArray[i % eventCount].c_str());
+    ImGui::TextColored(
+      _teams[eventArray[i % eventCount].first],
+      "%s",
+      eventArray[i % eventCount].second.c_str());
 
   ImGui::EndChild();
   ImGui::EndGroup();

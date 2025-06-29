@@ -26,21 +26,36 @@ private:
 
   std::shared_ptr<API> _api;
 
+  std::map<std::string, ImVec4> _teams;
+
 public:
   SubWindowHandler() = default;
 
   void Run(
     Dem::Demeter &d,
     const std::shared_ptr<API> &api,
-    std::array<std::string, 256> &eventArray,
+    std::array<std::pair<std::string, std::string>, 256> &eventArray,
     size_t eventIndex,
     size_t eventCount);
   void RunMenu(
     Dem::Demeter &d,
-    std::array<std::string, 256> &eventArray,
+    std::array<std::pair<std::string, std::string>, 256> &eventArray,
     size_t eventIndex,
     size_t eventCount);
   void RunTeam(Dem::Demeter &d);
   void RunOption();
   void RunInventory(std::string team, int id);
+
+  void FillTeamColors(const std::vector<std::string> &teamNames)
+  {
+
+    int teamCount = static_cast<int>(teamNames.size());
+    _teams.clear();
+
+    for (int i = 0; i < teamCount; ++i) {
+      float hue = (float)i / (float)teamCount;
+      ImVec4 color = ImColor::HSV(hue, 0.8, 0.85);
+      _teams[teamNames[i]] = color;
+    }
+  }
 };
