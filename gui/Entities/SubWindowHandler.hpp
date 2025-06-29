@@ -16,7 +16,6 @@ private:
 
   bool _firstFrame = true;
 
-  ImGuiWindowFlags _window_flags = ImGuiWindowFlags_NoCollapse;
   std::string _windowName = "Game Interface";
 
   ImVec4 _textColor = ImVec4(1.0, 1.0, 1.0, 1.0);
