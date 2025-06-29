@@ -3,6 +3,7 @@ import json
 import logging
 import pathlib
 import random
+import string
 from typing import List
 
 from .cipher import DecodedMessage, decode, derive_team_key, encode
@@ -62,8 +63,14 @@ class Player(SecretivePlayer):
         current_dir = pathlib.Path(__file__).parent
         with open(current_dir / "elevation.json") as f:
             self.elevation_requirements = json.load(f)
+        self._bullshit_task = None
 
-    async def on_broadcast(self, direction, msg: DecodedMessage):
+    async def on_broadcast(self, direction, msg):
+        # If we can't decode, sometimes rebroadcast the raw message (unencrypted)
+        if not isinstance(msg, DecodedMessage):
+            if random.random() < 0.3:  # 30% chance to rebroadcast
+                await self.broadcast(msg)
+            return
         # Only react if not evolving and message is for our level
         if self.evolving or self.level < 2:
             return
@@ -161,7 +168,10 @@ class Player(SecretivePlayer):
             )
             if has_all:
                 # Sync stored inventory with the server
-                if self.handle_inventory_response(await self.inventory()) is None:
+                if (
+                    self.handle_inventory_response(await self.inventory())
+                    is None
+                ):
                     logger.error("Inventory command failed, retrying...")
                     continue
 
@@ -174,7 +184,9 @@ class Player(SecretivePlayer):
                 print(
                     f"[DEBUG] Ready to evolve to level {next_level} (current: {self.level})"
                 )
-                print(f"[DEBUG] Inventory: {self.resources}, Food: {self.food_stock}")
+                print(
+                    f"[DEBUG] Inventory: {self.resources}, Food: {self.food_stock}"
+                )
                 if req["players"] == 1:
                     # Level 1->2: evolve immediately, no broadcast
                     await self.drop_resources(req)
@@ -212,7 +224,9 @@ class Player(SecretivePlayer):
                     await self.set(resource)
                     self.resources[resource] -= 1
 
-    def check_for_others(self, tiles: List[List[str]], needed_players: int) -> bool:
+    def check_for_others(
+        self, tiles: List[List[str]], needed_players: int
+    ) -> bool:
         # Count players on current tile (tiles[0])
         return tiles[0].count("player") >= needed_players
 
@@ -235,7 +249,9 @@ class Player(SecretivePlayer):
         # Split each tile by spaces to get objects
         return [tile.split() if tile else [] for tile in tiles]
 
-    def handle_inventory_response(self, response: str) -> dict[str, int] | None:
+    def handle_inventory_response(
+        self, response: str
+    ) -> dict[str, int] | None:
         """
         Parses the response from the Inventory command.
         Returns a dictionary with resource names as keys and their counts as values.
@@ -258,7 +274,37 @@ class Player(SecretivePlayer):
         self.food_stock = inventory.get("food", 0)
         return inventory
 
+    async def _bullshit_broadcast_loop(self):
+        while True:
+            # Send random/bullshit message every 8-20 seconds
+            await asyncio.sleep(random.uniform(8, 20))
+            msg = self._generate_bullshit_message()
+            await self.broadcast(msg)
+
+    def _generate_bullshit_message(self):
+        # You can make this more elaborate if you want
+        options = [
+            "Help! Need linemate!",
+            "Anyone got food?",
+            "Incantation at tile 3!",
+            "Looking for deraumere.",
+            "Random: "
+            + "".join(
+                random.choices(string.ascii_letters + string.digits, k=8)
+            ),
+            "Meet at spawn.",
+            "Evolving soon!",
+            "Watch out for enemy!",
+            "Food at tile 5.",
+            "Bullshit: " + "".join(random.choices(string.ascii_letters, k=12)),
+        ]
+        return random.choice(options)
+
     async def run_until_death(self):  # type: ignore
         # Register broadcast handler
         self._sock._broadcast_callback = self.on_broadcast
+        # Start bullshit broadcast task
+        self._bullshit_task = asyncio.create_task(
+            self._bullshit_broadcast_loop()
+        )
         await asyncio.gather(self.gather_resources(), self.check_evolution())
