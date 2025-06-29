@@ -1,10 +1,10 @@
 import argparse
 import asyncio
 import logging
-from functools import wraps
-from typing import Any, NoReturn, Sequence
 import os
 import time
+from functools import wraps
+from typing import Any, NoReturn, Sequence
 
 from .player import Player
 
@@ -38,6 +38,15 @@ CLI_ARGS: dict[Sequence[str], dict[str, Any]] = {
 
 
 def parse_args() -> argparse.Namespace:
+    """
+    Parses command-line arguments for the player application.
+
+    This function creates an ArgumentParser, adds arguments defined in the CLI_ARGS dictionary,
+    and returns the parsed arguments as a Namespace object.
+
+    Returns:
+        argparse.Namespace: The parsed command-line arguments.
+    """
     parser = argparse.ArgumentParser(
         description="Player for the game", add_help=False
     )
@@ -51,6 +60,16 @@ def parse_args() -> argparse.Namespace:
 
 
 def setup_logger():
+    """
+    Configures and returns a logger for the current package.
+
+    The logger is set to the DEBUG level and uses a custom formatter that includes
+    the timestamp, logger name, line number, log level, and message. Log output is
+    sent to the standard output stream.
+
+    Returns:
+        logging.Logger: Configured logger instance for the current package.
+    """
     logger = logging.getLogger(__package__)
 
     logger.setLevel(logging.DEBUG)
@@ -66,6 +85,19 @@ def setup_logger():
 
 
 def make_async(func):
+    """
+    Decorator that converts a synchronous function into an asynchronous one by running it inside an event loop.
+
+    Args:
+        func (Callable): The synchronous function to be executed asynchronously.
+
+    Returns:
+        Callable: A wrapped function that, when called, runs the original function using asyncio.run().
+
+    Note:
+        The decorated function must not already be a coroutine function.
+    """
+
     def wrapper_signature() -> NoReturn: ...
 
     @wraps(wrapper_signature)
