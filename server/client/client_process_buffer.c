@@ -155,11 +155,28 @@ void handle_command(server_t *srv, client_state_t *client,
     unknown_command(srv, client, split[0]);
 }
 
-void process_clients_buff(server_t *srv)
+static
+void process_sub_command(server_t *srv, client_state_t *client)
 {
     size_t command_len = 0;
-    client_state_t *client = nullptr;
     char *split[COMMAND_WORD_COUNT] = {nullptr};
+
+    for (;client->in_buff_idx < client->input.nmemb;) {
+        command_len = strcspn(client->input.buff + client->in_buff_idx, "\n");
+        (client->input.buff + client->in_buff_idx)[command_len] = '\0';
+        command_split(
+            client->input.buff + client->in_buff_idx,
+            split,
+            command_len
+        );
+        client->in_buff_idx += command_len + 1;
+        handle_command(srv, client, split);
+    }
+}
+
+void process_clients_buff(server_t *srv)
+{
+    client_state_t *client = nullptr;
 
     for (size_t i = 1; i < srv->cm.count; i++) {
         client = srv->cm.clients + i;
@@ -168,11 +185,6 @@ void process_clients_buff(server_t *srv)
         if (!(srv->cm.server_pfds[i].revents & POLLIN)
             || client->in_buff_idx >= client->input.nmemb)
             continue;
-        command_len = strcspn(client->input.buff + client->in_buff_idx, "\n");
-        (client->input.buff + client->in_buff_idx)[command_len] = '\0';
-        command_split(client->input.buff + client->in_buff_idx,
-            split, command_len);
-        client->in_buff_idx += command_len + 1;
-        handle_command(srv, client, split);
+        process_sub_command(srv, client);
     }
 }
