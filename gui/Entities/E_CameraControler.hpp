@@ -8,9 +8,6 @@
 #include "SDL_mouse.h"
 #include "SDL_scancode.h"
 
-#include <iomanip>
-#include <iostream>
-
 class E_CameraControler : public Dem::IEntity {
 private:
   static constexpr float vel = 5;
@@ -29,9 +26,9 @@ public:
     // Input handling
     glm::vec3 position = d.camera.GetPosition();
     if (d.GetInput().keys[SDL_SCANCODE_UP])
-      position += d.camera.GetFront() * dt * vel;
+      position += d.camera.GetFront() * dt * vel * 5.0F;
     if (d.GetInput().keys[SDL_SCANCODE_DOWN])
-      position -= d.camera.GetFront() * dt * vel;
+      position -= d.camera.GetFront() * dt * vel * 5.0F;
     if (d.GetInput().keys[SDL_SCANCODE_LEFT])
       position -=
         glm::normalize(glm::cross(d.camera.GetFront(), d.camera.GetUp())) * dt
