@@ -29,7 +29,7 @@ class E_Mother : public Dem::IEntity {
 private:
   int fd = 0;
   std::array<pollfd, 2> _pollOutFd;
-  std::array<std::string, 256> _events;
+  std::array<std::pair<std::string, std::string>, 256> _events;
   size_t _eventCount = 0;
   size_t _eventIndex = 0;
   glm::mat4 modelMatrix;

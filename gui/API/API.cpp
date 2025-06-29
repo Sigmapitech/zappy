@@ -52,6 +52,12 @@ Tilemap API::GetTilemap()
   return _tilemap;
 }
 
+std::vector<std::string> API::GetTeamsName()
+{
+  std::lock_guard<std::mutex> locker(_allTeamNameLocker);
+  return _allTeamName;
+}
+
 void API::AddEgg(int id, int x, int y)
 {
   std::lock_guard<std::mutex> locker(_eggListLocker);
