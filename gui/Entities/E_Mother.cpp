@@ -1,5 +1,7 @@
-#include "Entities/E_Mother.hpp"
+#include <iostream>
 #include <sstream>
+
+#include "Entities/E_Mother.hpp"
 
 #include "API/Inventory/Inventory.hpp"
 #include "Demeter/Renderer/asset_dir.hpp"
@@ -24,7 +26,6 @@ bool E_Mother::Init(Dem::Demeter &d)
     return false;
   }
   _tile = *tmp;
-  _textureTile = d.AddTexture(ASSET_DIR "/textures/grass.png");
 
   tmp = d.AddObject3D(ASSET_DIR "/ressources.obj3D");
   if (!tmp) {
@@ -32,7 +33,17 @@ bool E_Mother::Init(Dem::Demeter &d)
     return false;
   }
   _ressources = *tmp;
+
+  tmp = d.AddObject3D(ASSET_DIR "/17855_Alien_v1.obj3D");
+  if (!tmp) {
+    Log::failed << "Failed to load object: " ASSET_DIR "/17855_Alien_v1.obj3D";
+    return false;
+  }
+  _player = *tmp;
+
+  _textureTile = d.AddTexture(ASSET_DIR "/textures/grass.png");
   _textureRessource = d.AddTexture(ASSET_DIR "/textures/green.png");
+  _texturePlayer = d.AddTexture(ASSET_DIR "/textures/purple.png");
   return true;
 }
 
@@ -106,10 +117,11 @@ bool E_Mother::Draw(Dem::Demeter &d)
 
       int itemId = 0;
       for (auto &item: tileInventory) {
-        for (size_t q = 0; q < item.second; ++q) {
+        for (size_t q = 0; q < item.second; q++) {
           modelMatrix = glm::translate(
             glm::mat4(1.0),
-            glm::vec3((i) + (0.1 * itemId), tileHeight + (0.1 * q), (j)));
+            glm::vec3(
+              (i) + (0.1 * itemId) - 0.5, tileHeight + (0.1 * q), (j)-0.5));
           _ressources->modelMatrix = modelMatrix;
           _ressources->SetTexture(0, _textureRessource);
           _ressources->Draw(*d.GetShader(), d.camera);
@@ -118,18 +130,25 @@ bool E_Mother::Draw(Dem::Demeter &d)
       }
     }
   // Draw Players
-  for (auto &teams: _api->GetTeams())
+  for (auto &teams: _api->GetTeams()) {
     for (Trantor &trantor: teams.second) {
       modelMatrix = glm::translate(
         glm::mat4(1.0),
         glm::vec3(
-          trantor.GetPosition().first + randomFloat(0.1, 1.0),
+          trantor.GetPosition().first
+            + hashToRange(trantor.GetPosition().first, 0.5),
           tileHeight,
-          trantor.GetPosition().second + randomFloat(0.1, 1.0)));
+          trantor.GetPosition().second
+            + hashToRange(trantor.GetPosition().second, 0.5)));
+      modelMatrix = glm::rotate(
+        modelMatrix,
+        glm::radians(trantor.GetRotation() * 45.0F),
+        glm::vec3(0.0, 1.0, 0.0));
       _player->modelMatrix = modelMatrix;
       _player->SetTexture(0, _texturePlayer);
       _player->Draw(*d.GetShader(), d.camera);
     }
+  }
   // Draw Eggs
   for (auto &egg: _api->GetEggList()) {
     modelMatrix = glm::translate(
