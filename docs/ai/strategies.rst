@@ -1,9 +1,12 @@
 AI Strategies
 =============
 
-This page describes several strategies we considered (and partly implemented or designed) for coordinating our AI players. Each approach balances complexity, coordination overhead, and robustness to adversarial teams.
+This page describes several strategies we considered (and partly implemented or
+designed) for coordinating our AI players. Each approach balances complexity,
+coordination overhead, and robustness to adversarial teams.
 
-Our goal was to provide flexibility to assign strategies dynamically depending on the game context.
+Our goal was to provide flexibility to assign strategies dynamically depending
+on the game context.
 
 1. Elder-Centric Hub Strategy
 ------------------------------
@@ -41,7 +44,8 @@ Our goal was to provide flexibility to assign strategies dynamically depending o
 
 - No Elder.
 - Each player roams the map collecting stones independently.
-- When a player has all stones for next level, it broadcasts a "call" for all same-level teammates nearby.
+- When a player has all stones for next level, it broadcasts a "call" for all
+same-level teammates nearby.
 - Players move to the caller to attempt evolution.
 
 **Pros:**
@@ -189,6 +193,8 @@ In practice, the AI system was designed to switch between these strategies depen
 - Enemy activity (e.g. presence of Garblers).
 - Map size and density.
 
-By mixing these approaches, we hoped to create a robust and adaptable AI civilization capable of winning under varied conditions.
+By mixing these approaches, we hoped to create a robust and adaptable AI
+civilization capable of winning under varied conditions.
 
-This flexibility allows the AI to respond dynamically to the evolving game state, maximizing its chances of success against both human and AI opponents.
+This flexibility allows the AI to respond dynamically to the evolving game state,
+maximizing its chances of success against both human and AI opponents.

@@ -196,9 +196,9 @@ This ensures:
 
 You can build/run each package from their nix derivation, following the flake schema:
 
-... code-block:: bash
+.. code-block:: bash
 
-   └───packages
+    └───packages
     └───x86_64-linux
         ├───ai: package 'python3.13-zappy-ai'
         ├───bleach: package 'bleach-0.0.1'
@@ -213,6 +213,7 @@ You can build/run each package from their nix derivation, following the flake sc
         ├───runner: package 'python3.13-zappy'
         ├───server: package 'zappy-server-0.0.1'
         └───server-debug: package 'zappy-server-0.0.1'
+
 
 Note: it is recommended to derectly build/run the final derivation (default),
 that contains our delivery and reference binaries, alongside the zappy-runner ...

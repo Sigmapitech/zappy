@@ -3,7 +3,9 @@ AI Job System
 
 This page explains the *Legacy AI Behavior* we experimented with for the project.
 
-Our unfinished AI design used well-defined behavioral roles called **Jobs**. Each job had its own file in `ai/behavior/`, implementing the abstract `JobTemplate` class. This class provided a shared structure for all specialized behaviors.
+Our unfinished AI design used well-defined behavioral roles called **Jobs**.
+Each job had its own file in `ai/behavior/`, implementing the abstract `JobTemplate` class.
+This class provided a shared structure for all specialized behaviors.
 
 Overview
 --------
@@ -42,7 +44,8 @@ Overview
 Job Assignment System
 ----------------------
 
-The Elder assigns jobs dynamically, using our team's broadcast protocol. Each player listens for instructions and responds appropriately.
+The Elder assigns jobs dynamically, using our team's broadcast protocol.
+Each player listens for instructions and responds appropriately.
 
 Communication Protocol
 -----------------------
@@ -81,4 +84,5 @@ This system was designed to:
 - Allow role reassignment and adaptability during play.
 - Disrupt enemy teams by embedding Garblers who mimic or garble enemy messages.
 
-Although unfinished, this "Job System" represents an ambitious attempt to create complex AI behaviors resembling a true in-game society.
+Although unfinished, this "Job System" represents an ambitious attempt to create
+complex AI behaviors resembling a true in-game society.
