@@ -21,6 +21,11 @@ def shutdown(processes):
     sys.exit(0)
 
 
+def run_proc(cmd, logger, proc_list):
+    proc = subprocess.Popen(cmd, stdout=logger, stderr=subprocess.STDOUT)
+    proc_list.append(proc)
+
+
 def run_zappy(bins: ZappyPool, args: argparse.Namespace):
     if not args.basic_team_names:
         teams = [generate_name() for _ in range(args.team_count)]
@@ -46,8 +51,7 @@ def run_zappy(bins: ZappyPool, args: argparse.Namespace):
         return None
 
     if not args.no_server:
-        srv_log = make_log("server")
-        srv = subprocess.Popen(
+        run_proc(
             (
                 bins.server,
                 "-p",
@@ -63,33 +67,30 @@ def run_zappy(bins: ZappyPool, args: argparse.Namespace):
                 "-f",
                 str(args.freq),
             ),
-            stdout=srv_log,
-            stderr=subprocess.STDOUT,
+            make_log("server"),
+            processes,
         )
-        processes.append(srv)
 
     time.sleep(1)
     if args.pause_before_connections:
         input("Press enter to continue...")
 
-    for i in range(args.team_init_count):
-        for _, team in enumerate(teams):
-            ai_log = make_log(f"ai_{i}_{team}")
-            ai = subprocess.Popen(
+    if not args.no_ai:
+        for i, team in (
+            (i, team) for i in range(args.team_init_count) for team in teams
+        ):
+            run_proc(
                 (bins.ai, "-h", args.host, "-p", str(args.port), "-n", team),
-                stdout=ai_log,
-                stderr=subprocess.STDOUT,
+                make_log(f"ai_{i}_{team}"),
+                processes,
             )
-            processes.append(ai)
 
     if not args.no_gui:
-        gui_log = make_log("gui")
-        gui = subprocess.Popen(
+        run_proc(
             (bins.gui, "-h", args.host, "-p", str(args.port)),
-            stdout=gui_log,
-            stderr=subprocess.STDOUT,
+            make_log("gui"),
+            processes,
         )
-        processes.append(gui)
 
     try:
         if args.split_logs:

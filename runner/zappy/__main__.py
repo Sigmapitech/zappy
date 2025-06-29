@@ -40,6 +40,7 @@ def parse_args() -> argparse.Namespace:
         .add_arg("--basic-team-names", action="store_true")
         .add_arg("--no-server", action="store_true")
         .add_arg("--no-gui", action="store_true")
+        .add_arg("--no-ai", action="store_true")
         .add_arg("--split-logs", action="store_true")
         .add_arg("--host", type=str, default="0.0.0.0")
         .add_arg("--pause-before-connections", action="store_true")
