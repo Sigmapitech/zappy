@@ -7,29 +7,18 @@
 #include "event/names.h"
 
 struct requirement_s {
-    uint8_t level;
-    union {
-        struct {
-            uint32_t player;
-            uint32_t linemate;
-            uint32_t deraumere;
-            uint32_t sibur;
-            uint32_t mendiane;
-            uint32_t phiras;
-            uint32_t thystame;
-        };
-        uint32_t req[RES_COUNT];
-    };
+    inventory_t resources;
+    uint8_t player_count;
 };
 
 static const struct requirement_s INCANTATION_REQUIREMENTS[] = {
-    {1, {{1, 1, 0, 0, 0, 0, 0}}},
-    {2, {{2, 1, 1, 1, 0, 0, 0}}},
-    {3, {{2, 2, 0, 1, 0, 2, 0}}},
-    {4, {{4, 1, 1, 2, 0, 1, 0}}},
-    {5, {{4, 1, 2, 1, 3, 0, 0}}},
-    {6, {{6, 1, 2, 3, 0, 1, 0}}},
-    {7, {{6, 2, 2, 2, 2, 2, 1}}},
+    {{{0, 1, 0, 0, 0, 0, 0}}, 1},
+    {{{0, 1, 1, 1, 0, 0, 0}}, 2},
+    {{{0, 2, 0, 1, 0, 2, 0}}, 2},
+    {{{0, 1, 1, 2, 0, 1, 0}}, 4},
+    {{{0, 1, 2, 1, 3, 0, 0}}, 4},
+    {{{0, 1, 2, 3, 0, 1, 0}}, 6},
+    {{{0, 2, 2, 2, 2, 2, 1}}, 6},
 };
 
 static constexpr const size_t INCANTATION = 300;
@@ -43,15 +32,15 @@ bool has_enough_resources(server_t *srv, uint8_t x, uint8_t y, uint8_t level)
     if (level < 1 || level > 7)
         return false;
     req = &INCANTATION_REQUIREMENTS[level - 1];
-    for (size_t i = 1; i < RES_COUNT; i++)
-        if (srv->map[y][x].qnts[i] < req->req[i])
+    for (size_t i = 0; i < RES_COUNT; i++)
+        if (srv->map[y][x].qnts[i] < req->resources.qnts[i])
             return false;
     for (size_t i = srv->cm.idx_of_players; i < srv->cm.count; i++)
         if (srv->cm.clients[i].x == x
             && srv->cm.clients[i].y == y
             && srv->cm.clients[i].tier == level)
             player_count++;
-    return player_count >= req->player;
+    return player_count >= req->player_count;
 }
 
 static
@@ -64,14 +53,17 @@ void send_to_participants(server_t *srv, client_state_t *cs,
         client = srv->cm.clients + i;
         if (!end && client->is_in_incantation)
             continue;
-        if (client->x == cs->x
-            && client->y == cs->y
-            && client->tier == cs->tier
-        ) {
-            append_to_output(srv, client, message);
-            client->tier += end;
-            client->is_in_incantation = !end;
-        }
+        if (client->x != cs->x
+            || client->y != cs->y
+            || client->tier != cs->tier
+        )
+            continue;
+        append_to_output(srv, client, message);
+        client->tier += end;
+        client->is_in_incantation = !end;
+        if (!end)
+            continue;
+        send_to_guis(srv, "plv %u %hhu\n", client->id, client->tier);
     }
 }
 
@@ -148,15 +140,16 @@ bool player_end_incentation_handler(server_t *srv, const event_t *event)
     if (cs == nullptr)
         return false;
     if (!has_enough_resources(srv, cs->x, cs->y, cs->tier)) {
+        send_to_guis(srv, "pie %hhu %hhu %hhu\n", cs->x, cs->y, cs->tier);
         append_to_output(srv, cs, "ko\n");
         return true;
     }
     snprintf(buff, sizeof(buff), "Current level: %d\n", cs->tier + 1);
-    send_to_participants(srv, cs, buff, 1);
-    for (size_t i = 1; i < RES_COUNT; i++)
+    for (size_t i = 0; i < RES_COUNT; i++)
         srv->map[cs->y][cs->x].qnts[i] -=
-            INCANTATION_REQUIREMENTS[cs->tier].req[i];
-    send_to_guis(srv, "pie %hhu %hhu %hhu\n", cs->x, cs->y, cs->tier + 1);
+            INCANTATION_REQUIREMENTS[cs->tier - 1].resources.qnts[i];
+    send_to_participants(srv, cs, buff, 1);
+    send_to_guis(srv, "pie %hhu %hhu %hhu\n", cs->x, cs->y, cs->tier);
     return true;
 }
 
