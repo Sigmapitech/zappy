@@ -8,10 +8,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "utils/common_macros.h"
 #include "client.h"
 #include "event.h"
 #include "game_events/names.h"
-#include "utils/common_macros.h"
+#include "ring_buffer.h"
 #include "server.h"
 
 static constexpr const size_t MAX_GUI_CMD_LEN = 4;
@@ -67,18 +68,22 @@ bool is_in_ai_lut(const char *command)
 }
 
 static
-uint64_t get_late_event(server_t *srv, client_state_t *client)
+uint64_t get_late_event(server_t *srv, client_state_t *client, event_t *event)
 {
     uint64_t late_event = get_timestamp();
     int idx = client - srv->cm.clients;
+    int counter = 0;
 
     for (size_t i = 0; i < srv->events.nmemb; i++) {
         if (srv->events.buff[i].client_idx == idx
             && is_in_ai_lut(srv->events.buff[i].command[0])
             && srv->events.buff[i].timestamp > late_event) {
             late_event = srv->events.buff[i].timestamp;
+            counter++;
         }
     }
+    if (counter >= MAX_CONCURRENT_REQUESTS)
+        event->command[0] = "ko";
     return late_event;
 }
 
@@ -95,7 +100,7 @@ void event_create(server_t *srv, client_state_t *client,
     for (event.arg_count = 0; event.arg_count < COMMAND_WORD_COUNT
         && event.command[event.arg_count] != nullptr; event.arg_count++);
     if (client->team_id != TEAM_ID_GRAPHIC)
-        event.timestamp = get_late_event(srv, client) + interval;
+        event.timestamp = get_late_event(srv, client, &event) + interval;
     else
         event.timestamp = get_timestamp();
     DEBUG("Creating event for client %d: '%s' in %lu ms",
@@ -119,7 +124,7 @@ void unknown_command(server_t *srv, client_state_t *client,
     };
 
     if (client->team_id != TEAM_ID_GRAPHIC)
-        event.timestamp = get_late_event(srv, client);
+        event.timestamp = get_late_event(srv, client, &event);
     else
         event.timestamp = get_timestamp();
     DEBUG("Unknown command '%s' from client %d", command, client->fd);
@@ -161,7 +166,7 @@ void process_sub_command(server_t *srv, client_state_t *client)
     size_t command_len = 0;
     char *split[COMMAND_WORD_COUNT] = {nullptr};
 
-    for (;client->in_buff_idx < client->input.nmemb;) {
+    for (; client->in_buff_idx < client->input.nmemb;) {
         command_len = strcspn(client->input.buff + client->in_buff_idx, "\n");
         (client->input.buff + client->in_buff_idx)[command_len] = '\0';
         command_split(
