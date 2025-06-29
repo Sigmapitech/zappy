@@ -392,10 +392,11 @@ void API::HandlePIN(std::stringstream &ss)
 
   if (nTmp[0] == '#')
     nTmp.erase(0, 1);
-  std::cout
-    << "player #" << std::stoi(nTmp) << " inventory at (" << x << "," << y
-    << "): " << q0 << "," << q1 << "," << q2 << "," << q3 << "," << q4 << ","
-    << q5 << "," << q6 << "\n";
+  // std::cout
+  //   << "player #" << std::stoi(nTmp) << " inventory at (" << x << "," << y
+  //   << "): " << q0 << "," << q1 << "," << q2 << "," << q3 << "," << q4 <<
+  //   ","
+  //   << q5 << "," << q6 << "\n";
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   for (std::string &teamNameTmp: _allTeamName)
