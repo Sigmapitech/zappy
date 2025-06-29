@@ -32,6 +32,7 @@ stdenv.mkDerivation {
     mkdir -p .build
     substituteInPlace Doxyfile \
       --replace-fail "DOT_PATH = dot" "DOT_PATH = ${lib.getExe' graphviz "dot"}"
+    doxygen Doxyfile
   '';
 
   makeFlags = ["html-doc"];
