@@ -43,6 +43,13 @@ bool E_Mother::Init(Dem::Demeter &d)
   }
   _player = *tmp;
 
+  tmp = d.AddObject3D(ASSET_DIR "/Egg.obj3D");
+  if (!tmp) {
+    Log::failed << "Failed to load object: " ASSET_DIR "/Egg.obj3D";
+    return false;
+  }
+  _egg = *tmp;
+
   _textureTile = d.AddTexture(ASSET_DIR "/textures/grass.png");
 
   _textureFood = d.AddTexture(ASSET_DIR "/textures/brown.png");
@@ -54,6 +61,7 @@ bool E_Mother::Init(Dem::Demeter &d)
   _textureThystame = d.AddTexture(ASSET_DIR "/textures/pink.png");
 
   _texturePlayer = d.AddTexture(ASSET_DIR "/textures/purple.png");
+  _textureEgg = d.AddTexture(ASSET_DIR "/textures/white.png");
   return true;
 }
 
@@ -228,10 +236,11 @@ bool E_Mother::Draw(Dem::Demeter &d)
         glm::mat4(1.0),
         glm::vec3(
           trantor.GetPosition().first
-            + hashToRange(trantor.GetPosition().first, 0.5),
+            + hashToRange(trantor.GetId() + trantor.GetPosition().first, 0.5),
           tileHeight,
           trantor.GetPosition().second
-            + hashToRange(trantor.GetPosition().second, 0.5)));
+            + hashToRange(
+              trantor.GetId() + trantor.GetPosition().second, 0.5)));
       modelMatrix = glm::rotate(
         modelMatrix,
         glm::radians(trantor.GetRotation() * 45.0F),
@@ -246,9 +255,9 @@ bool E_Mother::Draw(Dem::Demeter &d)
     modelMatrix = glm::translate(
       glm::mat4(1.0),
       glm::vec3(
-        egg.second.first + randomFloat(0.1, 1.0),
+        egg.second.first + hashToRange(egg.first + egg.second.first, 0.5),
         tileHeight,
-        egg.second.second + randomFloat(0.1, 1.0)));
+        egg.second.second + hashToRange(egg.first + egg.second.second, 0.5)));
     _egg->modelMatrix = modelMatrix;
     _egg->SetTexture(0, _textureEgg);
     _egg->Draw(*d.GetShader(), d.camera);
