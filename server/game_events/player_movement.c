@@ -1,5 +1,5 @@
-#include "client.h"
-#include "event/handler.h"
+#include "client/client.h"
+#include "handler.h"
 
 static
 void player_move(

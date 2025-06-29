@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "event/names.h"
+#include "names.h"
 #include "handler.h"
 
 static constexpr const float DENSITIES[RES_COUNT] = {
@@ -61,7 +61,7 @@ static bool meteor_rescedule(server_t *srv, const event_t *event)
     return true;
 }
 
-bool meteor_handler(server_t *srv, const event_t *event)
+bool game_meteor_handler(server_t *srv, const event_t *event)
 {
     ssize_t qty_needed = 0;
     size_t x = 0;

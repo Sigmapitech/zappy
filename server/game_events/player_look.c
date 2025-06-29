@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "client.h"
-#include "event/handler.h"
+#include "client/client.h"
+#include "handler.h"
 #include "server.h"
 
 static const char *RES_NAMES[RES_COUNT] = {

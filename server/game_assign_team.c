@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "client.h"
-#include "event/names.h"
+#include "client/client.h"
+#include "game_events/names.h"
 #include "server.h"
 
 static constexpr const uint64_t INITIAL_FOOD_INVENTORY = 10;

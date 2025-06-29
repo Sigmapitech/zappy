@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "client/client.h"
+#include "game_events/handler.h"
+#include "game_events/names.h"
+
+#include "event.h"
 #include "server.h"
-#include "client.h"
-#include "data_structure/event.h"
-#include "event/handler.h"
-#include "event/names.h"
 
 struct command_handler_s {
     const char *name;
@@ -13,7 +14,7 @@ struct command_handler_s {
 };
 
 static const struct command_handler_s COMMAND_HANDLERS[] = {
-    { METEOR, meteor_handler },
+    { METEOR, game_meteor_handler },
     { PLAYER_DEATH, player_death_handler },
 
     { PLAYER_INVENTORY, player_inventory_handler },
@@ -28,8 +29,8 @@ static const struct command_handler_s COMMAND_HANDLERS[] = {
     { PLAYER_FORK, player_fork_handler },
     { PLAYER_START_INCANTATION, player_start_incentation_handler },
     { PLAYER_END_INCANTATION, player_end_incentation_handler },
-    { STAT_AVAILABLE_SLOTS, stat_available_slot_handler },
     { PLAYER_LOCK, player_lock_handler },
+    { TEAM_AVAILABLE_SLOTS, team_available_slot_handler },
 
     { GUI_PLAYER_INV, gui_player_get_inventory_handler },
     { GUI_PLAYER_LVL, gui_player_get_level_handler },
@@ -70,7 +71,7 @@ void default_handler(server_t *srv, const event_t *event)
         append_to_output(srv, client, "ko\n");
 }
 
-void server_process_events(server_t *srv)
+void server_handle_events(server_t *srv)
 {
     bool (*handler)(server_t *, const event_t *);
 

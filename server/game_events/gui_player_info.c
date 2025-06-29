@@ -1,7 +1,6 @@
-#include "client.h"
-#include "event/handler.h"
-
-#include "event/names.h"
+#include "client/client.h"
+#include "handler.h"
+#include "names.h"
 
 static
 client_state_t *gui_handler_get_player(server_t *srv, const event_t *event)

@@ -1,5 +1,5 @@
-#include "client.h"
-#include "event/handler.h"
+#include "client/client.h"
+#include "handler.h"
 
 #define __USE_MISC
 // ^ above is for M_PI_[...]

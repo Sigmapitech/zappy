@@ -4,10 +4,11 @@
 #include <string.h>
 #include <sys/poll.h>
 
+#include "client/client.h"
+#include "client/client_manager.h"
+#include "utils/common_macros.h"
+
 #include "compass.h"
-#include "client.h"
-#include "client_manager.h"
-#include "macro_utils.h"
 
 enum {
     TEAM_SERVER = 0,

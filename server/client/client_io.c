@@ -9,7 +9,7 @@
 
 #include "server.h"
 #include "client.h"
-#include "data_structure/resizable_array.h"
+#include "utils/resizable_array.h"
 
 static constexpr const size_t BUFFER_SIZE = 1024;
 static constexpr const size_t ITER_MAX = 4;

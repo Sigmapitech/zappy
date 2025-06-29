@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "utils/resizable_array.h"
+
 #include "client.h"
-#include "data_structure/event.h"
-#include "data_structure/resizable_array.h"
+#include "event.h"
 #include "server.h"
 
 static

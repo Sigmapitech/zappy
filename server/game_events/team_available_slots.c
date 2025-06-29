@@ -1,7 +1,7 @@
-#include "client.h"
-#include "event/handler.h"
+#include "client/client.h"
+#include "handler.h"
 
-bool stat_available_slot_handler(server_t *srv, const event_t *event)
+bool team_available_slot_handler(server_t *srv, const event_t *event)
 {
     size_t count = 0;
     client_state_t *cs = event_get_client(srv, event);

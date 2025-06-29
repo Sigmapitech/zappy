@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "compass.h"
-#include "data_structure/event.h"
+#include "event.h"
 
 Test(command_split, test_simple_command)
 {
