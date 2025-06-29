@@ -41,7 +41,14 @@ private:
   std::shared_ptr<Object3D> _player = nullptr;
   std::shared_ptr<Object3D> _egg = nullptr;
 
-  std::shared_ptr<Texture> _textureRessource = nullptr;
+  std::shared_ptr<Texture> _textureFood = nullptr;
+  std::shared_ptr<Texture> _textureLinemate = nullptr;
+  std::shared_ptr<Texture> _textureDeraumere = nullptr;
+  std::shared_ptr<Texture> _textureSibur = nullptr;
+  std::shared_ptr<Texture> _textureMendiane = nullptr;
+  std::shared_ptr<Texture> _texturePhiras = nullptr;
+  std::shared_ptr<Texture> _textureThystame = nullptr;
+
   std::shared_ptr<Texture> _texturePlayer = nullptr;
   std::shared_ptr<Texture> _textureEgg = nullptr;
 
