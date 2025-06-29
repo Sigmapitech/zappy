@@ -143,7 +143,11 @@ void Dem::Demeter::Run()
   isRunning = true;
   while (isRunning) {
     while (sdl2->PollEvent()) {
-      ImGui_ImplSDL2_ProcessEvent(&sdl2->GetEvent());
+      if (
+        sdl2->GetEvent().type != SDL_KEYDOWN
+        && sdl2->GetEvent().type != SDL_KEYUP
+        && sdl2->GetEvent().type != SDL_TEXTINPUT)
+        ImGui_ImplSDL2_ProcessEvent(&sdl2->GetEvent());
       HandleEvent();
     }
 
