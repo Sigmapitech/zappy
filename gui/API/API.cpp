@@ -30,6 +30,9 @@ API::API()
   _pollEventOutFd[0].fd = _pipeFdEvents[1];
   _pollEventOutFd[0].events = POLLOUT;
   _pollEventOutFd[0].revents = 0;
+
+  // Initialize the tilemap
+  _tilemap = Tilemap();
 }
 
 void API::WriteMessage(const std::string &msg)
@@ -292,6 +295,8 @@ void API::HandleTNA(std::stringstream &ss)
       "Error: invalid tna params, Function: HandleTNA, File: API.cpp");
   // std::cout << "team name: " << N << "\n";
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
+  if (_teams.contains(N))
+    return;
   _teams[N] = teamTmp;
   std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   for (std::string &teamName: _allTeamName)
@@ -319,6 +324,7 @@ void API::HandlePNW(std::stringstream &ss)
     << "new player: #" << std::stoi(nTmp) << " (" << X << "," << Y
     << ") facing " << O << " level " << L << " team " << N << "\n";
   Trantor trantorTmp(std::stoi(nTmp), X, Y, O, L);
+  std::lock_guard<std::mutex> lockerName(_allTeamNameLocker);
   std::lock_guard<std::mutex> lockerTeam(_teamsLocker);
   _teams[N].push_back(trantorTmp);
 }
