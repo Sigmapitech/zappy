@@ -93,7 +93,6 @@ void SubWindowHandler::RunMenu(
     _textColor,
     "\tquantity of thystame : %d",
     _api->GetTilemap().GetItemQuantity(Item::THYSTAME));
-  ImGui::Unindent();
 
   ImGui::EndGroup();
 
