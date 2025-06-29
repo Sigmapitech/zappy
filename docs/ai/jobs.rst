@@ -52,27 +52,80 @@ Communication Protocol
 
 All inter-player instructions passed through team broadcasts during the game are defined below:
 
-+------------+-----------------------------------+-----------------------------------------------+----------------------------------------------------------+-----------------------------------------+
-| **Job**    | **Instruction (Recv)**           | **Instruction (Send)**                        | **Effect**                                                | **Args / Type**                         |
-+============+===================================+===============================================+==========================================================+=========================================+
-| Basic      | `assign_job <id> <job>`          | `evolution_ready <level>`                     | Elder-directed reassignment; immediate job transition    | id: `int`, job: `str`                   |
-|            | `evolution_call <count>`         | `evolution_response <id>`                     | Respond to Elder's group evolution call                   | id: `int`                               |
-|            | `status_report_request`          | `basic_status level:<L> needs:<N> food:<F>`   | Periodic status update to Elder                           | level: `int`, needs: `int`, food: `int` |
-|            | `resource_request <res> <amt>`   | `resource_available <res>`                    | Reply if the player holds excess resources                | resource: `str`, amt: `int`             |
-+------------+-----------------------------------+-----------------------------------------------+----------------------------------------------------------+-----------------------------------------+
-| Elder      | `newcomer_seeking_assignment`    | `assign_job <id> <job>`                       | Assigns job to a newcomer                                 | id: `int`, job: `str`                   |
-|            | `resource_delivery <res> <amt>`  | `status_report_request`                       | Updates depot stock from Collector; asks for reports      | resource: `str`, amt: `int`             |
-|            |                                   | `elder_location <x> <y>`                      | Announces Elder's tile location                           | x: `int`, y: `int`                      |
-+------------+-----------------------------------+-----------------------------------------------+----------------------------------------------------------+-----------------------------------------+
-| Newcomer   | `elder_announce <id>`            | `newcomer_seeking_assignment <level>`         | Announces presence and level; awaits Elder assignment     | id: `int`, level: `int`                 |
-|            | `assign_job <id> <job>`          | `newcomer_joined`                             | Confirms receiving role assignment                        | id: `int`, job: `str`                   |
-+------------+-----------------------------------+-----------------------------------------------+----------------------------------------------------------+-----------------------------------------+
-| Collector  |                                   | `resource_delivery <res> <amt>`               | Delivers collected resources to the Elder                 | resource: `str`, amt: `int`             |
-+------------+-----------------------------------+-----------------------------------------------+----------------------------------------------------------+-----------------------------------------+
-| Garbler    |                                   | *variable garbage*                            | Disrupts enemies with random unreadable text              | `str`                                   |
-|            |                                   | *intercepted_message (mimicry/parrot)*        | Mimic or distort intercepted enemy messages               | `str`                                   |
-|            | *any enemy message*               |                                               | Stores for mimicry/parrot modes                           | `str`                                   |
-+------------+-----------------------------------+-----------------------------------------------+----------------------------------------------------------+-----------------------------------------+
+.. list-table:: Job Protocol
+   :header-rows: 1
+   :widths: 10 25 25 25 15
+
+   * - Job
+     - Instruction (Recv)
+     - Instruction (Send)
+     - Effect
+     - Args / Type
+   * - Basic
+     - ``assign_job <id> <job>``
+     - ``evolution_ready <level>``
+     - Elder-directed reassignment; immediate job transition
+     - id: ``int``, job: ``str``
+   * -
+     - ``evolution_call <count>``
+     - ``evolution_response <id>``
+     - Respond to group evolution call
+     - id: ``int``
+   * -
+     - ``status_report_request``
+     - ``basic_status level:<L> needs:<N> food:<F>``
+     - Periodic status update to elder
+     - level: ``int``, needs: ``int``, food: ``int``
+   * -
+     - ``resource_request <res> <amt>``
+     - ``resource_available <res>``
+     - Respond if excess resource is held
+     - resource: ``str``, amt: ``int``
+   * - Elder
+     - ``newcomer_seeking_assignment``
+     - ``assign_job <id> <job>``
+     - Assigns newcomer to job
+     - id: ``int``, job: ``str``
+   * -
+     - ``resource_delivery <res> <amt>``
+     - ``status_report_request``
+     - Update depot stock from collector; ask for reports
+     - resource: ``str``, amt: ``int``
+   * -
+     -
+     - ``elder_location <x> <y>``
+     - Updates elder position for everyone
+     - x: ``int``, y: ``int``
+   * - Newcomer
+     - ``elder_announce <id>``
+     - ``newcomer_seeking_assignment <level>``
+     - Announces presence and level; awaits elder reply
+     - id: ``int``, level: ``int``
+   * -
+     - ``assign_job <id> <job>``
+     - ``newcomer_joined``
+     - Elder assigns role; confirms join
+     - id: ``int``, job: ``str``
+   * - Collector
+     -
+     - ``resource_delivery <res> <amt>``
+     - Dispose of the collected stones on the Elder's tile
+     - resource: ``str``, amt: ``int``
+   * - Garbler
+     -
+     - *variable garbage*
+     - Disruption: random unreadable text
+     - ``str``
+   * -
+     -
+     - *intercepted_message (mimicry/parrot)*
+     - Disruption: repeated or modified enemy message
+     - ``str``
+   * -
+     - *any enemy message*
+     -
+     - Stores for mimicry or parrot use
+     - ``str``
 
 Behavior Philosophy
 --------------------
