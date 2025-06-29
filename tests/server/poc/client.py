@@ -54,9 +54,22 @@ def main():
             elif fd == fd_stdin:
                 try:
                     user_input = os.read(fd_stdin, 4096)
-                    if user_input:
-                        sock.sendall(user_input)
+                    if not user_input:
+                        continue  # EOF, do nothing
+                    try:
+                        interpreted = (
+                            user_input.decode("utf-8")
+                            .encode("utf-8")
+                            .decode("unicode_escape")
+                        )
+                        sock.sendall(interpreted.encode("utf-8"))
                         print("> ", end="", flush=True)  # Redraw prompt
+                    except UnicodeDecodeError:
+                        print("\nInvalid input. Please use valid UTF-8 characters.")
+                        print("> ", end="", flush=True)
+                    except BrokenPipeError:
+                        print("\nServer closed the connection.")
+                        return
                 except Exception as e:
                     print("\nSend error:", e)
 
