@@ -70,56 +70,59 @@ namespace {
     const std::string &message,
     const std::map<std::string, std::vector<Trantor>> &teams)
   {
-    std::istringstream iss(message);
-    std::string command;
-    iss >> command;
+    try {
+      std::istringstream iss(message);
+      std::string command;
+      iss >> command;
 
-    int id = -1;
-    std::string teamName;
+      int id = -1;
+      std::string teamName;
 
-    if (command == "pnw") {
-      std::string idStr;
-      int x;
-      int y;
-      int o;
-      int l;
+      if (command == "pnw") {
+        std::string idStr;
+        int x;
+        int y;
+        int o;
+        int l;
 
-      iss >> idStr >> x >> y >> o >> l >> teamName;
-      if (teams.find(teamName) != teams.end())
-        return teamName;
+        iss >> idStr >> x >> y >> o >> l >> teamName;
+        if (teams.contains(teamName))
+          return teamName;
 
-      if (idStr[0] == '#')
-        id = std::stoi(idStr.substr(1));
-    }
-
-    else if (
-      command == "ppo" || command == "plv" || command == "pin"
-      || command == "pex" || command == "pbc" || command == "pfk"
-      || command == "pdr" || command == "pgt" || command == "pdi") {
-      std::string idStr;
-      iss >> idStr;
-      if (!idStr.empty() && idStr[0] == '#')
-        id = std::stoi(idStr.substr(1));
-    }
-
-    else if (command == "enw") {
-      std::string eggStr;
-      std::string idStr;
-      int x;
-      int y;
-      iss >> eggStr >> idStr >> x >> y;
-      if (!idStr.empty() && idStr[0] == '#')
-        id = std::stoi(idStr.substr(1));
-    }
-
-    if (id != -1) {
-      for (const auto &[team, trantors]: teams) {
-        for (const auto &trantor: trantors)
-          if (trantor.GetId() == id)
-            return team;
+        if (idStr[0] == '#')
+          id = std::stoi(idStr.substr(1));
       }
-    }
 
+      else if (
+        command == "ppo" || command == "plv" || command == "pin"
+        || command == "pex" || command == "pbc" || command == "pfk"
+        || command == "pdr" || command == "pgt" || command == "pdi") {
+        std::string idStr;
+        iss >> idStr;
+        if (!idStr.empty() && idStr[0] == '#')
+          id = std::stoi(idStr.substr(1));
+      }
+
+      else if (command == "enw") {
+        std::string eggStr;
+        std::string idStr;
+        int x;
+        int y;
+        iss >> eggStr >> idStr >> x >> y;
+        if (!idStr.empty() && idStr[0] == '#')
+          id = std::stoi(idStr.substr(1));
+      }
+
+      if (id != -1) {
+        for (const auto &[team, trantors]: teams) {
+          for (const auto &trantor: trantors)
+            if (trantor.GetId() == id)
+              return team;
+        }
+      }
+    } catch (const std::exception &e) {
+      Log::warn << "Failed to parse team name from message: " << e.what();
+    }
     return {};
   }
 }  // namespace
