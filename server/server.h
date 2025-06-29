@@ -7,10 +7,11 @@
     #include <stdint.h>
     #include <sys/time.h>
 
-    #include "args_parser.h"
-    #include "client_manager.h"
-    #include "data_structure/event.h"
-    #include "debug.h"
+    #include "server_args_parser.h"
+    #include "client/client_manager.h"
+    #include "utils/debug.h"
+
+    #include "event.h"
 
     #define MAP_MAX_SIDE_SIZE 42
 
@@ -132,21 +133,21 @@ bool server_run(params_t *p, uint64_t timestamp);
  *
  * @param srv
  */
-void server_process_events(server_t *srv);
+void server_handle_events(server_t *srv);
 /**
  * @brief Initializes the server state.
  *
  * @param srv
  * @param timeout
  */
-void process_poll(server_t *srv, uint64_t timeout);
+void handle_poll(server_t *srv, uint64_t timeout);
 /**
  * @brief Processes file descriptors and client buffers in the server.
  *
  * @param srv
  */
-void process_fds(server_t *srv);
-void process_disconnection(server_t *srv);
+void handle_fds_revents(server_t *srv);
+void handle_client_disconnection(server_t *srv);
 /**
  * @brief Processes the clients' input buffers in the server.
  *

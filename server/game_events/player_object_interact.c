@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "handler.h"
-#include "client.h"
+#include "client/client.h"
 
 static constexpr const uint8_t INVALID_OBJECT_ID = 255;
 

@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "client.h"
-#include "event/names.h"
+#include "client/client.h"
 #include "handler.h"
+#include "names.h"
 #include "server.h"
 
 static constexpr const size_t FOOD_SURVIVAL = 126;

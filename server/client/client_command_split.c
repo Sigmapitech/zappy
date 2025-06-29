@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "data_structure/event.h"
+#include "event.h"
 
 static
 bool eat_quoted_argument(

@@ -21,7 +21,7 @@
     #define PLAYER_END_INCANTATION "EI"
     #define PLAYER_LOCK "noop"
 
-    #define STAT_AVAILABLE_SLOTS "Connect_nbr"
+    #define TEAM_AVAILABLE_SLOTS "Connect_nbr"
 
     #define GUI_PLAYER_POS "ppo"
     #define GUI_PLAYER_INV "pin"

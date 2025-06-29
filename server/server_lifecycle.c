@@ -11,13 +11,14 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-#include "args_parser.h"
-#include "client.h"
-#include "data_structure/event.h"
-#include "data_structure/resizable_array.h"
-#include "debug.h"
-#include "event/names.h"
+#include "client/client.h"
+#include "game_events/names.h"
+#include "utils/debug.h"
+#include "utils/resizable_array.h"
+
+#include "event.h"
 #include "server.h"
+#include "server_args_parser.h"
 
 static
 void signal_handler(int signum, siginfo_t *info, void *context)
@@ -143,13 +144,13 @@ bool server_run(params_t *p, uint64_t timestamp)
     if (!server_allocate(&srv, p, timestamp) || !server_boot(&srv, p))
         return server_destroy(&srv), false;
     for (int32_t to; srv.is_running;) {
-        server_process_events(&srv);
+        server_handle_events(&srv);
         to = compute_timeout(&srv);
         if (UNLIKELY(to > 0)) {
-            process_poll(&srv, to);
-            process_fds(&srv);
+            handle_poll(&srv, to);
+            handle_fds_revents(&srv);
             process_clients_buff(&srv);
-            process_disconnection(&srv);
+            handle_client_disconnection(&srv);
             continue;
         }
         if (UNLIKELY(to < 0))

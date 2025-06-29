@@ -1,7 +1,8 @@
 #include <stdio.h>
 
-#include "data_structure/resizable_array.h"
-#include "client.h"
+#include "utils/resizable_array.h"
+
+#include "client/client.h"
 #include "handler.h"
 #include "server.h"
 

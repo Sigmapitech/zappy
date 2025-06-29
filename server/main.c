@@ -3,9 +3,10 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include "args_parser.h"
-#include "macro_utils.h"
+#include "utils/common_macros.h"
+
 #include "server.h"
+#include "server_args_parser.h"
 
 const char SERVER_USAGE[] = {
     "Usage: ./server [OPTIONS]\n"

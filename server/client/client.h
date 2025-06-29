@@ -1,8 +1,8 @@
 #ifndef CLIENT_H_
     #define CLIENT_H_
 
+    #include "utils/resizable_array.h"
     #include "server.h"
-    #include "data_structure/resizable_array.h"
 
 /**
  * @brief Structure representing a client state in the server.

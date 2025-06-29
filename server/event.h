@@ -5,7 +5,7 @@
     #include <stddef.h>
     #include <stdint.h>
 
-    #include "debug.h"
+    #include "utils/debug.h"
 
 /**
  * @brief Maximum number of words in a command.

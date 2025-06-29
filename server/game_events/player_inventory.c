@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-#include "client.h"
-#include "event/handler.h"
+#include "client/client.h"
+#include "handler.h"
 
 static
 const char *INVENTORY_RESSOURCE_NAMES[RES_COUNT] = {

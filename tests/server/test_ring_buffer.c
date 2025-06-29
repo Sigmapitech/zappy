@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "compass.h"
-#include "data_structure/ring_buffer.h"
+#include "ring_buffer.h"
 
 Test(ring_buffer, heavy_load)
 {

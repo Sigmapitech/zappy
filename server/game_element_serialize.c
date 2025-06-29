@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-#include "client.h"
-#include "macro_utils.h"
+#include "client/client.h"
+#include "utils/common_macros.h"
 #include "server.h"
 
 char *serialize_inventory(inventory_t *inv)

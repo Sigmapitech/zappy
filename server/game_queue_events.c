@@ -1,10 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client.h"
-#include "debug.h"
+#include "client/client.h"
+#include "utils/debug.h"
+#include "utils/resizable_array.h"
+
 #include "event.h"
-#include "resizable_array.h"
 
 static void swap(event_t *a, event_t *b)
 {

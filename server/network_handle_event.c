@@ -1,11 +1,11 @@
 #include <poll.h>
 #include <stdio.h>
 
-#include "client.h"
-#include "debug.h"
+#include "client/client.h"
+#include "utils/debug.h"
 #include "server.h"
 
-void process_poll(server_t *srv, uint64_t timeout)
+void handle_poll(server_t *srv, uint64_t timeout)
 {
     int poll_result = poll(srv->cm.server_pfds, srv->cm.count, timeout);
 
@@ -15,7 +15,7 @@ void process_poll(server_t *srv, uint64_t timeout)
     }
 }
 
-void process_fds(server_t *srv)
+void handle_fds_revents(server_t *srv)
 {
     if (srv->cm.server_pfds[0].revents & POLLIN)
         add_client(srv);
@@ -27,7 +27,7 @@ void process_fds(server_t *srv)
     }
 }
 
-void process_disconnection(server_t *srv)
+void handle_client_disconnection(server_t *srv)
 {
     for (size_t i = 1; i < srv->cm.count; i++) {
         if (srv->cm.server_pfds[i].revents & POLLHUP

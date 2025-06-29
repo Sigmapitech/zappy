@@ -7,7 +7,7 @@
 
 #include "client.h"
 #include "client_manager.h"
-#include "data_structure/resizable_array.h"
+#include "utils/resizable_array.h"
 
 enum {
     SECTION_SERVER = 0,

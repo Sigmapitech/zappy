@@ -5,10 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "args_parser.h"
 #include "bits/getopt_core.h"
-#include "client.h"
-#include "debug.h"
+#include "client/client.h"
+#include "utils/debug.h"
+
+#include "server_args_parser.h"
 
 // Helper message to avoid long strings in the code
 static constexpr const char INVALID_ARG[] = {

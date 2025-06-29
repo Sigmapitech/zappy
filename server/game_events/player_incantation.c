@@ -1,10 +1,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "client.h"
-#include "data_structure/event.h"
-#include "event/handler.h"
-#include "event/names.h"
+#include "client/client.h"
+#include "event.h"
+#include "handler.h"
+#include "names.h"
 
 struct requirement_s {
     inventory_t resources;

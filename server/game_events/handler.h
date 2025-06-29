@@ -5,15 +5,8 @@
 
     #define CLENGTH_OF(arr) (sizeof (arr) / sizeof *(arr))
 
-/**
- * @brief Handles the "meteor" event.
- *
- * @param srv
- * @param event
- * @return true
- * @return false
- */
-bool meteor_handler(server_t *srv, const event_t *event);
+bool game_meteor_handler(server_t *srv, const event_t *event);
+
 bool player_death_handler(server_t *srv, const event_t *event);
 
 bool player_inventory_handler(server_t *srv, const event_t *event);
@@ -33,7 +26,7 @@ bool player_start_incentation_handler(server_t *srv, const event_t *event);
 bool player_end_incentation_handler(server_t *srv, const event_t *event);
 bool player_lock_handler(server_t *, const event_t *);
 
-bool stat_available_slot_handler(server_t *srv, const event_t *event);
+bool team_available_slot_handler(server_t *srv, const event_t *event);
 
 bool gui_player_get_position_handler(server_t *srv, const event_t *event);
 bool gui_player_get_level_handler(server_t *srv, const event_t *event);

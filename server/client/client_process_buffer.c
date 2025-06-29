@@ -9,9 +9,12 @@
 #include <unistd.h>
 
 #include "client.h"
-#include "data_structure/event.h"
-#include "event/names.h"
+#include "event.h"
+#include "game_events/names.h"
+#include "utils/common_macros.h"
 #include "server.h"
+
+static constexpr const size_t MAX_GUI_CMD_LEN = 4;
 
 struct ai_lut_entry {
     char *command;
@@ -19,7 +22,7 @@ struct ai_lut_entry {
 };
 
 struct gui_lut_entry {
-    char *command;
+    char command[MAX_GUI_CMD_LEN];
 };
 
 static const struct ai_lut_entry AI_LUT[] = {
@@ -50,12 +53,8 @@ static const struct gui_lut_entry GUI_LUT[] = {
     {"sst"},
 };
 
-static constexpr const size_t AI_LUT_SIZE = (
-    sizeof(AI_LUT) / sizeof(AI_LUT[0])
-);
-static constexpr const size_t GUI_LUT_SIZE = (
-    sizeof(GUI_LUT) / sizeof(GUI_LUT[0])
-);
+static constexpr const size_t AI_LUT_SIZE = LENGTH_OF(AI_LUT);
+static constexpr const size_t GUI_LUT_SIZE = LENGTH_OF(GUI_LUT);
 
 static
 bool is_in_ai_lut(const char *command)
