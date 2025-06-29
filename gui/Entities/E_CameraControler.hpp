@@ -26,9 +26,9 @@ public:
     // Input handling
     glm::vec3 position = d.camera.GetPosition();
     if (d.GetInput().keys[SDL_SCANCODE_UP])
-      position += d.camera.GetFront() * dt * vel * 5.0F;
+      position += d.camera.GetFront() * dt * vel * 7.5F;
     if (d.GetInput().keys[SDL_SCANCODE_DOWN])
-      position -= d.camera.GetFront() * dt * vel * 5.0F;
+      position -= d.camera.GetFront() * dt * vel * 7.5F;
     if (d.GetInput().keys[SDL_SCANCODE_LEFT])
       position -=
         glm::normalize(glm::cross(d.camera.GetFront(), d.camera.GetUp())) * dt
