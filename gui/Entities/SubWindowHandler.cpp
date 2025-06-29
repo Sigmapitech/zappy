@@ -46,7 +46,7 @@ void SubWindowHandler::RunMenu(
   size_t eventIndex,
   size_t eventCount)
 {
-  ImGui::Begin(_windowName.c_str(), nullptr, _window_flags);
+  ImGui::Begin(_windowName.c_str(), nullptr);
 
   ImGui::TextColored(
     _textColor, "Time: %lu seconds", d.GetTime().GetCurrent() / 1000);
@@ -160,7 +160,7 @@ void SubWindowHandler::RunInventory(std::string team, int id)
 
 void SubWindowHandler::RunTeam(Dem::Demeter &d)
 {
-  ImGui::Begin(_windowName.c_str(), nullptr, _window_flags);
+  ImGui::Begin(_windowName.c_str(), nullptr);
 
   ImGui::TextColored(
     _textColor, "Time: %lu seconds", d.GetTime().GetCurrent() / 1000);
@@ -216,7 +216,7 @@ void SubWindowHandler::RunTeam(Dem::Demeter &d)
 
 void SubWindowHandler::RunOption()
 {
-  ImGui::Begin(_windowName.c_str(), nullptr, _window_flags);
+  ImGui::Begin(_windowName.c_str(), nullptr);
 
   ImGui::Text("Options");
   ImGui::Separator();
