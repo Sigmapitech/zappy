@@ -103,9 +103,6 @@ void Dem::Demeter::HandleEvent()
       isRunning = false;
       break;
     case SDL_KEYDOWN:
-      std::cerr
-        << "Key pressed: "
-        << SDL_GetScancodeName(sdl2->GetEvent().key.keysym.scancode) << '\n';
       input.keys[sdl2->GetEvent().key.keysym.scancode] = true;
       break;
     case SDL_KEYUP:
