@@ -132,6 +132,31 @@ bool player_start_incentation_handler(server_t *srv, const event_t *event)
     return player_incantation_end_schedule(srv, event);
 }
 
+static
+void game_check_end(server_t *srv)
+{
+    uint8_t count_tier8 = 0;
+    client_state_t *player;
+    size_t j = 0;
+
+    for (; srv->team_names[j] != nullptr; j++) {
+        for (size_t i = srv->cm.idx_of_players; i < srv->cm.count; i++) {
+            player = &srv->cm.clients[i];
+            count_tier8 += player->tier == 8 && player->team_id == j;
+        }
+        if (count_tier8 == 6)
+            break;
+        count_tier8 = 0;
+    }
+    if (count_tier8 == 6) {
+        send_to_guis(srv, "seg %s\n", srv->team_names[j]);
+        for (size_t i = srv->cm.idx_of_players; i < srv->cm.count; i++) {
+            player = &srv->cm.clients[i];
+            append_to_output(srv, player, "death\n");
+        }
+    }
+}
+
 bool player_end_incentation_handler(server_t *srv, const event_t *event)
 {
     client_state_t *cs = event_get_client(srv, event);
@@ -150,6 +175,7 @@ bool player_end_incentation_handler(server_t *srv, const event_t *event)
             INCANTATION_REQUIREMENTS[cs->tier - 1].resources.qnts[i];
     send_to_participants(srv, cs, buff, 1);
     send_to_guis(srv, "pie %hhu %hhu %hhu\n", cs->x, cs->y, cs->tier);
+    game_check_end(srv);
     return true;
 }
 
