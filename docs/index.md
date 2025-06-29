@@ -6,10 +6,11 @@
 :caption: Contents:
 
 api/api
+ai/ai
 developer/architecture
-developer/systems
 developer/contribution
+developer/systems
 developer/usage_ai
-protocol/protocol
 modules
+protocol/protocol
 ```
