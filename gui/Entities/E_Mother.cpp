@@ -27,9 +27,9 @@ bool E_Mother::Init(Dem::Demeter &d)
   }
   _tile = *tmp;
 
-  tmp = d.AddObject3D(ASSET_DIR "/ressources.obj3D");
+  tmp = d.AddObject3D(ASSET_DIR "/rock.obj3D");
   if (!tmp) {
-    Log::failed << "Failed to load object: " ASSET_DIR "/ressources.obj3D";
+    Log::failed << "Failed to load object: " ASSET_DIR "/rock.obj3D";
     return false;
   }
   _ressources = *tmp;
@@ -42,7 +42,15 @@ bool E_Mother::Init(Dem::Demeter &d)
   _player = *tmp;
 
   _textureTile = d.AddTexture(ASSET_DIR "/textures/grass.png");
-  _textureRessource = d.AddTexture(ASSET_DIR "/textures/green.png");
+
+  _textureFood = d.AddTexture(ASSET_DIR "/textures/brown.png");
+  _textureLinemate = d.AddTexture(ASSET_DIR "/textures/yellow.png");
+  _textureDeraumere = d.AddTexture(ASSET_DIR "/textures/green.png");
+  _textureSibur = d.AddTexture(ASSET_DIR "/textures/blue.jpg");
+  _textureMendiane = d.AddTexture(ASSET_DIR "/textures/red.png");
+  _texturePhiras = d.AddTexture(ASSET_DIR "/textures/white.png");
+  _textureThystame = d.AddTexture(ASSET_DIR "/textures/pink.png");
+
   _texturePlayer = d.AddTexture(ASSET_DIR "/textures/purple.png");
   return true;
 }
@@ -121,9 +129,27 @@ bool E_Mother::Draw(Dem::Demeter &d)
           modelMatrix = glm::translate(
             glm::mat4(1.0),
             glm::vec3(
-              (i) + (0.1 * itemId) - 0.5, tileHeight + (0.1 * q), (j)-0.5));
+              (i) + (0.1F * itemId) - 0.25F, tileHeight + (0.05F * q), (j)));
           _ressources->modelMatrix = modelMatrix;
-          _ressources->SetTexture(0, _textureRessource);
+          if (item.first == "food")
+            _ressources->SetTexture(0, _textureFood);
+          else if (item.first == "linemate")
+            _ressources->SetTexture(0, _textureLinemate);
+          else if (item.first == "deraumere")
+            _ressources->SetTexture(0, _textureDeraumere);
+          else if (item.first == "sibur")
+            _ressources->SetTexture(0, _textureSibur);
+          else if (item.first == "mendiane")
+            _ressources->SetTexture(0, _textureMendiane);
+          else if (item.first == "phiras")
+            _ressources->SetTexture(0, _texturePhiras);
+          else if (item.first == "thystame")
+            _ressources->SetTexture(0, _textureThystame);
+          else {
+            Log::warn
+              << "Unknown item type: " << item.first << ", skipping drawing.";
+            continue;  // Skip unknown items
+          }
           _ressources->Draw(*d.GetShader(), d.camera);
         }
         itemId++;
