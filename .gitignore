@@ -28,6 +28,7 @@ callgrind.out.*
 # Editors
 .idea
 .vscode
+.cache
 compile_commands.json
 
 # Basic files

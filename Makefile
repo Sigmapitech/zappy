@@ -10,7 +10,7 @@ RM ?= rm --force
 CFLAGS := -std=c2x -iquote $/server
 
 CXXFLAGS := -std=c++20
-CXXFLAGS += -iquote $/libs -iquote $/include
+CXXFLAGS += -iquote $/libs -iquote $/gui
 
 CFLAGS += $(shell grep -vP '^(#|$$)' ./warning_flags.c.conf)
 CXXFLAGS += $(shell grep -vP '^(#|$$)' ./warning_flags.cpp.conf)
@@ -27,8 +27,17 @@ CXXFLAGS_cov := --coverage -g3
 CFLAGS_tests := --coverage -g3
 CXXFLAGS_tests := --coverage -g3
 
-LDLIBS := -lm
-LDFLAGS :=
+LDLIBS_server := -lm
+LDFLAGS_server :=
+
+LDFLAGS_gui != pkg-config --libs-only-L sdl2
+LDLIBS_gui != pkg-config --libs-only-l sdl2 SDL2_image glew gl glu
+CXXFLAGS_gui += $(shell pkg-config --cflags sdl2)
+
+# Used to simplify the nix build
+GUI_ASSET_DIR ?= assets
+
+CXXFLAGS_gui += -DASSET_DIR='"$(GUI_ASSET_DIR)"'
 
 MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --no-print-directory
@@ -63,6 +72,7 @@ $(BUILD)/$(strip $2)/%.o: %.$(GENERIC_SUFFIX_$(strip $3))
 		-MMD -MP -MF $$(@:.o=.d)                                              \
 		-o $$@ -c $$<                                                         \
 			$$($(GENERIC_FLAGS_$(strip $3))FLAGS)                             \
+			$$($(GENERIC_FLAGS_$(strip $3))FLAGS_$(strip $1))                 \
 			$$($(GENERIC_FLAGS_$(strip $3))FLAGS_$(strip $2))
 	@ $$(LOG_TIME) "CC $$(C_YELLOW)$(strip $2)$$(C_RESET)                     \
 		$$(C_PURPLE)$$(notdir $$@) $$(C_RESET)"
@@ -76,6 +86,8 @@ objs_$(strip $1)_$(strip $2) :=                                               \
 	$$(src_$(strip $1)_$(strip $2):%.$(GENERIC_SUFFIX_$(strip                 \
 	$3))=$(BUILD)/$(strip $2)/%.o)
 
+$$(out_$(strip $1)_$(strip $2)): LDFLAGS += $(LDLIBS_$(strip $1))
+$$(out_$(strip $1)_$(strip $2)): LDLIBS += $(LDLIBS_$(strip $1))
 $$(out_$(strip $1)_$(strip $2)): $$(objs_$(strip $1)_$(strip $2))
 	$$Q $$(LINK.$(GENERIC_SUFFIX_$(strip $3)))                                \
 			$$($(GENERIC_FLAGS_$(strip $3))FLAGS)                             \
