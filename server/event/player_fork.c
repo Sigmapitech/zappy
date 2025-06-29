@@ -22,7 +22,7 @@ bool player_fork_handler(server_t *srv, const event_t *event)
     srv->eggs.buff[srv->eggs.nmemb] = (egg_t){get_timestamp() + interval_sec,
         .team_id = cs->team_id, .x = cs->x, .y = cs->y};
     srv->eggs.nmemb++;
-    send_to_guis(srv, "enw #%zu %hu %hhu %hhu\n",
+    send_to_guis(srv, "enw #%zu #%hu %hhu %hhu\n",
         srv->eggs.nmemb, event->client_idx, cs->x, cs->y);
     append_to_output(srv, cs, "ok\n");
     return true;
