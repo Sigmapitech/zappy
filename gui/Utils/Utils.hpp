@@ -49,3 +49,9 @@ inline float randomFloat(float min, float max)
 
   return dis(gen);
 }
+
+inline double hashToRange(double x, double btw = 1.0)
+{
+  double hashed = std::sin(x * 12.9898) * 43758.5453;
+  return (hashed - std::floor(hashed)) - btw;
+}
