@@ -1,4 +1,5 @@
 #include "Trantor.hpp"
+#include "API/Inventory/Inventory.hpp"
 
 Trantor::Trantor(int id, int x, int y, int orientation, int level)
   : _id(id), _orientation(orientation), _level(level)
@@ -33,6 +34,11 @@ void Trantor::SetPosition(int x, int y)
 std::pair<int, int> Trantor::GetPosition()
 {
   return _position;
+}
+
+std::map<std::string, size_t> Trantor::GetInventory()
+{
+  return _inventory.GetInventory();
 }
 
 void Trantor::SetLevel(int level)
