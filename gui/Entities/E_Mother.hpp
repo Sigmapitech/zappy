@@ -52,6 +52,8 @@ private:
   std::shared_ptr<Texture> _texturePlayer = nullptr;
   std::shared_ptr<Texture> _textureEgg = nullptr;
 
+  std::array<std::shared_ptr<Texture>, 8> _textureTeams;
+
   std::vector<std::vector<TileData>> _tilemap;
   std::shared_ptr<API> _api;
 
