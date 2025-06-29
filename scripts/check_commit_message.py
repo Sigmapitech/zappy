@@ -8,7 +8,7 @@ def has_correct_message(msg: str) -> bool:
     print(f"Commit message:\n{msg}")
     title = msg.splitlines()[0]
 
-    if msg == "squash\n":
+    if msg == "squash\n" or msg.startswith("fixup! "):
         return True
 
     verb, *words = title.split()

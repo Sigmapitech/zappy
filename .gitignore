@@ -25,12 +25,13 @@ __pycache__
 *.so
 *.egg-info
 .coverage
+callgrind.out.*
 
 # Editors
 .idea
 .vscode
+.cache
 compile_commands.json
-ecsls.toml
 
 # Basic files
 a.out
