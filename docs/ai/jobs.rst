@@ -1,4 +1,4 @@
-AI Job System
+Job class system
 ==============
 
 This page explains the *Legacy AI Behavior* we experimented with for the project.
@@ -11,35 +11,23 @@ Overview
 --------
 
 - **Newcomer**
-  - Default job for any freshly spawned player.
-  - Waits to be assigned a role by the existing *Elder*.
-  - If no Elder broadcast is heard for 50 ticks, promotes itself to Elder.
-
+    - Every player that spawns in the map have this job as default; the player can be assigned job by the already existing or become one if no *Elder* broadcast has been for 50 ticks.
 - **Elder**
-  - A single Elder exists per civilization.
-  - Acts as the central coordinator:
-    - Chooses a "home tile" near civilization center.
-    - Receives stones, food, and players for incantations.
-    - Assigns jobs to newcomers.
-    - Tracks the roles and locations of all known players.
-  - Garblers are a partial exception: they are not tracked as precisely, and assignment is rarer to avoid confusion.
-
+    - There can only be one per civilization, as it is the *quite literal* pillar of this species.
+    - Will choose a tile that's in the center of its civilization, to receive stones, food and players players to perform the incantation on this home tile.
+    - Dispatches newcomers around different jobs.
+    - Knows every player on the map, and their job. *Garblers* are an exception and aren't precisely counted. To account for that, they're not assigned often to players.
 - **Basic**
-  - Default worker role.
-  - Randomly paths around the map, collecting any stones in its way.
-  - Broadcasts when it has enough resources to evolve.
-
+    - Collects the stones that are in its way, randomly pathing around the map, and sends a broadcast when he has enough stones to evolve.
 - **Collector**
-  - Focuses on gathering specific stones.
-  - Delivers resources to the Elder's designated home tile.
-
+    - Collects stones and drops them off on the tile of the *Elder*. As simple as that.
 - **Garbler**
-  - Leaves the civilization to embed itself in an enemy team.
-  - Goal is to disrupt enemy communication.
-  - For every message it sends, it cycles modes:
-    - **50%** Raven: emits nonsense (including invalid encodings like `\feff`).
-    - **40%** Mimicry: repeats verbatim any intercepted enemy message.
-    - **10%** Parrot: repeats messages with heavy modification.
+    - Goes away from his civilization to immerse himself in another one and garble their communications.
+    - For every message he sends, it alternates between the following modes:
+        - [**50%**] Raven (send incomprehensible garbage -including \ufeff for example)
+        - [**40%**] Mimicry (repeat every message he hears)
+        - [**10%**] Parrot (repeat what he hears after modifying it substantially)
+
 
 Job Assignment System
 ----------------------
