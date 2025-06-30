@@ -101,7 +101,7 @@ together to achieve victory.
 1. **Clone the repository:**
 
    ```sh
-   git clone <repository-url>
+   git clone --recurse-submodules <repository-url>
    cd <repository-directory>
    ```
 
