@@ -2,7 +2,7 @@ import os
 import pathlib
 from datetime import datetime
 
-PROJECT_NAME = "plazza"
+PROJECT_NAME = "zappy"
 
 _HEADER_TEMPLATE = (
     "{start}\n"
